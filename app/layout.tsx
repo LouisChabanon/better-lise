@@ -7,8 +7,10 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "Better Lise",
   description: "A better lise experience",
-};
-
+  appleWebApp: {
+    title: "Better Lise"
+  }
+}
 
 export default function RootLayout({
   children,
@@ -17,6 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="apple-mobile-web-app-title" content="Better Lise" />
+      </head>
       <body>
             <div className="flex flex-col bg-white min-h-screen">
               <MenuBar />
