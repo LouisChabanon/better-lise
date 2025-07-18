@@ -1,6 +1,6 @@
 "use client";
 /* This example requires Tailwind CSS v2.0+ */
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo, use } from 'react'
 import { RightOutlined, LeftOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
@@ -19,9 +19,11 @@ export default function Agenda() {
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [swipeOffset, setSwipeOffset] = useState<number>(0);
     const [mapping, setMapping] = useState<Record<string, { position: number, columns: number }>>({});
+
     
     const agendaRef = useRef<HTMLDivElement>(null);
     const touchStartX = useRef<number | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
 
     const { weekDates, currentDayIndex } = getWeekData(weekOffset);
 
@@ -45,14 +47,14 @@ export default function Agenda() {
     useEffect(() => {
         fetchCalendarEvents();
 
-        if (typeof window !== 'undefined' && agendaRef.current) {
-            const isMobile = window.innerWidth < 640; // Check if the screen width is less than 640px
-            if (isMobile) {
-                const rect = agendaRef.current.getBoundingClientRect();
-                const oneThirdScreenHeight = window.innerHeight / 3;
-                agendaRef.current.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
+        // if (typeof window !== 'undefined' && agendaRef.current) {
+        //     const isMobile = window.innerWidth < 640; // Check if the screen width is less than 640px
+        //     if (isMobile) {
+        //         const rect = agendaRef.current.getBoundingClientRect();
+        //         const oneThirdScreenHeight = window.innerHeight / 3;
+        //         agendaRef.current.scrollIntoView({ behavior: 'smooth' });
+        //     }
+        // }
     }, [weekOffset])
 
     const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
@@ -63,15 +65,26 @@ export default function Agenda() {
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
+
         if(touchStartX.current === null) return;
+        
         const deltaX = e.touches[0].clientX - touchStartX.current;
-        setSwipeOffset(deltaX)
+
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+        }
+
+        animationFrameRef.current = requestAnimationFrame(() => {
+            setSwipeOffset(deltaX);
+        });
     }
 
     const handleTouchEnd = (e: React.TouchEvent) => {
         if(touchStartX.current === null) return;
+        
         const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-        setLoading(true);
+        
+
         if( Math.abs(deltaX) > 50) {
             if(deltaX > 0) {
                 setWeekOffset(prev => prev - 1);
@@ -79,8 +92,11 @@ export default function Agenda() {
                 setWeekOffset(prev => prev + 1);
             }
         }
-        setSwipeOffset(0);
-        setLoading(false);
+
+        setTimeout(() => {
+            setSwipeOffset(0);
+        }, 100);
+        
         touchStartX.current = null;
     };
 
@@ -124,7 +140,7 @@ export default function Agenda() {
             </div>
         </header>
         <div className="flex flex-auto flex-col overflow-y-auto bg-white relative">
-            <div ref={agendaRef} style={{transform: `translateX(${swipeOffset}px)`, transition: swipeOffset === 0 ? 'transform 0.2s ease-out' : 'none'}} className="flex max-w-full flex-none flex-col touch-pan-x w-screen sm:w-[165%]" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onTouchMove={handleTouchMove}>
+            <div ref={agendaRef} className="flex flex-none flex-col">
             <div
                 className="sticky top-0 z-30 flex-none bg-white shadow ring-opacity-5"
             >
@@ -242,7 +258,18 @@ export default function Agenda() {
                 </div>
 
                 {/* Events grid is 144 rows: 12h * 60min / 5min */}
-                <ol className="col-start-1 col-end-2 row-start-1 grid grid-cols-5" style={{ gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto' }}>
+                <ol 
+                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 touch-pan-x"
+                    style={{ 
+                        gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto',
+                        transform: `translateX(${swipeOffset}px)`, 
+                        transition: swipeOffset === 0 ? 'transform 0.2s ease-out' : 'none'
+                      }}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchMove}
+                      >
+                    
                     <CurrentTimeLine currentDay={currentDayIndex} />
                     {calendarEvents && calendarEvents.map((event, i) => {
 
