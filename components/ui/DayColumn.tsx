@@ -84,8 +84,6 @@ export default function DayColumn({ events, dayIndex, weekOffset }: DayColumnPro
                                     href="#"
                                     onClick={() => setActiveKey(key)}
                                     className="group flex flex-col overflow-y-auto rounded-lg p-2 text-xs leading-5 absolute inset-1">
-                                    <CalendarEvent {...event}
-                                    />
                                 </a>
                             </li>
                         )

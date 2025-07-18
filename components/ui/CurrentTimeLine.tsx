@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useState } from 'react';
 
-const CurrentTimeLine = (props) => {
+interface CurrentTimeLineProps {
+    currentDay: number;
+}
+
+const CurrentTimeLine: React.FC<CurrentTimeLineProps> = (props) => {
 
     const [position, setPosition] = useState<number | null>(null);
-
 
     useEffect(() => {
         const updatePosition = () => {

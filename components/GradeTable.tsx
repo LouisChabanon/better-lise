@@ -6,6 +6,7 @@ import { Button } from "./ui/Button";
 import { CaretRightFilled, CaretLeftFilled } from "@ant-design/icons";
 
 interface Grade {
+  id: number;
   name: string;
   grade: string;
   date: string;
@@ -42,6 +43,7 @@ export function GradeTable(){
         return 0; // both are either new or not new
       });
         setGrades(sortNew.map((g) => ({
+          id: g.id, 
           name: g.name,
           grade: g.grade,
           date: g.date,
