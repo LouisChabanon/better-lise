@@ -1,8 +1,8 @@
 import { format } from "date-fns";
 import { getWeekData } from "@/actions/GetWeekData";
-import { info } from "console";
+import { useState } from "react";
 
-type CalendarEventType = "CM" | "TEST" | "TEAMS" | "ED" | "TP";
+type CalendarEventType = "CM" | "TEST" | "TEAMS" | "ED" | "TP" | "RU";
 
 type CalendarEventProps = {
     title: string;
@@ -20,6 +20,12 @@ const normalizeDate = (date: Date) => {
 
 const CalendarEvent = ({ title, summary, startDate, endDate, type="CM", weekOffset=0, info
  }: CalendarEventProps) => {
+
+    const [isActive, setIsActive] = useState(false);
+
+    const handleStart = () => setIsActive(true);
+    const handleEnd = () => setIsActive(false);
+
     const startTime = format(startDate, 'HH:mm');
     const endTime = format(endDate, 'HH:mm');
 
@@ -75,6 +81,10 @@ const CalendarEvent = ({ title, summary, startDate, endDate, type="CM", weekOffs
             eventClass = "bg-green-50 text-green-700 hover:bg-green-100";
             eventText = "text-green-500";
             break;
+        case "RU":
+            eventClass = "bg-sky-200 text-sky-700 hover:bg-sky-200";
+            eventText = "text-on-secondary";
+            break;
     }
     
     const width = `${100 / info.columns}%`;
@@ -82,21 +92,52 @@ const CalendarEvent = ({ title, summary, startDate, endDate, type="CM", weekOffs
     
     
     return (
-        <li className={`relative mt-px flex col-start-${eventDayISO}`} style={{ 
-            gridRow: `${startRow} / span ${span} `,
-            width: width,
-            left: left,
-            }}>
+        <>
+        {isActive && (
+            <div className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40" onClick={handleEnd} />
+        )}
+        <li className={` transition-all duration-200 ease-out ${isActive ? "z-50 fixed select-none touch-none" : `relative col-start-${eventDayISO}`}`} style={{
+
+            ...(isActive ? {
+                top: "10%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "90%",
+                maxWidth: "400px",
+                height: "auto",
+                padding: "1rem",
+            }: {
+                gridRow: `${startRow} / span ${span} `,
+                width: width,
+                left: left,
+                position: "relative",
+            })
+            }}
+            onTouchStart={handleStart}
+            onTouchEnd={handleEnd}
+            onTouchCancel={handleEnd}
+            onMouseDown={handleStart}
+            onMouseUp={handleEnd}
+            
+            >
             <a
-                href="#"
-                className={eventClass + " " + "group absolute inset-1 flex flex-col overflow-y-auto rounded-lg p-2 text-xs leading-5 "}>
+                className={`
+                    ${eventClass} group
+                    ${isActive ? "block w-full h-auto overflow-y-auto max-h-[70hv]" : "absolute inset-1"} flex flex-col rounded-lg p-2 leading-5 transition-all duration-200 
+                    ${isActive ? "text-base shadow-2xl p-4 rounded-xl" : "text-sm"}`}>
                 <p className="order-1 font-semibold">{title}</p>
                 <p className={eventText + " text-xs"}>
                     <time dateTime={startDate.toISOString()}>{startTime}</time> -{" "}<time dateTime={endDate.toISOString()}>{endTime}</time>
                 </p>
+                {summary && (
+                    <p className="order-2 mt-1 text-gray-600">{summary.split(" ")[0]}</p>
+                )}
+                {isActive && summary && (
+                    <p className="order-2 mt-2 text-gray-600 whitespace-pre-line">{summary}</p>
+                )}
             </a>
         </li>
-        
+    </>
     )
 }
 
