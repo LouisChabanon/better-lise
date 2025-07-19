@@ -6,11 +6,10 @@ import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
 import { getWeekData } from '@/actions/GetWeekData';
+import getCrousData from '@/actions/GetCrousData';
 import GetCalendar from '@/actions/GetCalendar';
 import { CalendarEventProps } from '@/lib/types';
-import { set } from 'date-fns';
 import { CalculateOverlaps } from '@/lib/helper';
-import DayColumn from './ui/DayColumn';
 
 export default function Agenda() {
 
@@ -30,17 +29,20 @@ export default function Agenda() {
     const fetchCalendarEvents = async () => {
         setLoading(true);
         const calendarData = await GetCalendar();
+        const crousData = await getCrousData();
+
         if (calendarData) {
-            const { sorted, mapping } = CalculateOverlaps(calendarData);
+
+            const eventData = calendarData.concat(crousData || []);
+
+            const { sorted, mapping } = CalculateOverlaps(eventData);
             setCalendarEvents(sorted);
             setMapping(mapping);
             console.log("Calendar events fetched and overlaps calculated.");
         } else {
             console.error("Failed to fetch calendar events");
         }
-
         
-
         setLoading(false);
     }
 
@@ -281,6 +283,7 @@ export default function Agenda() {
                             <CalendarEvent
                                 key={i}
                                 title={event.title}
+                                summary={event.summary}
                                 startDate={event.startDate}
                                 endDate={event.endDate}
                                 type={event.type}
