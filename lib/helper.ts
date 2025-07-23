@@ -32,3 +32,12 @@ export function CalculateOverlaps(events: CalendarEventProps[]){
 
     return { sorted, mapping };
 }
+
+
+export function getMonthName(month: number): string {
+    const months = [
+        "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+        "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+    ];
+    return months[month];
+}

@@ -9,7 +9,7 @@ import { getWeekData } from '@/actions/GetWeekData';
 import getCrousData from '@/actions/GetCrousData';
 import GetCalendar from '@/actions/GetCalendar';
 import { CalendarEventProps } from '@/lib/types';
-import { CalculateOverlaps } from '@/lib/helper';
+import { CalculateOverlaps, getMonthName } from '@/lib/helper';
 
 export default function Agenda() {
 
@@ -107,7 +107,7 @@ export default function Agenda() {
         <div className="flex h-full flex-col">
         <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
             <h1 className="text-xl font-semibold text-primary">
-            <time dateTime="">Calendrier</time>
+            <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
             </h1>
             <div className="flex items-center">
                 <div className="text-sm sm:flex justify-center items-center hidden">
@@ -284,6 +284,9 @@ export default function Agenda() {
                                 key={i}
                                 title={event.title}
                                 summary={event.summary}
+                                room={event.room}
+                                teacher={event.teacher}
+                                group={event.group}
                                 startDate={event.startDate}
                                 endDate={event.endDate}
                                 type={event.type}

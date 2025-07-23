@@ -21,18 +21,12 @@ const GetCalendar = async () => {
     const username = res.username;
 
     try {
-        const res = await fetch(DEV_URI, {
+        const res = await fetch(`${URI}${username}`, {
             method: "GET",
             headers: {
-                "cache-control": "no-cache"
-            }
-        })
-        // const res = await fetch(`${URI}${username}`, {
-        //     method: "GET",
-        //     headers: {
-        //         "cache-control": "no-cache"}
-        //     },
-        // );
+                "cache-control": "no-cache"}
+            },
+        );
 
         if (!res.ok) {
             console.error("Failed to fetch calendar:", res.statusText);
@@ -42,7 +36,7 @@ const GetCalendar = async () => {
         const data = await res.text();
         
         const calendarData = await ical.parseICS(data);
-
+        console.log("Calendar data fetched successfully:", calendarData);
         const calendarEvents: CalendarEventProps[] = [];
         for (const key in calendarData) {
             if (calendarData.hasOwnProperty(key) && calendarData[key].type === 'VEVENT') {
@@ -53,13 +47,21 @@ const GetCalendar = async () => {
                 // Check if the event has a summary
                 const summary = event.summary || "No summary available";
 
+                const module = event.description.match(/- MODULES\s*:\s*(.+)/);
+                const group = event.description.match(/- GROUPES\s*:\s*(.+)/);
+                const teacher = event.description.match(/- INTERVENANTS\s*:\s*(.+)/);
+                const room = event.location || "No room specified";
+                const type = event.description.match(/- TYPE_ACTIVITE\s*:\s*(.+)/);
 
                 // Create a CalendarEventProps object
                 const calendarEvent: CalendarEventProps = {
-                    title: summary,
+                    title: module ? module[1].trim() : summary,
                     startDate: startDate,
                     endDate: endDate,
-                    type: event.type || "CM" // Change this once we have actual data
+                    room: room,
+                    teacher: teacher ? teacher[1].trim() : "No teacher specified",
+                    group: group ? group[1].trim() : "No group specified",
+                    type: type ? type[1].trim() : "CM" // Change this once we have actual data
                 };
 
                 calendarEvents.push(calendarEvent);

@@ -1,11 +1,13 @@
 
-
-export type CalendarEventType = "CM" | "TEST" | "TEAMS" | "ED" | "TP" | "RU";
+export type CalendarEventType = "CM" | "EXAMEN" | "TRAVAIL_AUTONOME" | "ED_TD" | "TPS" | "RU" | "PROJET";
 
 export type CalendarEventProps = {
     title: string;
     startDate: Date;
     endDate: Date;
     summary?: string;
+    room?: string;
+    teacher?: string;
+    group?: string;
     type?: CalendarEventType;
 };
