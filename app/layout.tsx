@@ -1,15 +1,41 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import '@ant-design/v5-patch-for-react-19';
 import '@/styles/globals.css';
 import MenuBar from "@/components/MenuBar";
 import Footer from "@/components/Footer";
+import InstallAppBanner from "@/components/InstallBanner";
+import Pwa from "@/components/pwa";
 
 export const metadata: Metadata = {
-  title: "Better Lise",
+  applicationName: "Better Lise",
+  title: {
+    default: "Better Lise",
+    template: "%s | Better Lise",
+  },
   description: "A better lise experience",
   appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
     title: "Better Lise"
-  }
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Better Lise",
+    title: {
+      default: "Better Lise",
+      template: "%s | Better Lise",
+    },
+    description: "A better lise experience",
+  },
+  manifest: "/manifest.json",
+}
+
+export const viewPort: Viewport = {
+  themeColor: "#ffffff",
+  userScalable: false,
 }
 
 export default function RootLayout({
@@ -20,12 +46,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="apple-mobile-web-app-title" content="Better Lise" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body>
             <div className="flex flex-col bg-white min-h-screen">
+              <Pwa />
+              <InstallAppBanner />
               <MenuBar />
-                {children}
+              {children}  
               <Footer />
             </div>
       </body>
