@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { logOut } from '@/actions/Auth';
 import { LogoutOutlined } from "@ant-design/icons"
 import path from "path";
-import InstallPrompt from "./InstallPrompt";
+import InstallPrompt from "./InstallBanner";
 
 
 const MenuBar = () => {
@@ -35,7 +35,6 @@ const MenuBar = () => {
             <h1 className="text-2xl text-primary font-bold m-2 "> 
             ☝️🤓 Sl'ass
             </h1>
-            <InstallPrompt />
             <Button onClick={handleLogOut} status="primary" disabled={disable}><div><LogoutOutlined /> Déconnexion</div></Button>
         </div>
     );

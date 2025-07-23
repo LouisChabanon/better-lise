@@ -53,13 +53,17 @@ export const createSession = async (username: string): Promise<string> => {
     }
 
     const jwt = await encrypt(sessionPayload);
-
-    (await cookies()).set("jwt_token", jwt, {
+    try {
+        (await cookies()).set("jwt_token", jwt, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        //secure: process.env.NODE_ENV === "production", ENABLE THIS IN PRODUCTION however it will break local development because https
         sameSite: "lax",
         path: "/",
     });
+    } catch (error) {
+        console.error("Failed to set cookie:", error);
+    }
+
     return jwt;
 }
 
@@ -67,7 +71,7 @@ export async function verifySession() {
     try {
         const cookie = (await cookies()).get("jwt_token")?.value;
         if (!cookie) {
-            console.error("No session cookie found");
+            console.error("No session cookie found: " + cookie);
             return { isAuth: false };
         }
 
