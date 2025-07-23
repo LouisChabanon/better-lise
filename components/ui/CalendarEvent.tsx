@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { getWeekData } from "@/actions/GetWeekData";
 import { useState } from "react";
 
-type CalendarEventType = "CM" | "TEST" | "TEAMS" | "ED" | "TP" | "RU";
+type CalendarEventType = "CM" | "EXAMEN" | "TRAVAIL_AUTONOME" | "ED_TD" | "TPS" | "RU" | "PROJET";
 
 type CalendarEventProps = {
     title: string;
@@ -10,6 +10,9 @@ type CalendarEventProps = {
     startDate: Date;
     endDate: Date;
     type?: CalendarEventType;
+    room?: string;
+    teacher?: string;
+    group?: string;
     weekOffset?: number; // Offset for the week, default is 0 (current week)
     info: { position: number, columns: number }; // Additional info for layout
 };
@@ -18,7 +21,7 @@ const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-const CalendarEvent = ({ title, summary, startDate, endDate, type="CM", weekOffset=0, info
+const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info
  }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
@@ -66,23 +69,23 @@ const CalendarEvent = ({ title, summary, startDate, endDate, type="CM", weekOffs
     let eventText = "text-on-primary";
     switch (type) {
         case "CM":
-            eventClass = "bg-secondary-container text-secondary hover:bg-secondary-container/80";
-            eventText = "text-on-secondary";
+            eventClass = "bg-amber-200 text-amber-700 hover:bg-amber-200/80";
+            eventText = "text-amber-700";
             break;
-        case "TEST":
+        case "EXAMEN":
             eventClass = "bg-red-100 text-red-700 hover:bg-red-200";
             eventText = "text-red-500";
             break;
-        case "TEAMS":
-            eventClass = "bg-purple-100 text-purple-700 hover:bg-purple-200";
-            eventText = "text-purple-500";
+        case "TRAVAIL_AUTONOME":
+            eventClass = "bg-pink-100 text-pink-700 hover:bg-pink-200";
+            eventText = "text-pink-700";
             break;
-        case "TP":
-            eventClass = "bg-green-50 text-green-700 hover:bg-green-100";
-            eventText = "text-green-500";
+        case "TPS":
+            eventClass = "bg-blue-200 text-blue-700 hover:bg-blue-200/80";
+            eventText = "text-blue-700";
             break;
         case "RU":
-            eventClass = "bg-sky-200 text-sky-700 hover:bg-sky-200";
+            eventClass = "bg-sky-200 text-sky-700 hover:bg-sky-200/80 ";
             eventText = "text-on-secondary";
             break;
     }
@@ -122,18 +125,18 @@ const CalendarEvent = ({ title, summary, startDate, endDate, type="CM", weekOffs
             >
             <a
                 className={`
-                    ${eventClass} group
-                    ${isActive ? "block w-full h-auto overflow-y-auto max-h-[70hv]" : "absolute inset-1"} flex flex-col rounded-lg p-2 leading-5 transition-all duration-200 
-                    ${isActive ? "text-base shadow-2xl p-4 rounded-xl" : "text-sm"}`}>
-                <p className="order-1 font-semibold">{title}</p>
-                <p className={eventText + " text-xs"}>
-                    <time dateTime={startDate.toISOString()}>{startTime}</time> -{" "}<time dateTime={endDate.toISOString()}>{endTime}</time>
+                    ${eventClass} group text-center text-[10px] sm:text-sm whitespace-normal overflow-hidden break-words
+                    ${isActive ? "block w-full h-auto overflow-y-auto max-h-[70hv]" : "absolute inset-1"} flex flex-col rounded-lg p-1 transition-all duration-200 gap-2 
+                    ${isActive ? "text-base shadow-2xl p-4 rounded-xl" : ""}
+                    
+                    `}>
+                <p className="order-1 font-semibold line-clamp-3">{title}</p>
+                <p className={`order-2 ${eventText}`}>
+                    {type} - {room || ""}
                 </p>
-                {summary && (
-                    <p className="order-2 mt-1 text-gray-600">{summary.split(" ")[0]}</p>
-                )}
-                {isActive && summary && (
-                    <p className="order-2 mt-2 text-gray-600 whitespace-pre-line">{summary}</p>
+                {isActive && (
+                    <p className="order-2 mt-2 text-gray-600 whitespace-pre-line">{summary} {teacher || "No teacher specified"} - {group || "No group specified"}</p>
+                    
                 )}
             </a>
         </li>
