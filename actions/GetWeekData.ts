@@ -19,6 +19,15 @@ export function getWeekData(weekOffset: number): {weekDates: Date[], currentDayI
     const isWeekDay = isoDay >= 1 && isoDay <= 5; // Monday to Friday are considered weekdays
     const currentDayIndex = isWeekDay ? isoDay - 1 : null; // If it's a weekend, return null
 
+    
+    if (weekOffset != 0){
+        return {
+            weekDates: weekDates,
+            currentDayIndex: -1
+        }
+    }
+
+
     return {
         weekDates: weekDates,
         currentDayIndex: isoDay - 1 // 0 for Monday, 6 for Sunday

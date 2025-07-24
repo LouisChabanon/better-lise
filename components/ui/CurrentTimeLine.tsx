@@ -33,6 +33,10 @@ const CurrentTimeLine: React.FC<CurrentTimeLineProps> = (props) => {
         return () => clearInterval(interval); // Cleanup on unmount
     }, [])
 
+    if (position === null) {
+        return null; // Don't render anything if outside of working hours or invalid day
+    }
+
     return (
         <div className={`relative col-start-${props.currentDay +1 } pointer-events-none z-40`} style={{gridRow: `${position}`}}>
             <div className="relative">
