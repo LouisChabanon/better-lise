@@ -54,7 +54,7 @@ export default function DayColumn({ events, dayIndex, weekOffset }: DayColumnPro
 
     const { sorted, mapping } = useMemo(() => CalculateOverlaps(eventsOfDay), [eventsOfDay]);
 
-    console.log("We have ", eventsOfDay.length, "events for day index", dayIndex, "with week offset", weekOffset);
+
 
     // Events grid is 144 rows: 12h * 60min / 5min
     return (

@@ -28,7 +28,6 @@ export function CalculateOverlaps(events: CalendarEventProps[]){
         });
     }));
 
-    console.log("Overlaps calculated: ", groups.length, " groups with mapping: ", mapping);
 
     return { sorted, mapping };
 }

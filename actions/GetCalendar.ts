@@ -36,7 +36,7 @@ const GetCalendar = async () => {
         const data = await res.text();
         
         const calendarData = await ical.parseICS(data);
-        console.log("Calendar data fetched successfully:", calendarData);
+
         const calendarEvents: CalendarEventProps[] = [];
         for (const key in calendarData) {
             if (calendarData.hasOwnProperty(key) && calendarData[key].type === 'VEVENT') {
