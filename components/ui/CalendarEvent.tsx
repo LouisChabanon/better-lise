@@ -102,7 +102,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
         <li className={` transition-all duration-200 ease-out ${isActive ? "z-50 fixed select-none touch-none" : `relative col-start-${eventDayISO}`}`} style={{
 
             ...(isActive ? {
-                top: "10%",
+                top: "30%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
                 width: "90%",
@@ -125,14 +125,14 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
             >
             <a
                 className={`
-                    ${eventClass} group text-center text-[10px] sm:text-sm whitespace-normal overflow-hidden break-words
+                    ${eventClass} group text-center  whitespace-normal overflow-hidden break-words
                     ${isActive ? "block w-full h-auto overflow-y-auto max-h-[70hv]" : "absolute inset-1"} flex flex-col rounded-lg p-1 transition-all duration-200 gap-2 
-                    ${isActive ? "text-base shadow-2xl p-4 rounded-xl" : ""}
+                    ${isActive ? "text-base shadow-2xl p-4 rounded-xl" : "text-[10px] sm:text-sm"}
                     
                     `}>
                 <p className="order-1 font-semibold line-clamp-3">{title}</p>
                 <p className={`order-2 ${eventText}`}>
-                    {type} - {room || ""}
+                    {type}  { room || ""}
                 </p>
                 {isActive && (
                     <p className="order-2 mt-2 text-gray-600 whitespace-pre-line">{summary} {teacher || "No teacher specified"} - {group || "No group specified"}</p>

@@ -1,7 +1,7 @@
 "use client";
 /* This example requires Tailwind CSS v2.0+ */
 import { useEffect, useState, useRef, useMemo, use } from 'react'
-import { RightOutlined, LeftOutlined, ReloadOutlined } from '@ant-design/icons';
+import { RightOutlined, LeftOutlined, ReloadOutlined, HomeOutlined } from '@ant-design/icons';
 import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
@@ -49,15 +49,11 @@ export default function Agenda() {
     useEffect(() => {
         fetchCalendarEvents();
 
-        // if (typeof window !== 'undefined' && agendaRef.current) {
-        //     const isMobile = window.innerWidth < 640; // Check if the screen width is less than 640px
-        //     if (isMobile) {
-        //         const rect = agendaRef.current.getBoundingClientRect();
-        //         const oneThirdScreenHeight = window.innerHeight / 3;
-        //         agendaRef.current.scrollIntoView({ behavior: 'smooth' });
-        //     }
-        // }
-    }, [weekOffset])
+        // If currentDayIndex is a weekend (Saturday or Sunday), display the next week
+        if (currentDayIndex === null || currentDayIndex >= 5 || currentDayIndex < 0) {
+            setWeekOffset(1); // Reset to next week if it's a weekend
+        }
+    }, [])
 
     const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
@@ -104,49 +100,62 @@ export default function Agenda() {
 
 
     return (
-        <div className="flex h-full flex-col">
-        <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
-            <h1 className="text-xl font-semibold text-primary">
-            <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
-            </h1>
-            <div className="flex items-center">
-                <div className="text-sm sm:flex justify-center items-center hidden">
-                <Button
-                    status="secondary"
-                    className='mr-2'
-                    onClick={() => setWeekOffset(weekOffset - 1)}
-                    disabled={loading}
-                    ><LeftOutlined className='font-semibold'/>
-                </Button>
-                <Button
-                    status="secondary"
-                    onClick={() => setWeekOffset(0)}
-                    disabled={loading || weekOffset === 0}
-                    >Aujourd'hui</Button>
-                <Button
-                    status="secondary"
-                    className='ml-2'
-                    onClick={() => setWeekOffset(weekOffset + 1)}
-                    disabled={loading}
-                    ><RightOutlined />
-                </Button>
-                </div>         
-            <div className="ml-4 flex items-center">
-                <div className="ml-6 h-6 w-px bg-gray-300" />
-                <Button onClick={() => fetchCalendarEvents()}
-                >
-                <ReloadOutlined />
-                </Button>
-            </div>
-            
-            </div>
-        </header>
+        <div className="flex h-full flex-col select-none">
+            <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
+                <h1 className="text-xl font-semibold text-primary">
+                <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
+                </h1>
+                <div className="flex items-center">
+                    <div className="text-sm sm:flex justify-center items-center hidden">
+                    <Button
+                        status="secondary"
+                        className='mr-2'
+                        onClick={() => setWeekOffset(weekOffset - 1)}
+                        disabled={loading}
+                        ><LeftOutlined className='font-semibold'/>
+                    </Button>
+                    <Button
+                        status="secondary"
+                        onClick={() => setWeekOffset(0)}
+                        disabled={loading || weekOffset === 0}
+                        >Aujourd'hui</Button>
+                    <Button
+                        status="secondary"
+                        className='ml-2'
+                        onClick={() => setWeekOffset(weekOffset + 1)}
+                        disabled={loading}
+                        ><RightOutlined />
+                    </Button>
+                    </div>         
+                <div className="ml-4 flex items-center">
+                    <div className="ml-6 h-6 w-px bg-gray-300" />
+                    <Button onClick={() => fetchCalendarEvents()}
+                    >
+                    <ReloadOutlined />
+                    </Button>
+                </div>
+                
+                </div>
+            </header>
+            <header className="flex sm:hidden flex-none items-center justify-between py-2 px-6">
+                <h1 className="text-xl font-semibold text-primary">
+                <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
+                </h1>
+                <div className="flex items-center">
+                    <Button
+                        status="secondary"
+                        onClick={() => setWeekOffset(0)}
+                        disabled={loading || weekOffset === 0}
+                        ><HomeOutlined /></Button>
+                </div>
+            </header>
         <div className="flex flex-auto flex-col overflow-y-auto bg-white relative">
             <div ref={agendaRef} className="flex flex-none flex-col">
             <div
                 className="sticky top-0 z-30 flex-none bg-white shadow ring-opacity-5"
             >
                 <div className="grid grid-cols-5 text-sm text-primary sm:hidden">
+                <div className="col-end-1 w-14" />
                     {weekDates.map((date, i) => (
                         <button key={i} type="button" className="flex flex-col items-center pt-1 pb-2">{shortLabels[i]} {' '}
                             <span className={`mt-1 flex h-8 w-8 items-center text-primary justify-center font-semibold ${i === currentDayIndex ? 'rounded-full bg-primary-container text-white' : "text-gray-900" }`}>{date.getDate()}</span>

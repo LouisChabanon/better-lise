@@ -2,7 +2,7 @@ import { MailOutlined, GithubOutlined } from "@ant-design/icons";
 
 export default function Footer() {
     return (
-        <footer className="bg-surface text-center py-4 mt-auto hidden sm:block">
+        <footer className="bg-surface text-center py-4 mt-auto block">
             <div className="container mx-auto">
                 <p className="text-gray-500 text-sm mb-2">
                     &copy; Usiné à Siber'ss par Modo 4! Me223. 2025.

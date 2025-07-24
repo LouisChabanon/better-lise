@@ -31,7 +31,7 @@ const MenuBar = () => {
 
 
     return (
-        <div className="bg-surface shadow flex justify-between p-2">
+        <div className="bg-surface shadow justify-between p-2 hidden sm:flex">
             <h1 className="text-2xl text-primary font-bold m-2 "> 
             ☝️🤓 Sl'ass
             </h1>
