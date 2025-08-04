@@ -20,12 +20,6 @@ export default function InstallAppBanner() {
     (deferredPrompt as any).prompt();
     const result = await (deferredPrompt as any).userChoice;
 
-    if (result.outcome === "accepted") {
-      console.log("User accepted the install prompt");
-    } else {
-      console.log("User dismissed the install prompt");
-    }
-  };
 
   if (!isInstallable || installed) return null;
 
@@ -40,4 +34,4 @@ export default function InstallAppBanner() {
       </button>
     </div>
   );
-}
+}}

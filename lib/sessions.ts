@@ -56,7 +56,7 @@ export const createSession = async (username: string): Promise<string> => {
     try {
         (await cookies()).set("jwt_token", jwt, {
         httpOnly: true,
-        //secure: process.env.NODE_ENV === "production", ENABLE THIS IN PRODUCTION however it will break local development because https
+        secure: process.env.NODE_ENV === "production", // ENABLE THIS IN PRODUCTION however it will break local development because https
         sameSite: "lax",
         path: "/",
     });

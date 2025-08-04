@@ -29,9 +29,9 @@ function getHiddenFields($html: cheerio.CheerioAPI) {
     const formIdInit = $html('input[name="form:idInit"]').val() as string;
     const largeurDivCentre = $html('input[name="form:largeurDivCenter"]').val() as string;
 
-    console.log("ViewState:", encodeURIComponent(viewState));
-    console.log("FormIdInit:", encodeURIComponent(formIdInit));
-    console.log("LargeurDivCentre:", encodeURIComponent(largeurDivCentre));
+    // console.log("ViewState:", encodeURIComponent(viewState));
+    // console.log("FormIdInit:", encodeURIComponent(formIdInit));
+    // console.log("LargeurDivCentre:", encodeURIComponent(largeurDivCentre));
 
     if (!viewState || !formIdInit) {
         console.error("Could not find required hidden fields in the HTML.");

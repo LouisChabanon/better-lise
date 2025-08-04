@@ -38,7 +38,7 @@ export default function Agenda() {
             const { sorted, mapping } = CalculateOverlaps(eventData);
             setCalendarEvents(sorted);
             setMapping(mapping);
-            console.log("Calendar events fetched and overlaps calculated.");
+            //console.log("Calendar events fetched and overlaps calculated.");
         } else {
             console.error("Failed to fetch calendar events");
         }

@@ -51,7 +51,6 @@ export default function RootLayout({
       </head>
       <body>
             <div className="flex flex-col bg-white min-h-screen">
-              <InstallAppBanner />
               <MenuBar />
               {children}  
               <Footer />
