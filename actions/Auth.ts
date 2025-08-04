@@ -81,7 +81,7 @@ export async function signIn(
         }
 
     } catch (error) {
-        console.error(error);
+        console.log("Error occurred during sign-in:", error);
         return { errors: "Internal error, please try again later." };
     }
 
