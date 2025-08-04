@@ -6,12 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "npx prisma generate && npx prisma migrate deploy"
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.2",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@prisma/client": "^6.11.1",
+    "@vercel/analytics": "^1.5.0",
     "antd": "^5.26.3",
     "cheerio": "^1.1.0",
     "date-fns": "^4.1.0",
