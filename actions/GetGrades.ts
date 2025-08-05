@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import fetchCookie from "fetch-cookie";
 import { CookieJar } from "tough-cookie";
 import prisma from "@/lib/db";
-import { verifySession } from "@/lib/sessions";
+import { verifySession, deleteSession } from "@/lib/sessions";
 import * as cheerio from "cheerio";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
@@ -97,6 +97,7 @@ export async function getGradeData(reload: boolean = false): Promise<RequestStat
 
             if ($html('title').text().includes('Connectez-vous') || $html('title').text().includes('Sign in')){
                 console.error("User not connected or session expired")
+                await deleteSession();
                 return {errors: "Session has expired", success: false};
             }
 

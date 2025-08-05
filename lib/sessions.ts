@@ -45,7 +45,8 @@ async function decrypt(token: string): Promise<SessionPayload | null> {
 
 export const createSession = async (username: string): Promise<string> => {
     console.log("Creating session for user:", username);
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiration
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days expiration time
+
     const sessionPayload: SessionPayload = {
         username,
         iat: Math.floor(Date.now() / 1000),
