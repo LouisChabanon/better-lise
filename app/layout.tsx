@@ -4,7 +4,7 @@ import '@/styles/globals.css';
 import MenuBar from "@/components/MenuBar";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next"
-import InstallAppBanner from "@/components/InstallBanner";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   applicationName: "Better Lise",
@@ -52,6 +52,7 @@ export default function RootLayout({
       </head>
       <body>
             <Analytics />
+            <SpeedInsights />
             <div className="flex flex-col bg-white min-h-screen">
               <MenuBar />
               {children}  
