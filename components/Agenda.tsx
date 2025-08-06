@@ -157,7 +157,7 @@ export default function Agenda() {
                 <div className="grid grid-cols-5 text-sm text-primary sm:hidden">
                 <div className="col-end-1 w-14" />
                     {weekDates.map((date, i) => (
-                        <button key={i} type="button" className="flex flex-col items-center pt-1 pb-2">{shortLabels[i]} {' '}
+                        <button key={i} type="button" className="flex flex-col items-center pt-1 pb-1">{shortLabels[i]} {' '}
                             <span className={`mt-1 flex h-8 w-8 items-center text-primary justify-center font-semibold ${i === currentDayIndex ? 'rounded-full bg-primary-container text-white' : "text-gray-900" }`}>{date.getDate()}</span>
                         </button>
                     ))}
@@ -270,7 +270,8 @@ export default function Agenda() {
 
                 {/* Events grid is 144 rows: 12h * 60min / 5min */}
                 <ol 
-                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 touch-pan-x"
+                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 touch-pan-x
+                    bg-gradient-to-r from-primary-container/5 via-transparent to-primary/5 sm:bg-none"
                     style={{ 
                         gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto',
                         transform: `translateX(${swipeOffset}px)`, 

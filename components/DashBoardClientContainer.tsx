@@ -40,7 +40,7 @@ export default function DashboardClientContainer() {
                 <GradeTable />
             </div>
             <button
-                className="fixed bottom-7 left-1/2 transform -translate-x-1/2 z-50 rounded-full bg-primary p-3 px-4 shadow-lg text-white sm:hidden"
+                className="fixed bottom-3 left-1/2 transform -translate-x-1/2 z-50 rounded-full bg-primary p-3 px-4 shadow-lg text-white sm:hidden"
                 aria-label="Aller au tableau"
                 onClick={() => {
                     if(tableInView){
