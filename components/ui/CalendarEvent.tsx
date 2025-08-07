@@ -94,7 +94,54 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const width = `${100 / info.columns}%`;
     const left = `${(info.position / info.columns) * 100}%`;
     
-    
+    if (type === "RU") {
+        // For RU, we want to display them in a special way
+        return (
+            <>
+            {isActive && (
+                <div className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40" onClick={handleEnd} />
+            )}
+            <li className={` transition-all duration-200 ease-out ${isActive ? "z-50 fixed select-none touch-none" : `relative col-start-${eventDayISO}`}`} style={{
+
+                ...(isActive ? {
+                    top: "30%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: "90%",
+                    maxWidth: "400px",
+                    height: "auto",
+                    padding: "1rem",
+                }: {
+                    gridRow: `${startRow} / span ${span} `,
+                    width: width,
+                    left: left,
+                    position: "relative",
+                })
+                }}
+                onTouchStart={handleStart}
+                onTouchEnd={handleEnd}
+                onTouchCancel={handleEnd}
+                onMouseDown={handleStart}
+                onMouseUp={handleEnd}
+                
+                >
+                <a
+                    className={`
+                        ${eventClass} group items-center justify-center text-center whitespace-normal overflow-hidden break-words
+                        ${isActive ? "block w-full h-auto overflow-y-auto max-h-[70hv]" : "absolute inset-1"} flex flex-col rounded-lg p-1 transition-all duration-200 gap-2 
+                        ${isActive ? "" : "text-5xl"}
+                        `}>
+                    {!isActive && (
+                        <p className="order-1 font-semibold drop-shadow-md line-clamp-3 text-center self-center">{title}</p>
+                    )}
+                    {isActive && (
+                        <p className="order-2 mt-2 text-gray-600 whitespace-pre-line">{summary}</p>
+                    )}
+                </a>
+            </li>
+    </>
+    )
+}
     return (
         <>
         {isActive && (
