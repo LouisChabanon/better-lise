@@ -1,9 +1,11 @@
 "use server";
-import { cookies } from "next/headers";
 const ical = require("node-ical");
-import { json } from "stream/consumers";
 import { CalendarEventProps } from "@/lib/types";
 import { verifySession } from "@/lib/sessions";
+import { fromZonedTime } from "date-fns-tz"
+
+
+const tz = 'Europe/Paris';
 
 
 const GetCalendar = async () => {
@@ -41,9 +43,11 @@ const GetCalendar = async () => {
         for (const key in calendarData) {
             if (calendarData.hasOwnProperty(key) && calendarData[key].type === 'VEVENT') {
                 const event = calendarData[key];
-                const startDate = new Date(event.start);
-                const endDate = new Date(event.end);
-                
+                const startDate = fromZonedTime(event.start, tz)
+                const endDate = fromZonedTime(event.end, tz)
+
+                //console.log("import Data", "Event Start:", startDate, "End:", endDate);
+
                 // Check if the event has a summary
                 const summary = event.summary || "No summary available";
 

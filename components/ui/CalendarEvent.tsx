@@ -32,6 +32,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const startTime = format(startDate, 'HH:mm');
     const endTime = format(endDate, 'HH:mm');
 
+
     const eventDay = startDate.getDay();
     const eventDayISO = eventDay === 0 ? 7 : eventDay;
 
