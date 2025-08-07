@@ -2,7 +2,7 @@
 const ical = require("node-ical");
 import { CalendarEventProps } from "@/lib/types";
 import { verifySession } from "@/lib/sessions";
-import { toZonedTime } from "date-fns-tz"
+import { fromZonedTime } from "date-fns-tz"
 
 
 const tz = 'Europe/Paris';
@@ -43,8 +43,8 @@ const GetCalendar = async () => {
         for (const key in calendarData) {
             if (calendarData.hasOwnProperty(key) && calendarData[key].type === 'VEVENT') {
                 const event = calendarData[key];
-                const startDate = toZonedTime(event.start, tz)
-                const endDate = toZonedTime(event.end, tz)
+                const startDate = fromZonedTime(event.start, tz)
+                const endDate = fromZonedTime(event.end, tz)
 
                 //console.log("import Data", "Event Start:", startDate, "End:", endDate);
 

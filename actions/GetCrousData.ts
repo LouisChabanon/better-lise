@@ -56,8 +56,6 @@ export default async function getCrousData() {
                 endDate.setHours(13, 30, 0, 0);
                 const localeEndDate = fromZonedTime(endDate, tz);
 
-                console.log("Crous server: ", localeStartDate);
-
                 if (subItems.length > 0){
                     mealEvents.push({
                         title: "Déjeuner RU",
