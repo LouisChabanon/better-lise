@@ -280,9 +280,12 @@ export default function Agenda() {
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                     onTouchMove={handleTouchMove}
+                    onTouchCancel={handleTouchEnd}
                       >
-                    
-                    <CurrentTimeLine currentDay={currentDayIndex} />
+
+                    {weekOffset == 0 && (
+                        <CurrentTimeLine currentDay={currentDayIndex} />
+                    )}
                     {calendarEvents && calendarEvents.map((event, i) => {
 
                         const key = event.title + i;

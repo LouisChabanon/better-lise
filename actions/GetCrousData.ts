@@ -58,7 +58,7 @@ export default async function getCrousData() {
 
                 if (subItems.length > 0){
                     mealEvents.push({
-                        title: "Déjeuner RU",
+                        title: "RU",
                         type: "RU",
                         summary: `${mainItem} - ${subItems.join(", ")}`,
                         startDate: localeStartDate,
