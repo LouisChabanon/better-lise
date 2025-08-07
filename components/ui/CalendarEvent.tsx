@@ -32,7 +32,6 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const startTime = format(startDate, 'HH:mm');
     const endTime = format(endDate, 'HH:mm');
 
-    console.log(title, "Event Start:", startTime, "End:", endTime);
 
     const eventDay = startDate.getDay();
     const eventDayISO = eventDay === 0 ? 7 : eventDay;
@@ -48,8 +47,6 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
 
     const startRow = Math.floor(startOffset / 5) + 1;
     const span = Math.max(1, Math.ceil((endOffset - startOffset) / 5));
-
-    console.log("Client StartDate: ", title, startDate)
 
 
     if (eventDayISO < 1 || eventDayISO > 5) {
