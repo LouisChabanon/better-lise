@@ -1,6 +1,9 @@
 "use server";
 import * as cheerio from "cheerio";
 import { CalendarEventProps } from "@/lib/types";
+import { toZonedTime } from "date-fns-tz";
+
+const tz = "Europe/Paris";
 
 const Months: Record<string, number> = {
     "janvier": 0,
@@ -45,11 +48,15 @@ export default async function getCrousData() {
                     subItems.push($(subItem).text().trim());
                 });
                 
-                // Make the event start at 11h30 and end at 13h30
+                // Make the event start at 11h30 and end at 13h30 Paris time
                 const startDate = new Date(date);
                 startDate.setHours(11, 30, 0, 0);
+                //const localeStartDate = toZonedTime(startDate, tz);
                 const endDate = new Date(date);
                 endDate.setHours(13, 30, 0, 0);
+                //const localeEndDate = toZonedTime(endDate, tz);
+
+                console.log("Crous server: ", startDate, endDate);
 
                 if (subItems.length > 0){
                     mealEvents.push({
