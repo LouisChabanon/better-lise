@@ -17,16 +17,20 @@ const Months: Record<string, number> = {
     "septembre": 8,
     "octobre": 9,
     "novembre": 10,
-    "décembre": 11
-}
+    "décembre": 11,
+};
 
+type Meal = {
+    ilot: {
+        name: string;
+        food: string[];
+    };
+};
 
 export default async function getCrousData() {
-    
     const mealEvents: CalendarEventProps[] = [];
 
     try {
-
         const res = await fetch("https://www.crous-lorraine.fr/restaurant/resto-u-metzin-2/");
         if (!res.ok) {
             throw new Error("Failed to fetch Crous data");
@@ -37,40 +41,69 @@ export default async function getCrousData() {
         const menuItems = $(".menu");
 
         menuItems.each((i, menuEl) => {
-            const dateText = $(menuEl).find(".menu_date_title").text().trim().split(" ");
-            
-            const date = new Date(Number(dateText[dateText.length - 1]), Months[dateText[dateText.length - 2]], Number(dateText[dateText.length - 3]))
+            const dateText = $(menuEl)
+                .find(".menu_date_title")
+                .text()
+                .trim()
+                .split(" ");
 
-            const food = $(menuEl).find(".meal_foodies > li").each((j, foodItem) => {
-                const mainItem = $(foodItem).contents().first().text().trim();
-                const subItems: string[] = []
-                $(foodItem).find(" ul > li ").each((k, subItem) => {
-                    subItems.push($(subItem).text().trim());
+            const date = new Date(
+                Number(dateText[dateText.length - 1]),
+                Months[dateText[dateText.length - 2]],
+                Number(dateText[dateText.length - 3])
+            );
+
+            let foodSummary: Meal[] = [];
+
+            // Collect all ilots + food
+            $(menuEl)
+                .find(".meal_foodies > li")
+                .each((j, foodItem) => {
+                    const mainItem = $(foodItem).contents().first().text().trim();
+                    const subItems: string[] = [];
+                    $(foodItem)
+                        .find("ul > li")
+                        .each((k, subItem) => {
+                            subItems.push($(subItem).text().trim());
+                        });
+
+                    foodSummary.push({
+                        ilot: {
+                            name: mainItem,
+                            food: subItems,
+                        },
+                    });
                 });
-                
-                // Make the event start at 11h30 and end at 13h30 Paris time
+
+            // Create only ONE event per day
+            if (foodSummary.length > 0) {
                 const startDate = new Date(date);
                 startDate.setHours(11, 30, 0, 0);
                 const localeStartDate = fromZonedTime(startDate, tz);
+
                 const endDate = new Date(date);
                 endDate.setHours(13, 30, 0, 0);
                 const localeEndDate = fromZonedTime(endDate, tz);
 
-                if (subItems.length > 0){
-                    mealEvents.push({
-                        title: "RU",
-                        type: "RU",
-                        summary: `${mainItem} - ${subItems.join(", ")}`,
-                        startDate: localeStartDate,
-                        endDate: localeEndDate
-                    });
-                }
-            })
-        })
+                const summary = foodSummary
+                    .map(
+                        (item) =>
+                            `${item.ilot.name}\n${item.ilot.food.join(", ")}`
+                    )
+                    .join(`\n\n`);
 
-        return mealEvents;
-    } catch (error) {
-        console.error("Error fetching Crous data:", error);
-        return null
+                mealEvents.push({
+                    title: "RU",
+                    type: "RU",
+                    summary,
+                    startDate: localeStartDate,
+                    endDate: localeEndDate,
+                });
+            }
+        });
+    } catch (err) {
+        console.error(err);
     }
-} 
+
+    return mealEvents;
+}
