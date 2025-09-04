@@ -97,7 +97,7 @@ export async function getGradeData(reload: boolean = false): Promise<RequestStat
 
             if ($html('title').text().includes('Connectez-vous') || $html('title').text().includes('Sign in')){
                 console.error("User not connected or session expired")
-                await deleteSession();
+                //await deleteSession(); FIX LATER !!!!!!!!!!!!!!!!!
                 return {errors: "Session has expired", success: false};
             }
 
@@ -165,7 +165,7 @@ export async function getGradeData(reload: boolean = false): Promise<RequestStat
                 const name = $html(el).find('.champsText2').text().trim();
                 const date = $html(el).find('.champsDate').text().trim();
                 grades.push({
-                    id: Math.floor(Math.random() * 1000000), // Temporary ID, will be replaced by DB ID
+                    id: user.id + Math.floor(Math.random() * 1000000), //THIS IS HORRIBLE
                     name,
                     grade,
                     date,
