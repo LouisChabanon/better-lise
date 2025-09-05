@@ -45,7 +45,7 @@ async function decrypt(token: string): Promise<SessionPayload | null> {
 
 export const createSession = async (username: string): Promise<string> => {
     console.log("Creating session for user:", username);
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days expiration time
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours expiration time
 
     const sessionPayload: SessionPayload = {
         username,
@@ -100,5 +100,4 @@ export async function verifySession() {
 
 export async function deleteSession() {
     (await cookies()).delete("jwt_token");
-    redirect("/login"); // Redirect to login after deleting session
 }

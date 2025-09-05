@@ -1,6 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { createSession, deleteSession } from "@/lib/sessions";
 import prisma from "@/lib/db";
 import { CookieJar } from "tough-cookie";
@@ -56,7 +55,7 @@ export async function signIn(
         // If Lise does not redirect, it means the user does not exist
         // or the credentials are incorrect
         if (res.status === 200){
-            return { success: false, errors: "User does not exist on lise, please use your lise credentials" };
+            return { success: false, errors: "User does not exist on lise or invalid credentials" };
         } 
 
         // Need better check, currently Lise could redirect us anywhere for any reason.
