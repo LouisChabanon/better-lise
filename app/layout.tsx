@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import '@ant-design/v5-patch-for-react-19';
 import '@/styles/globals.css';
-import MenuBar from "@/components/MenuBar";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -54,8 +53,7 @@ export default function RootLayout({
             <Analytics />
             <SpeedInsights />
             <div className="flex flex-col bg-white min-h-screen">
-              <MenuBar />
-              {children}  
+              {children}
               <Footer />
             </div>
       </body>

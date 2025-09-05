@@ -3,9 +3,12 @@ import { GradeTable } from '@/components/GradeTable';
 import Agenda from '@/components/Agenda';
 import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
 import { useEffect, useState, useRef } from 'react';
-
+import { verifySession } from '@/lib/sessions';
+import { LoginForm } from './LoginForm';
 
 export default function DashboardClientContainer() {
+
+    
 
     const [tableInView, setTableInView] = useState(false);
     const gradeTableRef = useRef<HTMLDivElement>(null);
@@ -32,9 +35,6 @@ export default function DashboardClientContainer() {
 
     return (
         <>
-            <div className="w-full md:w-2/3 flex flex-col sm:p-4 bg-white rounded-lg shadow-lg">
-                <Agenda />
-            </div>
             <div ref={gradeTableRef} id="grade-table" className="w-full md:w-1/3 flex flex-col p-4 bg-white rounded-lg shadow-lg">
                 <h2 className="text-xl font-semibold text-primary-400 mb-4">Mes Notes</h2>
                 <GradeTable />

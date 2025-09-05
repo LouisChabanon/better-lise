@@ -2,9 +2,10 @@
 
 import { Button } from "./ui/Button";
 import { EyeInvisibleOutlined, EyeOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/actions/Auth";
+import { liseIdChecker } from "@/lib/helper";
 
 type FieldType = {
 	username: string;
@@ -17,9 +18,17 @@ export function LoginForm() {
 	const router = useRouter();
 
 	const [loading, setLoading] = useState(false);
+	const [username, setUsername] = useState("");
 	const [errors, setErrors] = useState<string | null>(null);
 	const [passInputType, setPassInputType] = useState<PassInputType>("password");
 	const [isFocused, setIsFocused] = useState(false);
+
+	useEffect(() => {
+		const savedUsername = localStorage.getItem("lise_id");
+		if (savedUsername) {
+			setUsername(savedUsername);
+		}
+	}, []);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -30,10 +39,11 @@ export function LoginForm() {
 		const username = formData.get("username") as string;
 		const password = formData.get("password") as string;
 
-		if (!/^\d{4}-\d{4}$/.test(username)) {
+		if (!liseIdChecker(username)) {
 			setErrors("L'identifiant doit être au format 20xx-xxxx");
 			return;
 		}
+		localStorage.setItem("lise_id", username);
 		setLoading(true);
 
 		try {
@@ -69,7 +79,7 @@ export function LoginForm() {
 				</label>
 				<div className="flex items-center px-3 py-2 w-full bg-surface rounded-lg  focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
 					<UserOutlined className="text-gray-500 mr-2" />
-					<input type="text" id="username" name="username" placeholder="20xx-xxxx" required disabled={loading} className="w-full focus:outline-none" />
+					<input type="text" id="username" name="username" placeholder="20xx-xxxx" defaultValue={username || ""} required disabled={loading} className="w-full focus:outline-none" />
 				</div>
 			</div>
 			<div className="flex items-center gap-4">

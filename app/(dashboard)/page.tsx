@@ -1,7 +1,6 @@
 import DashboardClientContainer from '@/components/DashBoardClientContainer';
 import Agenda from '@/components/Agenda';
 import { verifySession } from '@/lib/sessions';
-import { redirect } from 'next/navigation';
 import { LoginForm } from '@/components/LoginForm';
 
 export default async function DashboardPage() {
