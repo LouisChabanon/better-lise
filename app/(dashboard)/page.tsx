@@ -1,7 +1,7 @@
-import DashboardClientContainer from '@/components/DashBoardClientContainer';
 import Agenda from '@/components/Agenda';
 import { verifySession } from '@/lib/sessions';
 import { LoginForm } from '@/components/LoginForm';
+import { GradeTable } from '@/components/GradeTable';
 
 export default async function DashboardPage() {
 
@@ -24,7 +24,11 @@ export default async function DashboardPage() {
                                 <LoginForm />
                             </div>
                         </div>
-            ) : <DashboardClientContainer />
+            ) :  
+            <div id="grade-table" className="w-full md:w-1/3 flex flex-col p-4 bg-white rounded-lg shadow-lg">
+                <h2 className="text-xl font-semibold text-primary-400 mb-4">Mes Notes</h2>
+                <GradeTable />
+            </div>
           }
       </div>
     </div>

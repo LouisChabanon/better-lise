@@ -24,6 +24,8 @@ export default function Agenda() {
     
     const agendaRef = useRef<HTMLDivElement>(null);
     const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+    const isSwiping = useRef<boolean>(false);
     const animationFrameRef = useRef<number | null>(null);
 
     const { weekDates, currentDayIndex } = getWeekData(weekOffset);
@@ -74,14 +76,28 @@ export default function Agenda() {
 
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
         setSwipeOffset(0);
+        isSwiping.current = false;
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
 
-        if(touchStartX.current === null) return;
+        if(touchStartX.current === null || touchStartY.current === null) return;
         
         const deltaX = e.touches[0].clientX - touchStartX.current;
+        const deltaY = e.touches[0].clientY - touchStartY.current;
+
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            // User is scrolling vertically, ignore horizontal swipe
+            return;
+        }
+
+        if(Math.abs(deltaX) < 10) return; // Ignore small movements
+
+        isSwiping.current = true;
+
+        e.preventDefault();
 
         if (animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);
@@ -93,7 +109,11 @@ export default function Agenda() {
     }
 
     const handleTouchEnd = (e: React.TouchEvent) => {
-        if(touchStartX.current === null) return;
+        if(!isSwiping.current || touchStartX.current === null){
+            touchStartX.current = null;
+            touchStartY.current = null;
+            return;
+        }
         
         const deltaX = e.changedTouches[0].clientX - touchStartX.current;
         
@@ -111,6 +131,8 @@ export default function Agenda() {
         }, 100);
         
         touchStartX.current = null;
+        touchStartY.current = null;
+        isSwiping.current = false;
     };
 
 
@@ -316,7 +338,7 @@ export default function Agenda() {
 
                 {/* Events grid is 144 rows: 12h * 60min / 5min */}
                 <ol 
-                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 touch-pan-x
+                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5
                     bg-gradient-to-r from-primary-container/5 via-transparent to-primary/5 sm:bg-none"
                     style={{ 
                         gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto',
