@@ -99,12 +99,12 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
         return (
             <>
             {isActive && (
-                <div className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40" onClick={handleEnd} />
+                <div className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40 flex items-center justify-center p-4" onClick={handleEnd} />
             )}
-            <li className={` transition-all duration-200 ease-out ${isActive ? "z-50 fixed select-none touch-none" : `relative col-start-${eventDayISO}`}`} style={{
+            <li className={` overflow-y-auto max-h-[80vh] transition-all duration-200 ease-out ${isActive ? "z-50 fixed select-none touch-none" : `relative col-start-${eventDayISO}`}`} style={{
 
                 ...(isActive ? {
-                    top: "30%",
+                    top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
                     width: "90%",
@@ -118,11 +118,8 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     position: "relative",
                 })
                 }}
-                onTouchStart={handleStart}
-                onTouchEnd={handleEnd}
-                onTouchCancel={handleEnd}
+                //onTouchStart={handleStart}
                 onMouseDown={handleStart}
-                onMouseUp={handleEnd}
                 
                 >
                 <a
@@ -164,11 +161,8 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                 position: "relative",
             })
             }}
-            onTouchStart={handleStart}
-            onTouchEnd={handleEnd}
-            onTouchCancel={handleEnd}
+            //onTouchStart={handleStart}
             onMouseDown={handleStart}
-            onMouseUp={handleEnd}
             
             >
             <a

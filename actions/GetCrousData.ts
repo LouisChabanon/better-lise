@@ -66,14 +66,15 @@ export default async function getCrousData() {
                         .each((k, subItem) => {
                             subItems.push($(subItem).text().trim());
                         });
-
+                    if (mainItem !== "ENTREES" && mainItem !== "DESSERTS"){
                     foodSummary.push({
                         ilot: {
                             name: mainItem,
                             food: subItems,
                         },
                     });
-                });
+                }
+            });
 
             // Create only ONE event per day
             if (foodSummary.length > 0) {

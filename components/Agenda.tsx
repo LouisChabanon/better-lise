@@ -1,5 +1,5 @@
 "use client";
-/* This example requires Tailwind CSS v2.0+ */
+
 import { useEffect, useState, useRef, useMemo, use } from 'react'
 import { RightOutlined, LeftOutlined, ReloadOutlined, HomeOutlined } from '@ant-design/icons';
 import { Button } from './ui/Button';
@@ -9,12 +9,14 @@ import { getWeekData } from '@/actions/GetWeekData';
 import getCrousData from '@/actions/GetCrousData';
 import GetCalendar from '@/actions/GetCalendar';
 import { CalendarEventProps } from '@/lib/types';
-import { CalculateOverlaps, getMonthName } from '@/lib/helper';
-
+import { CalculateOverlaps, getMonthName, liseIdChecker } from '@/lib/helper';
+import LoadingPlaceholder from './ui/loaddingPlaceholder';
 export default function Agenda() {
 
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [usernameModal, setUsernameModal] = useState<boolean>(false);
+    const [username, setUsername] = useState<string | null>(null);
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [swipeOffset, setSwipeOffset] = useState<number>(0);
     const [mapping, setMapping] = useState<Record<string, { position: number, columns: number }>>({});
@@ -22,24 +24,38 @@ export default function Agenda() {
     
     const agendaRef = useRef<HTMLDivElement>(null);
     const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+    const isSwiping = useRef<boolean>(false);
     const animationFrameRef = useRef<number | null>(null);
 
     const { weekDates, currentDayIndex } = getWeekData(weekOffset);
 
     const fetchCalendarEvents = async () => {
         setLoading(true);
-        const calendarData = await GetCalendar();
+        const savedUsername = localStorage.getItem("lise_id");
+        if (!savedUsername) {
+            setUsernameModal(true);
+            setLoading(false);
+            return;
+        }
+
+        const calendarDataRes = await GetCalendar(savedUsername);
         const crousData = await getCrousData();
 
-        if (calendarData) {
+        if (calendarDataRes.status === "success") {
 
-            const eventData = calendarData.concat(crousData || []);
+            const eventData = calendarDataRes.events.concat(crousData || []);
 
             const { sorted, mapping } = CalculateOverlaps(eventData);
             setCalendarEvents(sorted);
             setMapping(mapping);
             //console.log("Calendar events fetched and overlaps calculated.");
+        } else if (calendarDataRes.status === "no user") {
+            setCalendarEvents([]);
+            setUsernameModal(true);
+            console.warn("No user session found. Please log in to view your calendar.");
         } else {
+            setCalendarEvents([]);
             console.error("Failed to fetch calendar events");
         }
         
@@ -47,6 +63,7 @@ export default function Agenda() {
     }
 
     useEffect(() => {
+        
         fetchCalendarEvents();
 
         // If currentDayIndex is a weekend (Saturday or Sunday), display the next week
@@ -59,14 +76,28 @@ export default function Agenda() {
 
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
         setSwipeOffset(0);
+        isSwiping.current = false;
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
 
-        if(touchStartX.current === null) return;
+        if(touchStartX.current === null || touchStartY.current === null) return;
         
         const deltaX = e.touches[0].clientX - touchStartX.current;
+        const deltaY = e.touches[0].clientY - touchStartY.current;
+
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            // User is scrolling vertically, ignore horizontal swipe
+            return;
+        }
+
+        if(Math.abs(deltaX) < 10) return; // Ignore small movements
+
+        isSwiping.current = true;
+
+        e.preventDefault();
 
         if (animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);
@@ -78,7 +109,11 @@ export default function Agenda() {
     }
 
     const handleTouchEnd = (e: React.TouchEvent) => {
-        if(touchStartX.current === null) return;
+        if(!isSwiping.current || touchStartX.current === null){
+            touchStartX.current = null;
+            touchStartY.current = null;
+            return;
+        }
         
         const deltaX = e.changedTouches[0].clientX - touchStartX.current;
         
@@ -96,10 +131,13 @@ export default function Agenda() {
         }, 100);
         
         touchStartX.current = null;
+        touchStartY.current = null;
+        isSwiping.current = false;
     };
 
 
     return (
+        
         <div className="flex h-full flex-col select-none">
             <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
                 <h1 className="text-xl font-semibold text-primary">
@@ -150,6 +188,36 @@ export default function Agenda() {
                 </div>
             </header>
         <div className="flex flex-auto flex-col overflow-y-auto bg-white relative">
+            {usernameModal && (
+                <div className="inset-0 fixed flex items-center justify-center backdrop-blur-md z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+                    <h2 className="text-lg font-semibold mb-4">Entrez votre identifiant</h2>
+                    <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-md p-2 mb-4"
+                        placeholder="Identifiant Lise"
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <div className="flex justify-end">
+                        <Button
+                        status="primary"
+                        onClick={() => {
+                            if (username && liseIdChecker(username)) {
+                            localStorage.setItem("lise_id", username);
+                            setUsernameModal(false);
+                            fetchCalendarEvents();
+                            }
+                        }}
+                        >
+                        Valider
+                        </Button>
+                    </div>
+                    </div>
+                </div>
+                )}
+            {loading ? (
+                <LoadingPlaceholder />
+            ) : (
             <div ref={agendaRef} className="flex flex-none flex-col">
             <div
                 className="sticky top-0 z-30 flex-none bg-white shadow ring-opacity-5"
@@ -270,7 +338,7 @@ export default function Agenda() {
 
                 {/* Events grid is 144 rows: 12h * 60min / 5min */}
                 <ol 
-                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 touch-pan-x
+                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5
                     bg-gradient-to-r from-primary-container/5 via-transparent to-primary/5 sm:bg-none"
                     style={{ 
                         gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto',
@@ -311,8 +379,10 @@ export default function Agenda() {
                 </ol>
                 </div>
             </div>
-            </div>
+            </div> 
+        )}
         </div>
     </div>
+    
     )
 }

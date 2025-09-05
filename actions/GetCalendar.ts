@@ -1,26 +1,24 @@
 "use server";
 const ical = require("node-ical");
 import { CalendarEventProps } from "@/lib/types";
-import { verifySession } from "@/lib/sessions";
 import { fromZonedTime } from "date-fns-tz"
 
 
 const tz = 'Europe/Paris';
 
+type CalendarDataResponse = {
+    events: CalendarEventProps[];
+    status: "no user" | "error" | "success";
+}
 
-const GetCalendar = async () => {
+const GetCalendar = async (username: string | null) => {
 
     const URI = "http://lise.ensam.eu/ical_apprenant/";
     const DEV_URI = process.env.DEV_URI || URI;
     
-    const res = await verifySession();
-    if (!res.isAuth || !res.username) {
-        console.error("User is not authenticated or username is missing.");
-        return null;
+    if (!username) {
+        return { events: [], status: "no user" } as CalendarDataResponse;
     }
-
-
-    const username = res.username;
 
     try {
         const res = await fetch(`${URI}${username}`, {
@@ -32,7 +30,7 @@ const GetCalendar = async () => {
 
         if (!res.ok) {
             console.error("Failed to fetch calendar:", res.statusText);
-            return null;
+            return { events: [], status: "error" } as CalendarDataResponse;
         }
 
         const data = await res.text();
@@ -73,12 +71,12 @@ const GetCalendar = async () => {
             }
         }
 
-        return calendarEvents;
+        return { events: calendarEvents, status: "success" } as CalendarDataResponse;
 
 
     } catch (error) {
         console.error("Error fetching calendar:", error);
-        return null;
+        return { events: [], status: "error" } as CalendarDataResponse;
     }
 }
 
