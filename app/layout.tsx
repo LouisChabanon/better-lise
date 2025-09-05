@@ -32,11 +32,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 }
 
-export const viewPort: Viewport = {
-  themeColor: "#ffffff",
-  userScalable: false,
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,7 +42,6 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
       <body>
             <Analytics />
