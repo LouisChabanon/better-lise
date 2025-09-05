@@ -21,7 +21,7 @@ export function GradeTable(){
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredGrades, setFilteredGrades] = useState<Grade[]>([]);
   
-  const pageSize = 50;
+  const pageSize = 11;
 
   async function fetchGrades(reachServer = false) {
       setIsLoading(true);
