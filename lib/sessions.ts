@@ -72,7 +72,7 @@ export async function verifySession() {
     try {
         const cookie = (await cookies()).get("jwt_token")?.value;
         if (!cookie) {
-            console.error("No session cookie found: " + cookie);
+            //console.error("No session cookie found: " + cookie);
             return { isAuth: false };
         }
 
