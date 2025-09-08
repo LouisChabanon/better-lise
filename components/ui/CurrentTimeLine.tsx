@@ -19,7 +19,7 @@ const CurrentTimeLine: React.FC<CurrentTimeLineProps> = (props) => {
                 setPosition(null); // Outside of working hours
                 return null;
             }
-            if( props.currentDay < 1 || props.currentDay > 5) {
+            if( props.currentDay < 0 || props.currentDay > 5) {
                 setPosition(null); // Invalid day index
                 return null;
             }
