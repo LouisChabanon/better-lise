@@ -1,12 +1,143 @@
 @import 'tailwindcss';
 
+
+:root {
+  --background-primary: #FFFFFF;
+  --background-secondary: #FDF7FF;
+  --background-tertiary: #FDF7FF;
+  --text-primary: #6750A4;
+  --text-secondary: oklch(27.8% 0.033 256.848);
+  --text-tertiary: oklch(44.6% 0.03 256.802);
+  --text-quaternary: oklch(60.2% 0.02 256.802);
+  --calendar-grid-border: oklch(96.7% 0.003 264.542);
+  --primary-400: #7551CC;
+  --primary-50: #f8f7fd;
+  --primary-100: #D7CCF3;
+
+  --button-text-primary: #FFFFFF;     
+  --button-primary-background: #6750A4; 
+  --button-primary-hover: #7551CC;      
+  --button-primary-border: #f8f7fd;
+  
+  --button-text-secondary: #7551CC;     
+  --button-secondary-background: #FFFFFF; 
+  --button-secondary-hover: #D7CCF3;      
+  --button-secondary-border: #7551CC;
+
+  --button-text-disabled: #FFFFFF;
+  --button-disabled-background: oklch(87.2% 0.01 258.338);
+
+  --event-cm-bg: oklch(92.4% 0.12 95.746);
+  --event-cm-text: oklch(55.5% 0.163 48.998);
+
+  --event-exam-bg: oklch(93.6% 0.032 17.717);
+  --event-exam-text: oklch(50.5% 0.213 27.518);
+
+  --event-auto-bg: oklch(94.8% 0.028 342.258);
+  --event-auto-text: oklch(52.5% 0.223 3.958);
+
+  --event-tp-bg: oklch(88.2% 0.059 254.128);
+  --event-tp-text: oklch(48.8% 0.243 264.376);
+
+  --event-ru-bg: oklch(90.1% 0.058 230.902);
+  --event-ru-text: oklch(50% 0.134 242.749);
+
+  --event-default-bg: #E9DDFF;
+  --event-default-text: #6750A4;
+}
+
+.dark {
+  --background-primary: #302d34;       /* near black background */ 
+  --background-secondary: #1b181f;    /* slightly lighter for cards/inputs */
+  --background-tertiary: #46444a;
+  --text-primary: #FFFFFF;            /* light lavender for high contrast */
+  --text-secondary: #FFFFFF; /* lighter grayish-blue for secondary */
+  --text-tertiary: oklch(70% 0.025 256.8);
+  --text-quaternary: #FFFFFF;;
+  --calendar-grid-border: #46444a; /* subtle border */
+  --primary-400: #A892FF;             /* brighter purple for visibility */
+  --primary-50: #2A233B;              /* dark-tinted version */
+  --primary-100: #4D3E7C;             /* darker muted purple */
+
+  --button-text-primary: #000000;     /* keep buttons readable */
+  --button-primary-background: #7862ae; /* brighter button background */
+  --button-primary-hover: #8974b8;      /* hover state */
+  --button-primary-border: #A892FF;     /* border color */
+
+  --button-text-secondary: #FFFFFF;     
+  --button-secondary-background: #46444a; 
+  --button-secondary-hover: #1b181f;      
+  --button-secondary-border: #46444a;
+
+  --button-text-disabled: #FFFFFF;
+  --button-disabled-background: #777479;
+  
+  --event-cm-bg: #a87a2a;
+  --event-cm-text: #FFFFFF;
+
+  --event-exam-bg: #9c2121;
+  --event-exam-text: #FFFFFF;
+
+  --event-auto-bg: oklch(22% 0.028 342.258);
+  --event-auto-text: #FFFFFF;
+
+  --event-tp-bg: #4077d1;
+  --event-tp-text: #FFFFFF;
+
+  --event-ru-bg: #717171;
+  --event-ru-text: #FFFFFF;
+
+  --event-default-bg: #6750a4;
+  --event-default-text: #FFFFFF;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-textPrimary: var(--text-primary);
+  --color-backgroundPrimary: var(--background-primary);
+  --color-backgroundSecondary: var(--background-secondary);
+  --color-backgroundTertiary: var(--background-tertiary);
+  --color-textSecondary: var(--text-secondary);
+  --color-textTertiary: var(--text-tertiary);
+  --color-textQuaternary: var(--text-quaternary);
+  --color-primary-400: var(--primary-400);
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-calendarGridBorder: var(--calendar-grid-border);
+
+  --color-buttonTextPrimary: var(--button-text-primary);
+  --color-buttonPrimaryBackground: var(--button-primary-background);
+  --color-buttonPrimaryHover: var(--button-primary-hover);
+  --color-buttonPrimaryBorder: var(--button-primary-border);
+
+  --color-buttonTextSecondary: var(--button-text-secondary);
+  --color-buttonSecondaryBackground: var(--button-secondary-background);
+  --color-buttonSecondaryHover: var(--button-secondary-hover);
+  --color-buttonSecondaryBorder: var(--button-secondary-border);
+
+  --color-eventCmBg: var(--event-cm-bg);
+  --color-eventCmText: var(--event-cm-text);
+  --color-eventExamBg: var(--event-exam-bg);
+  --color-eventExamText: var(--event-exam-text);
+  --color-eventAutoBg: var(--event-auto-bg);
+  --color-eventAutoText: var(--event-auto-text);
+  --color-eventTpBg: var(--event-tp-bg);
+  --color-eventTpText: var(--event-tp-text);
+  --color-eventRuBg: var(--event-ru-bg);
+  --color-eventRuText: var(--event-ru-text);
+  --color-eventDefaultBg: var(--event-default-bg);
+  --color-eventDefaultText: var(--event-default-text);
+
+  --color-buttonTextDisabled: var(--button-text-disabled);
+  --color-buttonDisabledBackground: var(--button-disabled-background);
+}
+
 @theme {
   /* Primary Color */
   --color-primary-50: #f8f7fd;
-  --color-primary-100: #D7CCF3;
   --color-primary-200: #B6A2E9;
   --color-primary-300: #9577DF;
-  --color-primary-400: #7551CC;
   --color-primary-500: #6647B2;
   --color-primary-600: #573C99;
   --color-primary-700: #49327F;
@@ -21,6 +152,7 @@
   
   
   --color-surface: #FDF7FF;
+  --color-card: #FFFFFF;
 
   --color-primary-container: #E9DDFF;
   --color-on-primary: #4D3D75;
@@ -33,6 +165,7 @@
 
   
 }
+
 body {
   -webkit-tap-highlight-color: transparent;
 

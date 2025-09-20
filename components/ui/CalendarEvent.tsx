@@ -66,28 +66,28 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     }
 
     // Apply styling based on event type
-    let eventClass = "bg-primary-container text-primary hover:bg-primary-container/80";
-    let eventText = "text-on-primary";
+    let eventClass = "bg-eventDefaultBg text-eventDefaultText hover:bg-eventDefaultBg/80";
+    let eventText = "text-eventDefaultText";
     switch (type) {
         case "CM":
-            eventClass = "bg-amber-200 text-amber-700 hover:bg-amber-200/80";
-            eventText = "text-amber-700";
+            eventClass = "bg-eventCmBg text-eventCmText hover:bg-eventCmBg/80";
+            eventText = "text-eventCmText";
             break;
         case "EXAMEN":
-            eventClass = "bg-red-100 text-red-700 hover:bg-red-200";
-            eventText = "text-red-500";
+            eventClass = "bg-eventExamBg text-eventExamText hover:bg-eventExamBg/80";
+            eventText = "text-eventExamText";
             break;
         case "TRAVAIL_AUTONOME":
-            eventClass = "bg-pink-100 text-pink-700 hover:bg-pink-200";
-            eventText = "text-pink-700";
+            eventClass = "bg-eventAutoBg text-eventAutoText hover:bg-eventAutoBg/80";
+            eventText = "text-eventAutoText";
             break;
         case "TPS":
-            eventClass = "bg-blue-200 text-blue-700 hover:bg-blue-200/80";
-            eventText = "text-blue-700";
+            eventClass = "bg-eventTpBg text-eventTpText hover:eventTpBg/80";
+            eventText = "text-eventTpText";
             break;
         case "RU":
-            eventClass = "bg-sky-200 text-sky-700 hover:bg-sky-200/80 ";
-            eventText = "text-on-secondary";
+            eventClass = "bg-eventRuBg text-eventRuText hover:bg-eventRuBg/80";
+            eventText = "text-eventRuText";
             break;
     }
     
@@ -99,7 +99,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
         return (
             <>
             {isActive && (
-                <div className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40 flex items-center justify-center p-4" onClick={handleEnd} />
+                <div className="fixed inset-0 bg-backgroundPrimary/30 backdrop-blur-sm z-40 flex items-center justify-center p-4" onClick={handleEnd} />
             )}
             <li className={` overflow-y-auto max-h-[80vh] transition-all duration-200 ease-out ${isActive ? "z-50 fixed select-none touch-none" : `relative col-start-${eventDayISO}`}`} style={{
 
@@ -132,7 +132,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                         <p className="order-1 font-semibold drop-shadow-md line-clamp-3 text-center self-center">{title}</p>
                     )}
                     {isActive && (
-                        <p className="order-2 mt-2 text-gray-600 whitespace-pre-line">{summary}</p>
+                        <p className="order-2 mt-2 mb-2 text-gray-600 dark:text-white whitespace-pre-line">{summary}</p>
                     )}
                 </a>
             </li>
@@ -142,7 +142,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     return (
         <>
         {isActive && (
-            <div className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40" onClick={handleEnd} />
+            <div className="fixed inset-0 bg-backgroundPrimary/30 backdrop-blur-sm z-40" onClick={handleEnd} />
         )}
         <li className={` transition-all duration-200 ease-out ${isActive ? "z-50 fixed select-none touch-none" : `relative col-start-${eventDayISO}`}`} style={{
 
@@ -177,7 +177,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     {type}  { room || ""}
                 </p>
                 {isActive && (
-                    <p className="order-2 mt-2 text-gray-600 whitespace-pre-line">{summary} {teacher || "No teacher specified"} - {group || "No group specified"}</p>
+                    <p className="order-2 mt-2 text-gray-600 dark:text-white whitespace-pre-line">{summary} {teacher || "No teacher specified"} - {group || "No group specified"}</p>
                     
                 )}
             </a>

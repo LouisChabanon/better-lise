@@ -84,7 +84,7 @@ export function GradeTable(){
             placeholder="Rechercher..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="px-4 py-2 border border-secondary bg-surface rounded-md w-full sm:w-1/2 focus:outline-none focus-ring-2 focus:ring-primary-400"
+            className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus-ring-2"
           />
           <Button
             onClick={() => {fetchGrades(true)}}
@@ -94,24 +94,24 @@ export function GradeTable(){
           </Button>
         </div>
       {isLoading ? (
-          <div className="text-center text-gray-500">Chargement...</div>
+          <div className="text-center text-textTertiary">Chargement...</div>
         ) : (
           <>
             <div className="overflow-auto max-h-[700px] rounded-lg shadow-md">
               <table className="table-auto min-w-full text-sm ">
-                <thead className="bg-primary-container uppercase text-xs font-semibold sticky top-0 z-10">
+                <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-2 text-left w-1/3 min-w-[150px]">Nom</th>
                     <th className="px-4 py-2 text-left sticky left-0 z-20 min-w-[96px]">Note</th>
                     <th className="px-4 py-2 text-left w-1/3 min-w-[150px]">Date</th>
                   </tr>
                 </thead>
-                <tbody className="text-gray-700">
+                <tbody className="text-textSecondary">
                   {currentGrades.map((g) => {
-                    let rowClass = "hover:bg-primary-container transition";
-                    if (Number(g.grade) < 10) rowClass = "bg-red-100 outline outline-1 outline-red-300 hover:bg-red-200 transition";
-                    else if (Number(g.grade) >= 10 && Number(g.grade) < 12) rowClass = "bg-yellow-100 outline outline-1 outline-yellow-300 hover:bg-yellow-200 transition";
-                    if (g.isNew) rowClass ="bg-primary-container transition hover:bg-primary-container/50";
+                    let rowClass = "hover:bg-backgroundTertiary transition";
+                    if (Number(g.grade) < 10) rowClass = "bg-eventExamBg outline outline-1 outline-eventExamBg hover:bg-eventExamBg/80 transition";
+                    else if (Number(g.grade) >= 10 && Number(g.grade) < 12) rowClass = "bg-eventCmBg outline outline-1 outline-eventCmBg hover:bg-eventCmBg/80 transition";
+                    if (g.isNew) rowClass ="bg-eventDefaultBg transition hover:bg-eventDefaultBg/80";
                     return (
                       <tr key={g.id} className={`${rowClass} hover:cursor-pointer text-sm sm:text-base`}>
                       <td title={g.name} className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{g.isNew && (
@@ -138,7 +138,7 @@ export function GradeTable(){
               >
                 <CaretLeftFilled />
               </Button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-textTertiary">
                 Page {currentPage} of {totalPages}
               </span>
               <Button

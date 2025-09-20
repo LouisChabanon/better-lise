@@ -19,7 +19,7 @@ const CurrentTimeLine: React.FC<CurrentTimeLineProps> = (props) => {
                 setPosition(null); // Outside of working hours
                 return null;
             }
-            if( props.currentDay < 0 || props.currentDay > 5) {
+            if( props.currentDay < 0 || props.currentDay > 4) {
                 setPosition(null); // Invalid day index
                 return null;
             }
@@ -40,8 +40,8 @@ const CurrentTimeLine: React.FC<CurrentTimeLineProps> = (props) => {
     return (
         <div className={`relative col-start-${props.currentDay +1 } pointer-events-none z-40`} style={{gridRow: `${position}`}}>
             <div className="relative">
-                <div className="absolute left-0 right-0 h-px bg-primary" />
-                <div className="absolute -left-1 top-[-4px] h-2 w-2 rounded-full bg-primary" />
+                <div className="absolute left-0 right-0 h-px bg-buttonPrimaryBackground" />
+                <div className="absolute -left-1 top-[-4px] h-2 w-2 rounded-full bg-buttonPrimaryBackground" />
             </div>
         </div>
     );

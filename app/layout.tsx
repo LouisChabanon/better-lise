@@ -4,6 +4,7 @@ import '@/styles/globals.css';
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   applicationName: "Better Lise",
@@ -46,10 +47,12 @@ export default function RootLayout({
       <body>
             <Analytics />
             <SpeedInsights />
-            <div className="flex flex-col bg-white min-h-screen">
-              {children}
-              <Footer />
-            </div>
+            <ThemeProvider>
+              <div className="flex flex-col bg-backgroundPrimary min-h-screen">
+                {children}
+                <Footer />
+              </div>
+            </ThemeProvider>
       </body>
     </html>
   );

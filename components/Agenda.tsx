@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo, use } from 'react'
-import { RightOutlined, LeftOutlined, ReloadOutlined, HomeOutlined } from '@ant-design/icons';
+import { RightOutlined, LeftOutlined, ReloadOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
 import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
+import DarkModeToggle from '@/components/ui/DarkModeToggle';
 import { getWeekData } from '@/actions/GetWeekData';
 import getCrousData from '@/actions/GetCrousData';
 import GetCalendar from '@/actions/GetCalendar';
@@ -16,6 +17,7 @@ export default function Agenda() {
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [usernameModal, setUsernameModal] = useState<boolean>(false);
+    const [settingsModal, setSettingsModal] = useState<boolean>(false);
     const [username, setUsername] = useState<string | null>(null);
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [swipeOffset, setSwipeOffset] = useState<number>(0);
@@ -140,7 +142,7 @@ export default function Agenda() {
         
         <div className="flex h-full flex-col select-none">
             <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
-                <h1 className="text-xl font-semibold text-primary">
+                <h1 className="text-xl font-semibold text-textPrimary">
                 <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
                 </h1>
                 <div className="flex items-center">
@@ -165,33 +167,44 @@ export default function Agenda() {
                         ><RightOutlined />
                     </Button>
                     </div>         
-                <div className="ml-4 flex items-center">
-                    <div className="ml-6 h-6 w-px bg-gray-300" />
+                <div className="ml-4 flex items-center gap-2">
                     <Button onClick={() => fetchCalendarEvents()}
                     >
-                    <ReloadOutlined />
+                        <ReloadOutlined />
+                    </Button>
+                    <Button onClick={() => setSettingsModal(true)}>
+                        <SettingOutlined />
                     </Button>
                 </div>
                 
                 </div>
             </header>
             <header className="flex sm:hidden flex-none items-center justify-between py-2 px-6">
-                <h1 className="text-xl font-semibold text-primary">
+                <h1 className="text-xl font-semibold text-textPrimary">
                 <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
                 </h1>
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                     <Button
                         status="secondary"
                         onClick={() => setWeekOffset(0)}
                         disabled={loading || weekOffset === 0}
-                        ><HomeOutlined /></Button>
+                        >
+                            <HomeOutlined />
+                    </Button>
+                    <Button onClick={() => fetchCalendarEvents()}
+                    >
+                        <ReloadOutlined />
+                    </Button>
+                    <Button onClick={() => setSettingsModal(true)}>
+                        <SettingOutlined />
+                    </Button>
                 </div>
             </header>
-        <div className="flex flex-auto flex-col overflow-y-auto bg-white relative">
+        <div className="flex flex-auto flex-col overflow-y-auto bg-backgroundPrimary relative">
             {usernameModal && (
                 <div className="inset-0 fixed flex items-center justify-center backdrop-blur-md z-50">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-                    <h2 className="text-lg font-semibold mb-4">Entrez votre identifiant</h2>
+                    <div className="bg-backgroundPrimary rounded-lg shadow-lg p-6 w-80">
+                    <h2 className="text-lg text-textPrimary font-semibold mb-4">Entrez votre identifiant</h2>
                     <input
                         type="text"
                         className="w-full border border-gray-300 rounded-md p-2 mb-4"
@@ -215,28 +228,98 @@ export default function Agenda() {
                     </div>
                 </div>
                 )}
+            {settingsModal && (
+                    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={() => setSettingsModal(false)}
+        aria-hidden="true"
+      />
+
+      {/* modal panel */}
+      <div className="relative bg-backgroundPrimary rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
+        {/* header */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg text-textPrimary font-semibold">Paramètres</h2>
+          <Button
+            status="secondary"
+            onClick={() => setSettingsModal(false)}
+            aria-label="Fermer les paramètres"
+          >
+            ✕
+          </Button>
+        </div>
+
+        {/* body */}
+          <div className="flex items-center gap-4 mb-2">
+            <label
+              htmlFor="settings-lise-input"
+              className="w-36 font-medium text-textSecondary"
+            >
+              Identifiant :
+            </label>
+
+            <div className="flex-1">
+              <div className="flex items-center px-3 py-2 bg-backgroundSecondary rounded-lg focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
+                <input
+                  id="settings-lise-input"
+                  type="text"
+                  className="w-full bg-transparent focus:outline-none"
+                  placeholder="Identifiant Lise"
+                  defaultValue={localStorage.getItem("lise_id") || ""}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Dark mode / other toggles row */}
+          <div className="flex items-center justify-between gap-4">
+              <span className="font-medium text-textSecondary">Thème :</span>
+              <DarkModeToggle />
+          </div>
+
+          {/* actions */}
+          <div className="flex justify-end gap-3 mt-8">
+            <Button status="secondary" onClick={() => setSettingsModal(false)} type="button">
+              Annuler
+            </Button>
+            <Button status="primary" type="submit" onClick={() => { 
+                localStorage.setItem("lise_id", username || "");
+                fetchCalendarEvents();
+                setSettingsModal(false);}}>
+              Sauvegarder
+            </Button>
+          </div>
+      </div>
+    </div>
+            )}
             {loading ? (
                 <LoadingPlaceholder />
             ) : (
             <div ref={agendaRef} className="flex flex-none flex-col">
             <div
-                className="sticky top-0 z-30 flex-none bg-white shadow ring-opacity-5"
+                className="sticky top-0 z-30 flex-none bg-backgroundPrimary shadow ring-opacity-5"
             >
-                <div className="grid grid-cols-5 text-sm text-primary sm:hidden">
+                <div className="grid grid-cols-5 text-sm text-textPrimary sm:hidden">
                 <div className="col-end-1 w-14" />
                     {weekDates.map((date, i) => (
                         <button key={i} type="button" className="flex flex-col items-center pt-1 pb-1">{shortLabels[i]} {' '}
-                            <span className={`mt-1 flex h-8 w-8 items-center text-primary justify-center font-semibold ${i === currentDayIndex ? 'rounded-full bg-primary-container text-white' : "text-gray-900" }`}>{date.getDate()}</span>
+                            <span className={`mt-1 flex h-8 w-8 items-center text-textPrimary justify-center font-semibold ${i === currentDayIndex ? 'rounded-full bg-primary-container text-white' : "text-gray-900" }`}>{date.getDate()}</span>
                         </button>
                     ))}
                 </div>
 
-                <div className="-mr-px hidden grid-cols-5 divide-x divide-gray-100 border-r border-gray-100 text-sm leading-6 text-gray-500 sm:grid">
+                <div className="-mr-px hidden grid-cols-5 divide-x divide-calendarGridBorder border-r border-calendarGridBorder text-sm leading-6 text-gray-500 sm:grid">
                 <div className="col-end-1 w-14" />
                 {weekDates.map((date, i) => (
                     <div key={i} className="flex items-center justify-center py-3">
-                        <span className="flex items-baseline text-primary">
-                            {shortLabels[i]} <span className={`flex text-primary items-center justify-center font-semibold ml-1.5 ${i === currentDayIndex ? 'rounded-full  h-8 w-8 bg-primary-container text-white' : "text-gray-900" }`}>{" "} {date.getDate()}</span>
+                        <span className="flex items-baseline text-textPrimary">
+                            {shortLabels[i]} <span className={`flex text-textPrimary items-center justify-center font-semibold ml-1.5 ${i === currentDayIndex ? 'rounded-full  h-8 w-8 bg-primary-container text-white' : "text-gray-900" }`}>{" "} {date.getDate()}</span>
                         </span>
                     </div>
                 ))}
@@ -244,80 +327,80 @@ export default function Agenda() {
                 </div>
             </div>
             <div className="flex flex-auto">
-                <div className="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100" />
+                <div className="sticky left-0 z-10 w-14 flex-none bg-backgroundPrimary ring-1 ring-calendarGridBorder" />
                 <div className="grid flex-auto grid-cols-1 grid-rows-1">
                 {/* Horizontal lines */}
                 <div
-                    className="col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-100"
+                    className="col-start-1 col-end-2 row-start-1 grid divide-y divide-calendarGridBorder"
                     style={{ gridTemplateRows: 'repeat(24, minmax(2rem, 1fr))' }}
                 >
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         8:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         9:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         10:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         11:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         12:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         13:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         14:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         15:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         16:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         17:00
                     </div>
                     </div>
                     <div />
                     <div>
-                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
                         18:00
                     </div>
                     </div>
@@ -325,7 +408,7 @@ export default function Agenda() {
                 </div>
 
                 {/* Vertical lines */}
-                <div className="col-start-1 col-end-2 row-start-1 grid-rows-1 divide-x divide-gray-100 grid grid-cols-5">
+                <div className="col-start-1 col-end-2 row-start-1 grid-rows-1 divide-x divide-calendarGridBorder grid grid-cols-5">
                     <div className="col-start-1 row-span-full" />
                     <div className="col-start-2 row-span-full" />
                     <div className="col-start-3 row-span-full" />

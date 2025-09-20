@@ -74,19 +74,19 @@ export function LoginForm() {
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6">
 			<div className="flex items-center gap-4">
-				<label htmlFor="username" className="w-40 font-medium text-gray-800">
+				<label htmlFor="username" className="w-40 font-medium text-textSecondary">
 					Identifiant :
 				</label>
-				<div className="flex items-center px-3 py-2 w-full bg-surface rounded-lg  focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
+				<div className="flex items-center px-3 py-2 w-full bg-backgroundTertiary rounded-lg  focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
 					<UserOutlined className="text-gray-500 mr-2" />
 					<input type="text" id="username" name="username" placeholder="20xx-xxxx" defaultValue={username || ""} required disabled={loading} className="w-full focus:outline-none" />
 				</div>
 			</div>
 			<div className="flex items-center gap-4">
-				<label htmlFor="Password" className="w-40 font-medium text-gray-800">
+				<label htmlFor="Password" className="w-40 font-medium text-textSecondary">
 					Mot de passe :
 				</label>
-				<div className="flex items-center px-3 py-2 w-full bg-surface rounded-lg  focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
+				<div className="flex items-center px-3 py-2 w-full bg-backgroundTertiary rounded-lg  focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
 					<LockOutlined className="text-gray-500 mr-2" />
 					<input type={passInputType} id="password" name="password" required disabled={loading} className="w-full focus:outline-none" />
 					{passInputType == "password" ? <EyeOutlined onClick={handleShowPassword} /> : <EyeInvisibleOutlined onClick={handleShowPassword} />}
