@@ -39,18 +39,18 @@ function getHiddenFields($html: cheerio.CheerioAPI) {
     }
 
     // log all hidden fields
-    // $html('input[type="hidden"]').each((_, el) => {
-    //     const name = $html(el).attr('name');
-    //     const value = $html(el).val();
-    //     console.log(`Hidden field: ${name} = ${value}`);
-    // });
+    $html('input[type="hidden"]').each((_, el) => {
+        const name = $html(el).attr('name');
+        const value = $html(el).val();
+        console.log(`Hidden field: ${name} = ${value}`);
+    });
 
     return { viewState, formIdInit, largeurDivCentre };
 
 }
 
 
-export async function getGradeData(reload: boolean = false): Promise<RequestState> {
+export async function getGradeData(reload: boolean = true): Promise<RequestState> {
 
     const grades:Grade[] = [];
 
@@ -88,7 +88,7 @@ export async function getGradeData(reload: boolean = false): Promise<RequestStat
         jar.setCookieSync(`JSESSIONID=${user.authToken}`, LISE_URI); // Set the JSESSIONID cookie in the cookie jar
 
         try {
-            // Fetching home page to get grades because it's simpler.
+            // Fetching home page to get grades because it's simpler. ( JSF IS BADDDDDDD )
             // /faces/LearnerNotationListPage.xhtml has more data but is a pain in the ass.
             const res = await fetchWithCookies(LISE_URI);
             const html = await res.text();
@@ -97,11 +97,11 @@ export async function getGradeData(reload: boolean = false): Promise<RequestStat
 
             if ($html('title').text().includes('Connectez-vous') || $html('title').text().includes('Sign in')){
                 console.error("User not connected or session expired")
-                //await deleteSession(); FIX LATER !!!!!!!!!!!!!!!!!
+                await deleteSession();
                 return {errors: "Session has expired", success: false};
             }
 
-        //     const { viewState, formIdInit, largeurDivCentre } = getHiddenFields($html);
+        //     const hiddenFields = getHiddenFields($html);
 
         //     const res_first_req = await fetchWithCookies("https://lise.ensam.eu/faces/MainMenuPage.xhtml", {
         //         method: "POST",
