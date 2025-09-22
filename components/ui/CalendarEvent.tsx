@@ -15,13 +15,14 @@ type CalendarEventProps = {
     group?: string;
     weekOffset?: number; // Offset for the week, default is 0 (current week)
     info: { position: number, columns: number }; // Additional info for layout
+    priority?: "low" | "medium" | "high";
 };
 
 const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info
+const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, priority
  }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
@@ -91,8 +92,16 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
             break;
     }
     
-    const width = `${100 / info.columns}%`;
-    const left = `${(info.position / info.columns) * 100}%`;
+    let width = `${100 / info.columns}%`;
+    let left = `${(info.position / info.columns) * 100}%`;
+    let zIndex = 0;
+
+    if(priority === "high") {
+        width = `100%`;
+        left = `${(info.position) * 100}%`;
+        zIndex = 10;
+    }
+    
     
     if (type === "RU") {
         // For RU, we want to display them in a special way
@@ -113,9 +122,10 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     padding: "1rem",
                 }: {
                     gridRow: `${startRow} / span ${span} `,
-                    width: width,
-                    left: left,
+                    width: `100%`,
+                    left: `${(info.position) * 100}%`,
                     position: "relative",
+                    zIndex: zIndex,
                 })
                 }}
                 //onTouchStart={handleStart}
@@ -159,6 +169,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                 width: width,
                 left: left,
                 position: "relative",
+                zIndex: zIndex,
             })
             }}
             //onTouchStart={handleStart}

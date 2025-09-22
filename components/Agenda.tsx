@@ -456,6 +456,7 @@ export default function Agenda() {
                                 type={event.type}
                                 weekOffset={weekOffset}
                                 info={info}
+                                priority={event.priority}
                             />
                         )
                     })}

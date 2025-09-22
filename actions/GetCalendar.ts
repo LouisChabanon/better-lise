@@ -21,6 +21,7 @@ const GetCalendar = async (username: string | null) => {
     }
 
     try {
+        console.log("Fetching calendar for user:", username);
         const res = await fetch(`${URI}${username}`, {
             method: "GET",
             headers: {
@@ -34,7 +35,7 @@ const GetCalendar = async (username: string | null) => {
         }
 
         const data = await res.text();
-        
+        console.log("Calendar data fetched successfully");
         const calendarData = await ical.parseICS(data);
 
         const calendarEvents: CalendarEventProps[] = [];
@@ -54,6 +55,7 @@ const GetCalendar = async (username: string | null) => {
                 const teacher = event.description.match(/- INTERVENANTS\s*:\s*(.+)/);
                 const room = event.location || "No room specified";
                 const type = event.description.match(/- TYPE_ACTIVITE\s*:\s*(.+)/);
+                const priority = type && type[1].trim() === "EXAMEN" ? "high" : "low";
 
                 // Create a CalendarEventProps object
                 const calendarEvent: CalendarEventProps = {
@@ -63,7 +65,8 @@ const GetCalendar = async (username: string | null) => {
                     room: room,
                     teacher: teacher ? teacher[1].trim() : "No teacher specified",
                     group: group ? group[1].trim() : "No group specified",
-                    type: type ? type[1].trim() : "CM" // Change this once we have actual data
+                    type: type ? type[1].trim() : "CM", // Change this once we have actual data
+                    priority: priority
                 };
 
                 calendarEvents.push(calendarEvent);
