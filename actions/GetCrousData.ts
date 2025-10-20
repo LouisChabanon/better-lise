@@ -37,9 +37,7 @@ export default async function getCrousData(tbk: tbk) {
     const mealEvents: CalendarEventProps[] = [];
 
     try {
-        console.log("Fetching Crous data for tbk:", tbk);
         const crousURL = crousData.CrousData.find(item => item.tbk === tbk)?.url;
-        console.log("Crous URL:", crousURL);
         if (!crousURL) {
             return;
         }
