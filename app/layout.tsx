@@ -18,6 +18,17 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Better Lise"
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon1.png", sizes: "192x192", type: "image/png" },
+      { url: "/web-app-manifest-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+    other: [
+      { rel: "mask-icon", url: "/icon0.svg" },
+    ],
+  },
   formatDetection: {
     telephone: false,
   },
@@ -41,8 +52,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="apple-mobile-web-app-title" content="Better Lise" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="mask-icon" href="/icon0.svg" color="#5bbad5" />
       </head>
       <body>
             <Analytics />
