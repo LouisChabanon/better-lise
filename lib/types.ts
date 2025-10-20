@@ -14,3 +14,5 @@ export type CalendarEventProps = {
     group?: string;
     type?: CalendarEventType;
 };
+
+export type tbk = "Chalons" | "Boquette" | "Cluny" | "Birse" | "P3" | "KIN" | "Bordels" | "Sibers";
