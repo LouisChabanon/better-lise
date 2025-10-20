@@ -1,24 +1,25 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, use } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { RightOutlined, LeftOutlined, ReloadOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
 import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
-import DarkModeToggle from '@/components/ui/DarkModeToggle';
 import { getWeekData } from '@/actions/GetWeekData';
 import getCrousData from '@/actions/GetCrousData';
 import GetCalendar from '@/actions/GetCalendar';
 import { CalendarEventProps } from '@/lib/types';
 import { CalculateOverlaps, getMonthName, liseIdChecker } from '@/lib/helper';
 import LoadingPlaceholder from './ui/loaddingPlaceholder';
+import SettingsDialog from './ui/SettingsDialog';
+import { tbk } from '@/lib/types';
 export default function Agenda() {
 
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [usernameModal, setUsernameModal] = useState<boolean>(false);
     const [settingsModal, setSettingsModal] = useState<boolean>(false);
-    const [username, setUsername] = useState<string | null>(null);
+    const [tbk, setTbk] = useState<tbk>("Sibers");
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [swipeOffset, setSwipeOffset] = useState<number>(0);
     const [mapping, setMapping] = useState<Record<string, { position: number, columns: number }>>({});
@@ -35,14 +36,24 @@ export default function Agenda() {
     const fetchCalendarEvents = async () => {
         setLoading(true);
         const savedUsername = localStorage.getItem("lise_id");
+        const savedTbk = (localStorage.getItem("tbk") || "Sibers") as tbk;
+        setTbk(savedTbk);
+
         if (!savedUsername) {
-            setUsernameModal(true);
+            setSettingsModal(true);
             setLoading(false);
             return;
         }
 
+        if(!savedTbk){
+            setSettingsModal(true);
+            setLoading(false);
+            return;
+        }
+        
+        
         const calendarDataRes = await GetCalendar(savedUsername);
-        const crousData = await getCrousData();
+        const crousData = await getCrousData(savedTbk);
 
         if (calendarDataRes.status === "success") {
 
@@ -201,102 +212,13 @@ export default function Agenda() {
                 </div>
             </header>
         <div className="flex flex-auto flex-col overflow-y-auto bg-backgroundPrimary relative">
-            {usernameModal && (
-                <div className="inset-0 fixed flex items-center justify-center backdrop-blur-md z-50">
-                    <div className="bg-backgroundPrimary rounded-lg shadow-lg p-6 w-80">
-                    <h2 className="text-lg text-textPrimary font-semibold mb-4">Entrez votre identifiant</h2>
-                    <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-md p-2 mb-4"
-                        placeholder="Identifiant Lise"
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                    <div className="flex justify-end">
-                        <Button
-                        status="primary"
-                        onClick={() => {
-                            if (username && liseIdChecker(username)) {
-                            localStorage.setItem("lise_id", username);
-                            setUsernameModal(false);
-                            fetchCalendarEvents();
-                            }
-                        }}
-                        >
-                        Valider
-                        </Button>
-                    </div>
-                    </div>
-                </div>
-                )}
             {settingsModal && (
-                    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      aria-modal="true"
-      role="dialog"
-    >
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={() => setSettingsModal(false)}
-        aria-hidden="true"
-      />
-
-      {/* modal panel */}
-      <div className="relative bg-backgroundPrimary rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
-        {/* header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg text-textPrimary font-semibold">Paramètres</h2>
-          <Button
-            status="secondary"
-            onClick={() => setSettingsModal(false)}
-            aria-label="Fermer les paramètres"
-          >
-            ✕
-          </Button>
-        </div>
-
-        {/* body */}
-          <div className="flex items-center gap-4 mb-2">
-            <label
-              htmlFor="settings-lise-input"
-              className="w-36 font-medium text-textSecondary"
-            >
-              Identifiant :
-            </label>
-
-            <div className="flex-1">
-              <div className="flex items-center px-3 py-2 bg-backgroundSecondary rounded-lg focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
-                <input
-                  id="settings-lise-input"
-                  type="text"
-                  className="w-full bg-transparent focus:outline-none"
-                  placeholder="Identifiant Lise"
-                  defaultValue={localStorage.getItem("lise_id") || ""}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Dark mode / other toggles row */}
-          <div className="flex items-center justify-between gap-4">
-              <span className="font-medium text-textSecondary">Thème :</span>
-              <DarkModeToggle />
-          </div>
-
-          {/* actions */}
-          <div className="flex justify-end gap-3 mt-8">
-            <Button status="secondary" onClick={() => setSettingsModal(false)} type="button">
-              Annuler
-            </Button>
-            <Button status="primary" type="submit" onClick={() => { 
-                localStorage.setItem("lise_id", username || "");
-                fetchCalendarEvents();
-                setSettingsModal(false);}}>
-              Sauvegarder
-            </Button>
-          </div>
-      </div>
-    </div>
+                <SettingsDialog isOpen={settingsModal} onClose={() => {
+                    setSettingsModal(false);
+                }} onSave={() => {
+                    setSettingsModal(false);
+                    fetchCalendarEvents();
+                }} />
             )}
             {loading ? (
                 <LoadingPlaceholder />
@@ -457,6 +379,7 @@ export default function Agenda() {
                                 weekOffset={weekOffset}
                                 info={info}
                                 priority={event.priority}
+                                tbk={tbk}
                             />
                         )
                     })}

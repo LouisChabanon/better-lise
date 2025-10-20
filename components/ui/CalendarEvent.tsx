@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { getWeekData } from "@/actions/GetWeekData";
 import { useState } from "react";
+import { tbk } from "@/lib/types";
 
 type CalendarEventType = "CM" | "EXAMEN" | "TRAVAIL_AUTONOME" | "ED_TD" | "TPS" | "RU" | "PROJET";
 
@@ -16,14 +17,14 @@ type CalendarEventProps = {
     weekOffset?: number; // Offset for the week, default is 0 (current week)
     info: { position: number, columns: number }; // Additional info for layout
     priority?: "low" | "medium" | "high";
+    tbk: tbk;
 };
 
 const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, priority
- }: CalendarEventProps) => {
+const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, priority, tbk }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
 
@@ -90,6 +91,9 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
             eventClass = "bg-eventRuBg text-eventRuText hover:bg-eventRuBg/80";
             eventText = "text-eventRuText";
             break;
+        case "PROJET":
+            eventClass = "bg-eventAutoBg text-eventAutoText hover:bg-eventAutoBg/80";
+            eventText = "text-eventAutoText";
     }
     
     let width = `${100 / info.columns}%`;
@@ -142,7 +146,10 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                         <p className="order-1 font-semibold drop-shadow-md line-clamp-3 text-center self-center">{title}</p>
                     )}
                     {isActive && (
-                        <p className="order-2 mt-2 mb-2 text-gray-600 dark:text-white whitespace-pre-line">{summary}</p>
+                        <div className="flex flex-col w-full">
+                            <p>Menu RU de {tbk}</p>
+                            <p className="order-2 mt-2 mb-2 text-gray-600 dark:text-white whitespace-pre-line">{summary}</p>
+                        </div>
                     )}
                 </a>
             </li>
@@ -183,7 +190,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     ${isActive ? "text-base shadow-2xl p-4 rounded-xl" : "text-[10px] sm:text-sm"}
                     
                     `}>
-                <p className="order-1 font-semibold line-clamp-3">{title}</p>
+                <p className="order-1 font-semibold line-clamp-3">{title.replace(/_/g, " ")}</p>
                 <p className={`order-2 ${eventText}`}>
                     {type.replace(/_/g, " ")} - { room?.replace(/_/g, " ") || ""}
                 </p>

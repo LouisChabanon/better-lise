@@ -1,8 +1,8 @@
 "use server";
 import * as cheerio from "cheerio";
-import { CalendarEventProps } from "@/lib/types";
+import { CalendarEventProps, tbk } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz";
-
+import crousData from "@/crous_data.json";
 
 // Ignore TLS errors (expired certificate on crous-lorraine.fr)
 // This fix is temporary and should be removed when the certificate is renewed
@@ -33,11 +33,17 @@ type Meal = {
     };
 };
 
-export default async function getCrousData() {
+export default async function getCrousData(tbk: tbk) {
     const mealEvents: CalendarEventProps[] = [];
 
     try {
-        const res = await fetch("https://www.crous-lorraine.fr/restaurant/resto-u-metzin-2/");
+        console.log("Fetching Crous data for tbk:", tbk);
+        const crousURL = crousData.CrousData.find(item => item.tbk === tbk)?.url;
+        console.log("Crous URL:", crousURL);
+        if (!crousURL) {
+            return;
+        }
+        const res = await fetch(crousURL);
         if (!res.ok) {
             throw new Error("Failed to fetch Crous data");
         }
