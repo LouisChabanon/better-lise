@@ -185,7 +185,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     `}>
                 <p className="order-1 font-semibold line-clamp-3">{title}</p>
                 <p className={`order-2 ${eventText}`}>
-                    {type}  { room || ""}
+                    {type.replace(/_/g, " ")} - { room?.replace(/_/g, " ") || ""}
                 </p>
                 {isActive && (
                     <p className="order-2 mt-2 text-gray-600 dark:text-white whitespace-pre-line">{summary} {teacher || "No teacher specified"} - {group || "No group specified"}</p>
