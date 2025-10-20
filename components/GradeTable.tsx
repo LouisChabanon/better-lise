@@ -2,8 +2,9 @@
 import { ReloadOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { getGradeData } from "@/actions/GetGrades";
+import { logOut } from "@/actions/Auth";
 import { Button } from "./ui/Button";
-import { CaretRightFilled, CaretLeftFilled } from "@ant-design/icons";
+import { CaretRightFilled, CaretLeftFilled, LogoutOutlined } from "@ant-design/icons";
 
 interface Grade {
   id: number;
@@ -57,7 +58,7 @@ export function GradeTable(){
   }
 
   useEffect(() => {
-  fetchGrades();
+  fetchGrades(true); 
   }, []);
 
   useEffect(() => {
@@ -86,12 +87,22 @@ export function GradeTable(){
             onChange={e => setSearchTerm(e.target.value)}
             className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus-ring-2"
           />
-          <Button
-            onClick={() => {fetchGrades(true)}}
-            disabled={isLoading}
-          >
-            <ReloadOutlined />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              status="secondary"
+              onClick={() => {fetchGrades(true)}}
+              disabled={isLoading}
+            >
+              <ReloadOutlined />
+            </Button>
+            <Button
+              status="primary"
+              onClick={() => {logOut()}}
+              disabled={isLoading}
+            >
+              <LogoutOutlined />
+            </Button>
+          </div>
         </div>
       {isLoading ? (
           <div className="text-center text-textTertiary">Chargement...</div>

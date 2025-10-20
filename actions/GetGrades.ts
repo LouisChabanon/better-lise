@@ -73,8 +73,9 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
          return {errors: "No authentication token for user", success: false};
     }
 
+
     const db_grades = await prisma.grade.findMany({ where: { userId: user.id}})
-    grades.push(...db_grades.map(g => ({id: g.id, name: g.name, grade: g.grade, date: g.date})));
+    if (!reload) grades.push(...db_grades.map(g => ({id: g.id, name: g.name, grade: g.grade, date: g.date})));
 
     // Fetching data from Lise only if reload is true or if there are no grades in the database
     if (reload === true || db_grades.length === 0) {

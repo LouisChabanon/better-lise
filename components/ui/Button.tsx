@@ -11,13 +11,14 @@ export function Button({
 	disabled?: boolean;
 	className?: string;
 	type?: "button" | "submit" | "reset";
-	status?: "primary" | "secondary" | "danger";
+	//status?: "primary" | "secondary" | "danger";
+	status?: "primary" | "secondary";
 }) {
 	// Define button styles based on status
 	const statusClasses = {
 		primary: "text-buttonTextPrimary bg-buttonPrimaryBackground hover:bg-buttonPrimaryHover focus:ring-buttonPrimaryBorder",
 		secondary: "bg-buttonBackgroundSecondary text-buttonTextSecondary hover:bg-buttonSecondaryHover border border-buttonSecondaryBorder focus:ring-buttonSecondaryHover",
-		danger: "bg-danger-200 hover:bg-danger-300 focus:ring-danger-50",
+		//danger: "bg-danger-200 hover:bg-danger-300 focus:ring-danger-50",
 	};
 	let buttonClass = className + " " + statusClasses[status] + "hover:cursor-pointer focus:outline-none focus:ring-4 focus:ring-primary-100 font-medium rounded-lg px-5 py-2.5";
 	if (disabled) {
