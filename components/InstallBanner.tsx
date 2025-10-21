@@ -21,7 +21,7 @@ export default function InstallAppBanner() {
   const handleInstall = () => {
     // Prompt the user to install the app
     alert("To install this app, tap the Share button and then 'Add to Home Screen'.");
-
+    setIsIOS(false); // Hide the banner after prompting
   }
 
   return (

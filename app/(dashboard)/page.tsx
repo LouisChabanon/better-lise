@@ -9,10 +9,10 @@ export default async function DashboardPage() {
   const session = await verifySession();
 
   return (
-    <div className="flex items-start md:flex-row bg-backgroundSecondary flex-grow p-0 md:p-8">     
-      <div className="flex flex-col md:flex-row gap-8 w-full">
+    <div className="flex items-start md:flex-row bg-backgroundSecondary flex-1 min-h-0 p-0 md:p-8 md:h-full">
+      <div className="flex flex-col md:flex-row gap-8 w-full md:h-full md:min-h-0">
         <InstallAppBanner />
-          <div className="w-full md:w-2/3 flex flex-col sm:p-4 bg-backgroundPrimary rounded-lg shadow-lg">
+          <div className="w-full md:w-2/3 flex flex-col sm:p-4 bg-backgroundPrimary rounded-lg shadow-lg md:h-full md:min-h-0">
             <Agenda />
           </div>
           {
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
                             </div>
                         </div>
             ) :  
-            <div id="grade-table" className="w-full md:w-1/3 flex flex-col p-4 bg-backgroundPrimary rounded-lg shadow-lg">
+  <div id="grade-table" className="w-full md:w-1/3 flex flex-col p-4 bg-backgroundPrimary rounded-lg shadow-lg md:h-full md:min-h-0">
                 <h2 className="text-xl font-semibold text-textPrimary mb-4">Mes Notes</h2>
                 <GradeTable />
             </div>

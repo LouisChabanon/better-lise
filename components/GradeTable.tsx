@@ -22,7 +22,7 @@ export function GradeTable(){
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredGrades, setFilteredGrades] = useState<Grade[]>([]);
   
-  const pageSize = 11;
+  const pageSize = 15;
 
   async function fetchGrades(reachServer = false) {
       setIsLoading(true);
@@ -108,7 +108,7 @@ export function GradeTable(){
           <div className="text-center text-textTertiary">Chargement...</div>
         ) : (
           <>
-            <div className="overflow-auto max-h-[700px] rounded-lg shadow-md">
+            <div className="overflow-auto h-full rounded-lg shadow-md">
               <table className="table-auto min-w-full text-sm ">
                 <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>

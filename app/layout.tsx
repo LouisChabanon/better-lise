@@ -63,8 +63,11 @@ export default function RootLayout({
             <Analytics />
             <SpeedInsights />
             <ThemeProvider>
-              <div className="flex flex-col bg-backgroundPrimary min-h-screen">
-                {children}
+              {/* Lock page to viewport height on md+ and prevent body scrolling there; on mobile keep normal document flow so footer follows content */}
+              <div className="flex flex-col bg-backgroundPrimary md:h-screen overflow-auto md:overflow-hidden">
+                <main className="flex-1 min-h-0 md:h-full overflow-auto md:overflow-hidden pb-20 md:pb-0">
+                  {children}
+                </main>
                 <Footer />
               </div>
             </ThemeProvider>

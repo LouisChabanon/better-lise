@@ -151,7 +151,8 @@ export default function Agenda() {
 
     return (
         
-        <div className="flex h-full flex-col select-none">
+    <div className="flex h-full flex-col select-none">
+        {/* Desktop Header */}
             <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
                 <h1 className="text-xl font-semibold text-textPrimary">
                 <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
@@ -190,6 +191,7 @@ export default function Agenda() {
                 
                 </div>
             </header>
+            {/* Mobile Header */}
             <header className="flex sm:hidden flex-none items-center justify-between py-2 px-6">
                 <h1 className="text-xl font-semibold text-textPrimary">
                 <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
@@ -211,7 +213,7 @@ export default function Agenda() {
                     </Button>
                 </div>
             </header>
-        <div className="flex flex-auto flex-col overflow-y-auto bg-backgroundPrimary relative">
+    <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">
             {settingsModal && (
                 <SettingsDialog isOpen={settingsModal} onClose={() => {
                     setSettingsModal(false);
@@ -223,7 +225,7 @@ export default function Agenda() {
             {loading ? (
                 <LoadingPlaceholder />
             ) : (
-            <div ref={agendaRef} className="flex flex-none flex-col">
+            <div ref={agendaRef} className="flex-1 min-h-0 flex flex-col md:overflow-hidden">
             <div
                 className="sticky top-0 z-30 flex-none bg-backgroundPrimary shadow ring-opacity-5"
             >
@@ -248,9 +250,9 @@ export default function Agenda() {
                 
                 </div>
             </div>
-            <div className="flex flex-auto">
-                <div className="sticky left-0 z-10 w-14 flex-none bg-backgroundPrimary ring-1 ring-calendarGridBorder" />
-                <div className="grid flex-auto grid-cols-1 grid-rows-1">
+            <div className="flex-1 min-h-0 flex ">
+                <div className="sticky left-0 z-10 w-14 bg-backgroundPrimary ring-1 ring-calendarGridBorder" />
+                <div className="grid flex-1 min-h-0 grid-cols-1 grid-rows-1 h-full">
                 {/* Horizontal lines */}
                 <div
                     className="col-start-1 col-end-2 row-start-1 grid divide-y divide-calendarGridBorder"
@@ -330,7 +332,7 @@ export default function Agenda() {
                 </div>
 
                 {/* Vertical lines */}
-                <div className="col-start-1 col-end-2 row-start-1 grid-rows-1 divide-x divide-calendarGridBorder grid grid-cols-5">
+                <div className="col-start-1 col-end-2 row-start-1 grid-rows-1 divide-x divide-calendarGridBorder grid grid-cols-5 h-full">
                     <div className="col-start-1 row-span-full" />
                     <div className="col-start-2 row-span-full" />
                     <div className="col-start-3 row-span-full" />
@@ -342,9 +344,8 @@ export default function Agenda() {
                 </div>
 
                 {/* Events grid is 144 rows: 12h * 60min / 5min */}
-                <ol 
-                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5
-                    bg-gradient-to-r from-primary-container/5 via-transparent to-primary/5 sm:bg-none"
+                <ol
+                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 bg-gradient-to-r from-primary-container/5 via-transparent to-primary/5 sm:bg-none h-full md:overflow-auto"
                     style={{ 
                         gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto',
                         transform: `translateX(${swipeOffset}px)`, 
