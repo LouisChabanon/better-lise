@@ -2,14 +2,16 @@ import Agenda from '@/components/Agenda';
 import { verifySession } from '@/lib/sessions';
 import { LoginForm } from '@/components/LoginForm';
 import { GradeTable } from '@/components/GradeTable';
+import InstallAppBanner from '@/components/InstallBanner';
 
 export default async function DashboardPage() {
 
   const session = await verifySession();
 
   return (
-    <div className="flex items-start md:flex-row bg-backgroundSecondary flex-grow p-0 md:p-8">
+    <div className="flex items-start md:flex-row bg-backgroundSecondary flex-grow p-0 md:p-8">     
       <div className="flex flex-col md:flex-row gap-8 w-full">
+        <InstallAppBanner />
           <div className="w-full md:w-2/3 flex flex-col sm:p-4 bg-backgroundPrimary rounded-lg shadow-lg">
             <Agenda />
           </div>
