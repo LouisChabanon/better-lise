@@ -54,7 +54,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="apple-mobile-web-app-title" content="Better Lise" />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href={`/manifest.json?v=${process.env.VERCEL_GIT_COMMIT_SHA}`} />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="mask-icon" href="/icon0.svg" color="#5bbad5" />
