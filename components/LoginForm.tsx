@@ -14,7 +14,11 @@ type FieldType = {
 
 type PassInputType = "password" | "text";
 
-export function LoginForm() {
+type LoginFormProps = {
+	onSuccess?: () => void;
+};
+
+export function LoginForm({ onSuccess }: LoginFormProps) {
 	const router = useRouter();
 
 	const [loading, setLoading] = useState(false);
@@ -50,7 +54,12 @@ export function LoginForm() {
 			// Call the signIn action
 			const state = await signIn(undefined, formData);
 			if (state?.success) {
-				router.push("/");
+				// If parent provided an onSuccess handler (modal usage), call it.
+				if (onSuccess) {
+					onSuccess();
+				} else {
+					router.push("/");
+				}
 			} else {
 				console.log("Login failed:", state?.errors);
 				setErrors(state?.errors || "An error occurred during login.");

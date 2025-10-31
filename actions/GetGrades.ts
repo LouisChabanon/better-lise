@@ -5,54 +5,15 @@ import { CookieJar } from "tough-cookie";
 import prisma from "@/lib/db";
 import { verifySession, deleteSession } from "@/lib/sessions";
 import * as cheerio from "cheerio";
+import { getHiddenFields } from "@/lib/helper";
+import { GradeType, RequestState } from "@/lib/types";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
-
-type Grade = {
-    id: number;
-    name: string;
-    grade: string;
-    date: string;
-    isNew?: boolean;
-}
-
-type RequestState = {
-    errors?: string;
-    data?: Grade[];
-    success: boolean;
-}
-
-
-function getHiddenFields($html: cheerio.CheerioAPI) {
-
-    const viewState = $html('input[name="javax.faces.ViewState"]').val() as string;
-    const formIdInit = $html('input[name="form:idInit"]').val() as string;
-    const largeurDivCentre = $html('input[name="form:largeurDivCenter"]').val() as string;
-
-    // console.log("ViewState:", encodeURIComponent(viewState));
-    // console.log("FormIdInit:", encodeURIComponent(formIdInit));
-    // console.log("LargeurDivCentre:", encodeURIComponent(largeurDivCentre));
-
-    if (!viewState || !formIdInit) {
-        console.error("Could not find required hidden fields in the HTML.");
-        throw new Error("Required hidden fields not found");
-    }
-
-    // log all hidden fields
-    $html('input[type="hidden"]').each((_, el) => {
-        const name = $html(el).attr('name');
-        const value = $html(el).val();
-        console.log(`Hidden field: ${name} = ${value}`);
-    });
-
-    return { viewState, formIdInit, largeurDivCentre };
-
-}
 
 
 export async function getGradeData(reload: boolean = true): Promise<RequestState> {
 
-    const grades:Grade[] = [];
+    const grades:GradeType[] = [];
 
     // Fetch grades from database
     
@@ -75,7 +36,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
 
     const db_grades = await prisma.grade.findMany({ where: { userId: user.id}})
-    if (!reload) grades.push(...db_grades.map(g => ({id: g.id, name: g.name, grade: g.grade, date: g.date})));
+    if (!reload) grades.push(...db_grades.map(g => ({code: g.code, libelle: g.name, note: g.grade, date: g.date, absence: g.absence, comment: g.comment, teachers: g.teachers})));
 
     // Fetching data from Lise only if reload is true or if there are no grades in the database
     if (reload === true || db_grades.length === 0) {
@@ -102,84 +63,166 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
                 return {errors: "Session has expired", success: false};
             }
 
-        //     const hiddenFields = getHiddenFields($html);
+            const hiddenFields = getHiddenFields($html);
 
-        //     const res_first_req = await fetchWithCookies("https://lise.ensam.eu/faces/MainMenuPage.xhtml", {
-        //         method: "POST",
-        //         headers: {
-        //             "Sec-Ch-Ua-Platform": "Windows",
-        //             "Accept-Language": "fr-FR,fr;q=0.9",
-        //             "Sec-Ch-Ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
-        //             "Sec-Ch-Ua-Mobile": "?0",
-        //             "Faces-Request": "partial/ajax",
-        //             "X-Requested-With": "XMLHttpRequest",
-        //             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-        //             "Accept": "application/xml, text/xml, */*; q=0.01",
-        //             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        //             "Origin": "https://lise.ensam.eu",
-        //             "Sec-Fetch-Site": "same-origin",
-        //             "Sec-Fetch-Mode": "cors",
-        //             "Sec-Fetch-Dest": "empty",
-        //             "Referer": "https://lise.ensam.eu/",
-        //             "Accept-Encoding": "gzip, deflate, br",
-        //             "Priority": "u=1, i"
-        //         },
-        //         body: `javax.faces.partial.ajax=true&javax.faces.source=form%3Aj_idt52&javax.faces.partial.execute=form%3Aj_idt52&javax.faces.partial.render=form%3Asidebar&form%3Aj_idt52=form%3Aj_idt52&webscolaapp.Sidebar.ID_SUBMENU=submenu_47356&form=form&form%3AlargeurDivCenter=${encodeURIComponent(largeurDivCentre)}&form%3AidInit=${encodeURIComponent(formIdInit)}&form%3Asauvegarde=&form%3Aj_idt789%3Aj_idt791_dropdown=1&form%3Aj_idt789%3Aj_idt791_mobiledropdown=1&form%3Aj_idt789%3Aj_idt791_page=0&form%3Aj_idt822_focus=&form%3Aj_idt822_input=44323&${encodeURIComponent(viewState)}`
-        // });
+            const res_first_req = await fetchWithCookies("https://lise.ensam.eu/faces/MainMenuPage.xhtml", {
+                method: "POST",
+                headers: {
+                    "Sec-Ch-Ua-Platform": "Windows",
+                    "Accept-Language": "fr-FR,fr;q=0.9",
+                    "Sec-Ch-Ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+                    "Sec-Ch-Ua-Mobile": "?0",
+                    "Faces-Request": "partial/ajax",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+                    "Accept": "application/xml, text/xml, */*; q=0.01",
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                    "Origin": "https://lise.ensam.eu",
+                    "Sec-Fetch-Site": "same-origin",
+                    "Sec-Fetch-Mode": "cors",
+                    "Sec-Fetch-Dest": "empty",
+                    "Referer": "https://lise.ensam.eu/",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Priority": "u=1, i"
+                },
+                body: new URLSearchParams({
+                    "javax.faces.partial.ajax": "true",
+                    "javax.faces.source": "form:j_idt849:j_idt852",
+                    "javax.faces.partial.execute": "form:j_idt849:j_idt852",
+                    "javax.faces.partial.render": "form:j_idt849:j_idt852",
+                    "form:j_idt849:j_idt852": "form:j_idt849:j_idt852",
+                    "form:j_idt849:j_idt852_start": "1761519600000",
+                    "form:j_idt849:j_idt852_end": "1761606000000",
+                    "form": "form",
+                    "form:largeurDivCenter": "",
+                    "form:idInit": `${hiddenFields.formIdInit}`,
+                    "form:sauvegarde": "",
+                    "form:j_idt849:j_idt852_view": "basicDay",
+                    "form:j_idt814:j_idt816_dropdown": "1",
+                    "form:j_idt814:j_idt816_mobiledropdown": "1",
+                    "form:j_idt814:j_idt816_page": "0",
+                    "javax.faces.ViewState": `${hiddenFields.viewState}`
+                })})
 
-        //     const html_first_req = await res_first_req.text();
-        //     const $html_2 = cheerio.load(html_first_req, {xmlMode: true});
-
-        //     const new_viewState = $html_2('update[id="j_id1:javax.faces.ViewState:0"]').text();
-        //     console.log("New ViewState:", new_viewState);  
-
-        //     const res_second_req = await fetchWithCookies("https://lise.ensam.eu/faces/MainMenuPage.xhtml", {
-        //         method: "POST",
-        //         headers: {
-        //             "Cache-Control": "max-age=0",
-        //             "Sec-Ch-Ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
-        //             "Sec-Ch-Ua-Mobile": "?0",
-        //             "Sec-Ch-Ua-Platform": "\"Windows\"",
-        //             "Accept-Language": "fr-FR,fr;q=0.9",
-        //             "Origin": "https://lise.ensam.eu",
-        //             "Content-Type": "application/x-www-form-urlencoded",
-        //             "Upgrade-Insecure-Requests": "1",
-        //             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-        //             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        //             "Sec-Fetch-Site": "same-origin",
-        //             "Sec-Fetch-Mode": "navigate",
-        //             "Sec-Fetch-User": "?1",
-        //             "Sec-Fetch-Dest": "document",
-        //             "Referer": "https://lise.ensam.eu/",
-        //             "Accept-Encoding": "gzip, deflate, br",
-        //             "Priority": "u=0, i"
-        //         },
-        //         body: `form=form&form%3AlargeurDivCenter=949&form%3AidInit=${encodeURIComponent(formIdInit)}&form%3Asauvegarde=&form%3Aj_idt789%3Aj_idt791_dropdown=1&form%3Aj_idt789%3Aj_idt791_mobiledropdown=1&form%3Aj_idt789%3Aj_idt791_page=0&form%3Aj_idt822_focus=&form%3Aj_idt822_input=44323&javax.faces.ViewState=${encodeURIComponent(new_viewState)}&form%3Asidebar=form%3Asidebar&form%3Asidebar_menuid=3_0`
-        //     });
-
-        //     const html_second_req = await res_second_req.text();
-        //     console.log(html_second_req);
-            // Parsing grades from the main page carroussel.
+            const html_first_req = await res_first_req.text();
+            const $html_2 = cheerio.load(html_first_req, {xmlMode: true});
             
-            $html('.ui-carousel-item').each((_, el) => {
-                const grade = $html(el).find('.texteIndicateur').text().trim();
-                const name = $html(el).find('.champsText2').text().trim();
-                const date = $html(el).find('.champsDate').text().trim();
-                grades.push({
-                    id: user.id + Math.floor(Math.random() * 1000000), //THIS IS HORRIBLE
-                    name,
-                    grade,
-                    date,
+            const new_viewState = $html_2('update[id="j_id1:javax.faces.ViewState:0"]').text();
+
+            const res_second_req = await fetchWithCookies("https://lise.ensam.eu/faces/MainMenuPage.xhtml", {
+                method: "POST",
+                headers: {
+                    "Cache-Control": "max-age=0",
+                    "Sec-Ch-Ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\"",
+                    "Sec-Ch-Ua-Mobile": "?0",
+                    "Sec-Ch-Ua-Platform": "\"Windows\"",
+                    "Accept-Language": "fr-FR,fr;q=0.9",
+                    "Origin": "https://lise.ensam.eu",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Upgrade-Insecure-Requests": "1",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                    "Sec-Fetch-Site": "same-origin",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-User": "?1",
+                    "Sec-Fetch-Dest": "document",
+                    "Referer": "https://lise.ensam.eu/",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Priority": "u=0, i"
+                },
+                body: new URLSearchParams({
+                    "javax.faces.partial.ajax": "true",
+                    "javax.faces.source": "form:j_idt52",
+                    "javax.faces.partial.execute": "form:j_idt52",
+                    "javax.faces.partial.render": "form:sidebar",
+                    "form:j_idt52": "form:j_idt52",
+                    "webscolaapp.Sidebar.ID_SUBMENU": "submenu_47356",
+                    "form": "form",
+                    "form:largeurDivCenter": "1279",
+                    "form:idInit": `${hiddenFields.formIdInit}`,
+                    "form:sauvegarde": "",
+                    "form:j_idt849:j_idt852_view": "basicDay",
+                    "form:j_idt814:j_idt816_dropdown": "1",
+                    "form:j_idt814:j_idt816_mobiledropdown": "1",
+                    "form:j_idt814:j_idt816_page": "0",
+                    "javax.faces.ViewState": `${new_viewState}`
+                })
+            });
+
+            const html_second_req = await res_second_req.text();
+
+            const res_third_req = await fetchWithCookies("https://lise.ensam.eu/faces/MainMenuPage.xhtml", {
+                method: "POST",
+                headers: {
+                    "Cache-Control": "max-age=0",
+                    "Sec-Ch-Ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+                    "Sec-Ch-Ua-Mobile": "?0",
+                    "Sec-Ch-Ua-Platform": "\"Windows\"",
+                    "Accept-Language": "fr-FR,fr;q=0.9",
+                    "Origin": "https://lise.ensam.eu",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Upgrade-Insecure-Requests": "1",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                    "Sec-Fetch-Site": "same-origin",
+                    "Sec-Fetch-Mode": "navigate",
+                    "Sec-Fetch-User": "?1",
+                    "Sec-Fetch-Dest": "document",
+                    "Referer": "https://lise.ensam.eu/",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Priority": "u=0, i"
+                },
+                body: new URLSearchParams({
+                   "form": "form",
+                    "form:largeurDivCenter": "1279",
+                    "form:idInit": `${hiddenFields.formIdInit}`,
+                    "form:sauvegarde": "",
+                    "form:j_idt849:j_idt852_view": "basicDay",
+                    "form:j_idt814:j_idt816_dropdown": "1",
+                    "form:j_idt814:j_idt816_mobiledropdown": "1",
+                    "form:j_idt814:j_idt816_page": "0",
+                    "javax.faces.ViewState": `${new_viewState}`,
+                    "form:sidebar": "form:sidebar",
+                    "form:sidebar_menuid": "4_0" 
                 })
             })
 
-            const newGrades = grades.filter(g => !db_grades.some(dbGrade => dbGrade.name === g.name && dbGrade.date === g.date && dbGrade.grade === g.grade));
+            const html_third_req = await res_third_req.text();
+
+                const $table_html = cheerio.load(html_third_req);
+                const rows = $table_html('#form\\:dataTableFavori_data > tr');
+                rows.each((index, element) => {
+                    const cells = $table_html(element).find('td');
+                    const rowData: GradeType = {
+                        date: $table_html(cells.eq(0)).clone().find('ui-column-title').remove().end().text().trim(),
+                        code: $table_html(cells.eq(1)).clone().find('ui-column-title').remove().end().text().trim(),
+                        libelle: $table_html(cells.eq(2)).clone().find('ui-column-title').remove().end().text().trim(),
+                        note: parseFloat($table_html(cells.eq(3)).clone().find('ui-column-title').remove().end().text().trim()),
+                        absence: $table_html(cells.eq(4)).clone().find('ui-column-title').remove().end().text().trim(),
+                        comment: $table_html(cells.eq(5)).clone().find('ui-column-title').remove().end().text().trim(),
+                        teachers: $table_html(cells.eq(6)).clone().find('ui-column-title').remove().end().text().trim(),
+                    }
+                    grades.push(rowData)
+                })
+
+            
+
+            const newGrades = grades.filter(g => !db_grades.some(dbGrade => dbGrade.code === g.code));
             console.log("New grades found:", newGrades.length);
             await prisma.grade.createMany({
-                data: newGrades.map(g => ({ ...g, userId: user.id,}))
+                 data: newGrades.map(g => ({ 
+                    name: g.libelle,
+                    code: g.code,
+                    grade: g.note,
+                    date: g.date,
+                    absence: g.absence,
+                    comment: g.comment,
+                    teachers: g.teachers,
+                    userId: user.id,
+                 }))
             })
             
-            // Append newGrades to the grades array with isNew flag
+            // // Append newGrades to the grades array with isNew flag
             newGrades.forEach(g => g.isNew = true);
             
         }catch (error) {
