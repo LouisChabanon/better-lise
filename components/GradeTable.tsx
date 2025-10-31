@@ -1,80 +1,62 @@
 "use client";
-import { ReloadOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import { getGradeData } from "@/actions/GetGrades";
 import { logOut } from "@/actions/Auth";
 import { Button } from "./ui/Button";
+import { GradeType } from "@/lib/types";
 import { CaretRightFilled, CaretLeftFilled, LogoutOutlined } from "@ant-design/icons";
+import GradeModal from "./ui/GradeModal";
 
-interface Grade {
-  id: number;
-  name: string;
-  grade: string;
-  date: string;
-  isNew?: boolean;
+interface GradeTableProps {
+  grades: GradeType[] | null;
+  isLoading: boolean;
+  error: string | null;
 }
 
-export function GradeTable(){
-
-  const [grades, setGrades] = useState<Grade[]>([]);
+export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredGrades, setFilteredGrades] = useState<Grade[]>([]);
-  
+  const [filteredGrades, setFilteredGrades] = useState<GradeType[]>([]);
+
+  const [selectedGrade, setSelectedGrade] = useState<GradeType | null>(null);
+
   const pageSize = 15;
 
-  async function fetchGrades(reachServer = false) {
-      setIsLoading(true);
-      const res = await getGradeData(reachServer);
-      if (res.success && res.data) {
-
-      // Sort grades by date in descending order
-        const sorted = res.data.sort((a, b) => {
-          const [dayA, monthA, yearA] = a.date.split('/').map(Number);
-          const [dayB, monthB, yearB] = b.date.split('/').map(Number);
-          const timeA = new Date(yearA, monthA - 1, dayA).getTime();
-          const timeB = new Date(yearB, monthB - 1, dayB).getTime();
-          return timeB - timeA;});
-
-      // Sort new grades to the top
-      const sortNew = sorted.sort((a, b) => {
-        if (a.isNew && !b.isNew) return -1; // a is new, b is not
-        if (!a.isNew && b.isNew) return 1; // b is new, a is not
-        return 0; // both are either new or not new
-      });
-        setGrades(sortNew.map((g) => ({
-          id: g.id, 
-          name: g.name,
-          grade: g.grade,
-          date: g.date,
-          isNew: g.isNew
-      })));
-      setIsLoading(false);
-    }else{
-      setIsLoading(false);
-      console.error("Failed to fetch grades:", res.errors || "Unknown error");
-    }
+  function noteBadgeClass(note: number | string) {
+    const n = Number(note);
+    if (isNaN(n)) return 'bg-gray-200 text-gray-800';
+    if (n < 10) return 'bg-red-100 text-red-800';
+    if (n >= 10 && n < 12) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
   }
 
+  // Update filtered list whenever grades or the search term change
   useEffect(() => {
-  fetchGrades(true); 
-  }, []);
+    if (!grades) {
+      setFilteredGrades([]);
+      setCurrentPage(1);
+      return;
+    }
 
-  useEffect(() => {
-    const term = searchTerm.toLowerCase();
-    const filtered = grades.filter(g =>
-      g.name.toLowerCase().includes(term) ||
-      g.grade.toString().includes(term) ||
-      g.date.includes(term)
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = grades.filter((g) =>
+      g.code.toLowerCase().includes(term) ||
+      g.note.toString().includes(term) ||
+      g.date.includes(term) ||
+      g.libelle.toLowerCase().includes(term)
     );
+
     setFilteredGrades(filtered);
     setCurrentPage(1);
   }, [searchTerm, grades]);
 
-  const totalPages = Math.ceil(grades.length / pageSize);
+  const totalPages = Math.max(1, Math.ceil(filteredGrades.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
   const currentGrades = filteredGrades.slice(startIndex, startIndex + pageSize);
+
+  // Open modal when a grade row is clicked
+  const onRowClick = (grade: GradeType) => {
+    setSelectedGrade(grade);
+  };
 
     return (
       <>
@@ -86,30 +68,14 @@ export function GradeTable(){
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             disabled={isLoading}
-            className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus-ring-2"
+            className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus:ring-2"
           />
-          <div className="flex gap-2">
-            <Button
-              status="secondary"
-              onClick={() => {fetchGrades(true)}}
-              disabled={isLoading}
-            >
-              <ReloadOutlined />
-            </Button>
-            <Button
-              status="primary"
-              onClick={() => {logOut()}}
-              disabled={isLoading}
-            >
-              <LogoutOutlined />
-            </Button>
-          </div>
         </div>
       {isLoading ? (
           <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full h-full animate-pulse flex flex-col items-center justify-center">
             <div>
               <svg className="mr-3 size-5 animate-spin inline-block" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4}></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             En attente de Lise ... (c'est long)
@@ -117,37 +83,58 @@ export function GradeTable(){
             </div>
         ) : (
           <>
-            <div className="overflow-auto h-full rounded-lg shadow-md">
-              <table className="table-auto min-w-full text-sm ">
+            <div className="overflow-auto h-full rounded-lg bg-backgroundPrimary">
+              <table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-2 text-left w-1/3 min-w-[150px]">Nom</th>
-                    <th className="px-4 py-2 text-left sticky left-0 z-20 min-w-[96px]">Note</th>
-                    <th className="px-4 py-2 text-left w-1/3 min-w-[150px]">Date</th>
+                    <th className="px-4 py-3 text-left w-1/3 min-w-[150px]">Libellé</th>
+                    <th className="px-4 py-3 text-left left-0 z-20 min-w-[96px]">Note</th>
+                    <th className="px-4 py-3 text-left w-1/6 min-w-[120px]">Code</th>
+                    <th className="px-4 py-3 text-left w-1/6 min-w-[110px]">Date</th>
+                    <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Motif d'absence</th>
+                    <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Appréciation</th>
+                    <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Intervenants</th>
                   </tr>
                 </thead>
                 <tbody className="text-textSecondary">
-                  {currentGrades.map((g) => {
-                    let rowClass = "hover:bg-backgroundTertiary transition";
-                    if (Number(g.grade) < 10) rowClass = "bg-eventExamBg outline outline-1 outline-eventExamBg hover:bg-eventExamBg/80 transition";
-                    else if (Number(g.grade) >= 10 && Number(g.grade) < 12) rowClass = "bg-eventCmBg outline outline-1 outline-eventCmBg hover:bg-eventCmBg/80 transition";
-                    if (g.isNew) rowClass ="bg-eventDefaultBg transition hover:bg-eventDefaultBg/80";
-                    return (
-                      <tr key={g.id} className={`${rowClass} hover:cursor-pointer text-sm sm:text-base`}>
-                      <td title={g.name} className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{g.isNew && (
-                      <span className="inline-block bg-on-primary text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                        🔥New
-                      </span>)} {g.name}
-                    </td>
-                      <td className="px-4 py-4 whitespace-nowrap font-semibold sticky left-0">{g.grade}</td>
-                      <td className="px-4 py-4 whitespace-nowrap">{g.date}</td>
+                  {currentGrades.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-8 text-center text-textTertiary">Aucune note trouvée.</td>
                     </tr>
-                    )
-                  } 
                   )}
+
+                  {currentGrades.map((g) => {
+                    const isNewClass = g.isNew ? 'bg-eventDefaultBg' : '';
+                    const baseRow = `transition hover:shadow-sm hover:bg-backgroundSecondary ${isNewClass}`;
+                    return (
+                      <tr key={g.code} onClick={() => onRowClick(g)} className={`${baseRow} hover:cursor-pointer text-sm sm:text-base`}>
+                        <td title={g.libelle} className="px-4 py-4 align-top max-w-[300px] overflow-hidden text-ellipsis">{g.isNew && (
+                          <span className="inline-block bg-on-primary text-white text-[10px] font-semibold px-2 py-0.5 rounded-full mr-2">
+                            🔥New
+                          </span>)}
+                          <span className="align-middle">{g.libelle}</span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap font-semibold">
+                          <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium ${noteBadgeClass(g.note)}`}>
+                            {g.note}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{g.code}</td>
+                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.date}</td>
+                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.absence}</td>
+                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.comment}</td>
+                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.teachers}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+
+              {/* Grade modal display */}
+              {selectedGrade && (
+                <GradeModal grade={selectedGrade} onClose={() => setSelectedGrade(null)} />
+              )}
 
             {/* Pagination Controls */}
             <div className="mt-4 flex justify-between items-center">

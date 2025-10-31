@@ -55,7 +55,6 @@ const GetCalendar = async (username: string | null) => {
                 const teacher = event.description.match(/- INTERVENANTS\s*:\s*(.+)/);
                 const room = event.location || "No room specified";
                 const type = event.description.match(/- TYPE_ACTIVITE\s*:\s*(.+)/);
-                const priority = type && type[1].trim() === "EXAMEN" ? "high" : "low";
 
                 // Create a CalendarEventProps object
                 const calendarEvent: CalendarEventProps = {
@@ -66,7 +65,6 @@ const GetCalendar = async (username: string | null) => {
                     teacher: teacher ? teacher[1].trim() : "No teacher specified",
                     group: group ? group[1].trim() : "No group specified",
                     type: type ? type[1].trim() : "CM", // Change this once we have actual data
-                    priority: priority
                 };
 
                 calendarEvents.push(calendarEvent);

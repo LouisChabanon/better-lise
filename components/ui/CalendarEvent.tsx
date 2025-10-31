@@ -16,7 +16,6 @@ type CalendarEventProps = {
     group?: string;
     weekOffset?: number; // Offset for the week, default is 0 (current week)
     info: { position: number, columns: number }; // Additional info for layout
-    priority?: "low" | "medium" | "high";
     tbk: tbk;
 };
 
@@ -24,7 +23,7 @@ const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, priority, tbk }: CalendarEventProps) => {
+const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
 
@@ -99,12 +98,6 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     let width = `${100 / info.columns}%`;
     let left = `${(info.position / info.columns) * 100}%`;
     let zIndex = 0;
-
-    if(priority === "high") {
-        width = `100%`;
-        left = `${(info.position) * 100}%`;
-        zIndex = 10;
-    }
     
     
     if (type === "RU") {
@@ -126,8 +119,8 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     padding: "1rem",
                 }: {
                     gridRow: `${startRow} / span ${span} `,
-                    width: `100%`,
-                    left: `${(info.position) * 100}%`,
+                    width: width,
+                    left: left,
                     position: "relative",
                     zIndex: zIndex,
                 })

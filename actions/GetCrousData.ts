@@ -109,7 +109,6 @@ export default async function getCrousData(tbk: tbk) {
                     summary,
                     startDate: localeStartDate,
                     endDate: localeEndDate,
-                    priority: "low",
                 });
             }
         });

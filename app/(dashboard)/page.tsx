@@ -1,37 +1,17 @@
-import Agenda from '@/components/Agenda';
-import { verifySession } from '@/lib/sessions';
-import { LoginForm } from '@/components/LoginForm';
-import { GradeTable } from '@/components/GradeTable';
+import DashboardLayout from '@/components/DashboardLayout';
 import InstallAppBanner from '@/components/InstallBanner';
+import { verifySession } from '@/lib/sessions';
 
 export default async function DashboardPage() {
-
+  // get server session if available so we can pass it to the client layout
   const session = await verifySession();
 
   return (
-    <div className="flex items-start md:flex-row bg-backgroundSecondary flex-1 min-h-0 p-0 md:p-8 md:h-full">
-      <div className="flex flex-col md:flex-row gap-8 w-full md:h-full md:min-h-0">
+    <div className="flex items-start md:flex-row bg-backgroundSecondary min-h-0 p-0 md:p-8 md:h-screen">
+      <div className="flex md:flex-row gap-8 w-full md:h-full md:min-h-0">
         <InstallAppBanner />
-          <div className="w-full md:w-2/3 flex flex-col sm:p-4 bg-backgroundPrimary rounded-lg shadow-lg md:h-full md:min-h-0">
-            <Agenda />
-          </div>
-          {
-            !session?.username ? (
-                            <div className="md:w-1/3 flex items-center justify-center p-2 md:p-8">
-                            <div className="max-w-md w-full bg-backgroundPrimary p-8 rounded-2xl shadow-lg">
-                                <div className="flex flex-col items-center mb-6 text-center gap-2">
-                                    <h2 className="text-3xl font-bold text-textPrimary">Connexion</h2>
-                                    <p className="font-medium text-textTertiary">Utiliser vos identifiants Lise</p>
-                                </div>
-                                <LoginForm />
-                            </div>
-                        </div>
-            ) :  
-  <div id="grade-table" className="w-full md:w-1/3 flex flex-col p-4 bg-backgroundPrimary rounded-lg shadow-lg md:h-full md:min-h-0">
-                <h2 className="text-xl font-semibold text-textPrimary mb-4">Mes Notes</h2>
-                <GradeTable />
-            </div>
-          }
+        {/* Always show the dashboard. DashboardLayout will handle showing a login modal when the user tries to access protected views. */}
+        <DashboardLayout session={session} />
       </div>
     </div>
   );
