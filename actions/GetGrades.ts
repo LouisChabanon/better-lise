@@ -1,5 +1,4 @@
 "use server";
-import { cookies } from "next/headers";
 import fetchCookie from "fetch-cookie";
 import { CookieJar } from "tough-cookie";
 import prisma from "@/lib/db";
@@ -18,20 +17,23 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
     // Fetch grades from database
     
 
-    const username = (await verifySession()).username;
-    if (!username) {
+    const session = (await verifySession());
+    if (!session.username) {
         console.error("No username found in session.");
         return {errors: "No username found in session.", success: false};
     }
-    const user = await prisma.user.findUnique({ where: { username: username} })
+    const user = await prisma.user.findUnique({ where: { username: session.username} })
 
     if (!user) {
         console.error("User not found in database.");
         return {errors: "User not found in database.", success: false};
     }
 
-    if (!user.authToken) {
-         return {errors: "No authentication token for user", success: false};
+    const jsessionid = session.sessionId
+
+    if(!jsessionid){
+        console.error("No Lise session Id found in cookie");
+        return {errors: "Session id not found.", success: false}
     }
 
 
@@ -47,7 +49,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
         const fetchWithCookies = fetchCookie(fetch, jar);
 
-        jar.setCookieSync(`JSESSIONID=${user.authToken}`, LISE_URI); // Set the JSESSIONID cookie in the cookie jar
+        jar.setCookieSync(`JSESSIONID=${jsessionid}`, LISE_URI); // Set the JSESSIONID cookie in the cookie jar
 
         try {
             // Fetching home page to get grades because it's simpler. ( JSF IS BADDDDDDD )

@@ -69,13 +69,13 @@ export async function signIn(
             
             const user = await prisma.user.upsert({
                 where: { username: username },
-                update: { lastLogin: new Date(), authToken: jsessionid.value },
-                create: { username: username, authToken: jsessionid.value, lastLogin: new Date() },
+                update: { lastLogin: new Date()},
+                create: { username: username, lastLogin: new Date() },
             })
             if (!user) {
                 return { errors: "Failed to create or update user." };
             }
-            await createSession(user.username);
+            await createSession(user.username, jsessionid.value);
             return { success: true, message: "Login successful!" };
         }
 

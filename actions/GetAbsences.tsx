@@ -14,21 +14,25 @@ export async function getAbsenceData(reload: boolean = true): Promise<RequestSta
 
     const absences: AbsenceType[] = [];
 
-    const username = (await verifySession()).username;
-    if(!username){
+    const session = (await verifySession());
+    if(!session.username){
         console.error("No username found in session.")
         return {errors: "No username found in session.", success: false};
     }
-    const user = await prisma.user.findUnique({ where: { username: username} })
+    const user = await prisma.user.findUnique({ where: { username: session.username} })
 
     if (!user) {
         console.error("User not found in database.");
         return {errors: "User not found in database.", success: false};
     }
 
-    if (!user.authToken) {
-         return {errors: "No authentication token for user", success: false};
+    const jsessionid = session.sessionId
+
+    if(!jsessionid){
+        console.error("No Lise session Id found in cookie");
+        return {errors: "Session id not found.", success: false}
     }
+
 
     const db_absences = await prisma.absence.findMany({where: {userId: user.id}})
     //if (!reload) absences.push(db_absences)
@@ -42,7 +46,7 @@ export async function getAbsenceData(reload: boolean = true): Promise<RequestSta
 
         const fetchWithCookies = fetchCookie(fetch, jar);
 
-        jar.setCookieSync(`JSESSIONID=${user.authToken}`, LISE_URI);
+        jar.setCookieSync(`JSESSIONID=${jsessionid}`, LISE_URI);
 
         try {
             const res = await fetchWithCookies(LISE_URI);

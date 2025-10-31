@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export type SessionPayload = {
     username: string;
+    authToken: string;
     iat: number; // issued at
     exp: number; // expiration time
 }
@@ -43,12 +44,13 @@ async function decrypt(token: string): Promise<SessionPayload | null> {
 }
 
 
-export const createSession = async (username: string): Promise<string> => {
+export const createSession = async (username: string, authToken: string): Promise<string> => {
     console.log("Creating session for user:", username);
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours expiration time
 
     const sessionPayload: SessionPayload = {
         username,
+        authToken,
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(expiresAt.getTime() / 1000),
     }
@@ -90,7 +92,7 @@ export async function verifySession() {
             return { isAuth: false};
         }
 
-        return { isAuth: true, username: session.username };
+        return { isAuth: true, username: session.username, sessionId: session.authToken };
     } catch (e: any) {
         console.error("Error verifying session:", e.message);
         return { isAuth: false };
