@@ -202,9 +202,9 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                         >Mes Notes
                         </button>
                         <button
-                            onClick={() => handleViewChange('vacancies')}
+                            onClick={() => alert("Feature not Available")}
                             className={`${commonButtonClass} ${selectedView === 'vacancies' ? activeButtonClass : inactiveButtonClass}`}
-                            disabled={true}
+                            
                         >Mes Absences
                         </button>
                     </nav>
@@ -217,7 +217,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                         </Button>
                     </div>
                 </div>
-                <div className="w-full md:w-3/4 lg:w-4/5 flex flex-col p-4 bg-backgroundPrimary rounded-lg md:h-full md:min-h-0">
+                <div className="w-full md:w-3/4 lg:w-4/5 flex flex-col md:p-4 bg-backgroundPrimary rounded-lg md:h-full md:min-h-0">
                 {settingsModal && (
                                 <SettingsDialog isOpen={settingsModal} onClose={() => {
                                     setSettingsModal(false);

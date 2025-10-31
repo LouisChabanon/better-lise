@@ -88,8 +88,8 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
                 <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-3 text-left w-1/3 min-w-[150px]">Libellé</th>
+                    <th className="px-4 py-3 text-left left-0 z-20 min-w-[96px]">Note</th>
                     <th className="px-4 py-3 text-left w-1/6 min-w-[120px]">Code</th>
-                    <th className="px-4 py-3 text-left sticky left-0 z-20 min-w-[96px]">Note</th>
                     <th className="px-4 py-3 text-left w-1/6 min-w-[110px]">Date</th>
                     <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Motif d'absence</th>
                     <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Appréciation</th>
@@ -114,12 +114,12 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
                           </span>)}
                           <span className="align-middle">{g.libelle}</span>
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{g.code}</td>
                         <td className="px-4 py-4 whitespace-nowrap font-semibold">
                           <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium ${noteBadgeClass(g.note)}`}>
                             {g.note}
                           </span>
                         </td>
+                        <td className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{g.code}</td>
                         <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.date}</td>
                         <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.absence}</td>
                         <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.comment}</td>

@@ -17,7 +17,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
     // Fetch grades from database
     
-    // Don't store JSESSIONID in jwt, use db instead
+
     const username = (await verifySession()).username;
     if (!username) {
         console.error("No username found in session.");
