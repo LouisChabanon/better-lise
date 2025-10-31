@@ -1,28 +1,28 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react'
-import { RightOutlined, LeftOutlined, ReloadOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
+import { RightOutlined, LeftOutlined, HomeOutlined } from '@ant-design/icons';
 import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
 import { getWeekData } from '@/actions/GetWeekData';
-import getCrousData from '@/actions/GetCrousData';
-import GetCalendar from '@/actions/GetCalendar';
 import { CalendarEventProps } from '@/lib/types';
-import { CalculateOverlaps, getMonthName, liseIdChecker } from '@/lib/helper';
+import { getMonthName } from '@/lib/helper';
 import LoadingPlaceholder from './ui/loaddingPlaceholder';
-import SettingsDialog from './ui/SettingsDialog';
 import { tbk } from '@/lib/types';
-export default function Agenda() {
 
-    const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [usernameModal, setUsernameModal] = useState<boolean>(false);
-    const [settingsModal, setSettingsModal] = useState<boolean>(false);
+interface AgendaProps {
+    calendarEvents: CalendarEventProps[] | null;
+    mapping: Record<string, {position: number, columns: number }>;
+    isLoading: boolean;
+}
+
+
+export default function Agenda({ calendarEvents, mapping, isLoading}: AgendaProps) {
+
     const [tbk, setTbk] = useState<tbk>("Sibers");
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [swipeOffset, setSwipeOffset] = useState<number>(0);
-    const [mapping, setMapping] = useState<Record<string, { position: number, columns: number }>>({});
 
     
     const agendaRef = useRef<HTMLDivElement>(null);
@@ -33,51 +33,8 @@ export default function Agenda() {
 
     const { weekDates, currentDayIndex } = getWeekData(weekOffset);
 
-    const fetchCalendarEvents = async () => {
-        setLoading(true);
-        const savedUsername = localStorage.getItem("lise_id");
-        const savedTbk = (localStorage.getItem("tbk") || "Sibers") as tbk;
-        setTbk(savedTbk);
-
-        if (!savedUsername) {
-            setSettingsModal(true);
-            setLoading(false);
-            return;
-        }
-
-        if(!savedTbk){
-            setSettingsModal(true);
-            setLoading(false);
-            return;
-        }
-        
-        
-        const calendarDataRes = await GetCalendar(savedUsername);
-        const crousData = await getCrousData(savedTbk);
-
-        if (calendarDataRes.status === "success") {
-
-            const eventData = calendarDataRes.events.concat(crousData || []);
-
-            const { sorted, mapping } = CalculateOverlaps(eventData);
-            setCalendarEvents(sorted);
-            setMapping(mapping);
-            //console.log("Calendar events fetched and overlaps calculated.");
-        } else if (calendarDataRes.status === "no user") {
-            setCalendarEvents([]);
-            setUsernameModal(true);
-            console.warn("No user session found. Please log in to view your calendar.");
-        } else {
-            setCalendarEvents([]);
-            console.error("Failed to fetch calendar events");
-        }
-        
-        setLoading(false);
-    }
 
     useEffect(() => {
-        
-        fetchCalendarEvents();
 
         // If currentDayIndex is a weekend (Saturday or Sunday), display the next week
         if (currentDayIndex === null || currentDayIndex >= 5 || currentDayIndex < 0) {
@@ -163,32 +120,22 @@ export default function Agenda() {
                         status="secondary"
                         className='mr-2'
                         onClick={() => setWeekOffset(weekOffset - 1)}
-                        disabled={loading}
+                        disabled={isLoading}
                         ><LeftOutlined className='font-semibold'/>
                     </Button>
                     <Button
                         status="secondary"
                         onClick={() => setWeekOffset(0)}
-                        disabled={loading || weekOffset === 0}
+                        disabled={isLoading || weekOffset === 0}
                         >Aujourd'hui</Button>
                     <Button
                         status="secondary"
                         className='ml-2'
                         onClick={() => setWeekOffset(weekOffset + 1)}
-                        disabled={loading}
+                        disabled={isLoading}
                         ><RightOutlined />
                     </Button>
                     </div>         
-                <div className="ml-4 flex items-center gap-2">
-                    <Button onClick={() => fetchCalendarEvents()}
-                    >
-                        <ReloadOutlined />
-                    </Button>
-                    <Button onClick={() => setSettingsModal(true)}>
-                        <SettingOutlined />
-                    </Button>
-                </div>
-                
                 </div>
             </header>
             {/* Mobile Header */}
@@ -200,29 +147,14 @@ export default function Agenda() {
                     <Button
                         status="secondary"
                         onClick={() => setWeekOffset(0)}
-                        disabled={loading || weekOffset === 0}
+                        disabled={isLoading || weekOffset === 0}
                         >
                             <HomeOutlined />
-                    </Button>
-                    <Button onClick={() => fetchCalendarEvents()}
-                    >
-                        <ReloadOutlined />
-                    </Button>
-                    <Button onClick={() => setSettingsModal(true)}>
-                        <SettingOutlined />
                     </Button>
                 </div>
             </header>
     <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">
-            {settingsModal && (
-                <SettingsDialog isOpen={settingsModal} onClose={() => {
-                    setSettingsModal(false);
-                }} onSave={() => {
-                    setSettingsModal(false);
-                    fetchCalendarEvents();
-                }} />
-            )}
-            {loading ? (
+            {isLoading ? (
                 <LoadingPlaceholder />
             ) : (
             <div ref={agendaRef} className="flex-1 min-h-0 flex flex-col md:overflow-hidden">
@@ -379,7 +311,6 @@ export default function Agenda() {
                                 type={event.type}
                                 weekOffset={weekOffset}
                                 info={info}
-                                priority={event.priority}
                                 tbk={tbk}
                             />
                         )

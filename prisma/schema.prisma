@@ -19,9 +19,13 @@ model User {
 
 model Grade {
   id         Int    @id @default(autoincrement())
+  code       String @unique
   name       String
-  grade      String
+  grade      Float
   date       String
+  absence    String
+  comment    String
+  teachers   String
   user       User   @relation(fields: [userId], references: [id])
   userId     Int
 }
@@ -29,8 +33,11 @@ model Grade {
 model Absence {
   id      Int    @id @default(autoincrement())
   date    String
-  reason  String
-  status  String
+  motif   String
+  duree   String
+  cours   String
+  matiere String
+  horaire String
   user    User   @relation(fields: [userId], references: [id])
   userId  Int
 }
