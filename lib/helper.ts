@@ -177,7 +177,7 @@ export function getHiddenFields($html: cheerio.CheerioAPI) {
     $html('input[type="hidden"]').each((_, el) => {
         const name = $html(el).attr('name');
         const value = $html(el).val();
-        console.log(`Hidden field: ${name} = ${value}`);
+        //console.log(`Hidden field: ${name} = ${value}`);
     });
 
     return { viewState, formIdInit, largeurDivCentre };

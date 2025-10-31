@@ -132,13 +132,13 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                 }
 
                 const hasUser = session?.username;
-                console.log("Changing page to ", view)
+                //console.log("Changing page to ", view)
                 if (hasUser) {
                         setSelectedView(view);
                         //if (view === 'grades') fetchGrades(true);
                         //if (view === 'vacancies') fetchAbsences(true);
                 } else {
-                        console.log("No user found", hasUser)
+                        //console.log("No user found", hasUser)
                         setLoginRequestedView(view);
                         setLoginModalOpen(true);
                 }

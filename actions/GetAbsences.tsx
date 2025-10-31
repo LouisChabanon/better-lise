@@ -182,12 +182,13 @@ export async function getAbsenceData(reload: boolean = true): Promise<RequestSta
                 const html_third_req = await res_third_req.text();
 
                 const $table_html = cheerio.load(html_third_req);
-                console.log(html_third_req)
-                return {data: absences, success: true}
+                //console.log(html_third_req)
+            return {errors: "Feature is not ready yet", success: false}
 
         }catch(error){
             console.error("Error fetching Vacancies: ", error)
             return {errors: "Error fetch Vacancies", success: false}
         }
     }
+    return {errors: "Feature is not ready yet", success: false}
 }
