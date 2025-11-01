@@ -38,7 +38,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
 
     const db_grades = await prisma.grade.findMany({ where: { userId: user.id}})
-    if (!reload) grades.push(...db_grades.map(g => ({code: g.code, libelle: g.name, note: g.grade, date: g.date, absence: g.absence, comment: g.comment, teachers: g.teachers})));
+    //if (!reload) grades.push(...db_grades.map(g => ({code: g.code, libelle: g.name, note: g.grade, date: g.date, absence: g.absence, comment: g.comment, teachers: g.teachers})));
 
     // Fetching data from Lise only if reload is true or if there are no grades in the database
     if (reload === true || db_grades.length === 0) {
@@ -204,7 +204,20 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
                         comment: $table_html(cells.eq(5)).clone().find('ui-column-title').remove().end().text().trim(),
                         teachers: $table_html(cells.eq(6)).clone().find('ui-column-title').remove().end().text().trim(),
                     }
-                    grades.push(rowData)
+
+                    // Validate required fields: date, code, libelle and a numeric note.
+                    const hasDate = typeof rowData.date === 'string' && rowData.date.length > 0;
+                    const hasCode = typeof rowData.code === 'string' && rowData.code.length > 0;
+                    const hasLibelle = typeof rowData.libelle === 'string' && rowData.libelle.length > 0;
+                    const hasNote = typeof rowData.note === 'number' && !isNaN(rowData.note);
+
+                    if (!hasDate || !hasCode || !hasLibelle || !hasNote) {
+                        // Skip malformed rows. Log for debugging.
+                        console.warn(`Skipping grade row due to missing data at index ${index}:`, { date: rowData.date, code: rowData.code, libelle: rowData.libelle, note: rowData.note });
+                        
+                    }else{
+                        grades.push(rowData)
+                    }
                 })
 
             
