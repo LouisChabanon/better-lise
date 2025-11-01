@@ -8,7 +8,7 @@ import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
 import { getWeekData } from '@/actions/GetWeekData';
 import { CalendarEventProps } from '@/lib/types';
 import { getMonthName } from '@/lib/helper';
-import LoadingPlaceholder from './ui/loaddingPlaceholder';
+import LoadingPlaceholder from './ui/LoaddingPlaceholder';
 import { tbk } from '@/lib/types';
 
 interface AgendaProps {

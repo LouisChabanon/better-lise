@@ -11,7 +11,7 @@ export default function Footer() {
                     <a href="mailto:louis.chabanon@gadz.org" aria-label="Email">
                         <MailOutlined />
                     </a>
-                    <a href="https://github.com/louischabanon" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                    <a href="https://github.com/LouisChabanon/better-lise" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
                         <GithubOutlined />
                     </a>
                 </div>

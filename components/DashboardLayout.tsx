@@ -177,7 +177,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
             <div className="w-full flex flex-col md:flex-row gap-4 h-full">
                 <div className="w-full md:w-1/4 lg:w-1/5 flex flex-row md:flex-col p-2 md:p-4 bg-backgroundPrimary rounded-lg shadow-lg md:h-full">
                     <div className="hidden md:flex justify-between pb-4">
-                        <h2 className="flex text-xl align-center font-semibold text-textPrimary mb-4 px-2">
+                        <h2 className="hidden lg:flex text-xl align-center font-semibold text-textPrimary mb-4 px-2">
                             Navigation
                         </h2>
                         <div className="flex gap-2">
