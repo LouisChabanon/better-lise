@@ -160,7 +160,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
             const hasUser = session?.username || localStorage.getItem("lise_id");
             if (hasUser) {
                 fetchGrades(true);
-                fetchAbsences(true);
+                //fetchAbsences(true);
             }
         }catch (err){
             setError(err instanceof Error ? err.message : "Une erreur inconnue s'est produite")

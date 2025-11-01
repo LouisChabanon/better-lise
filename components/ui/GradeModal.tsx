@@ -48,12 +48,12 @@ export default function GradeModal({ grade, onClose }: GradeModalProps) {
     }, [grade.code]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-backgroundPrimary p-6 rounded-lg w-ful max-w-lg lg:max-w-4xl">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex flex-col">
-                        <h3 className="text-lg font-semibold text-textPrimary">Détails - {grade.libelle}</h3>
-                        <p className="text-sm text-textTertiary">{grade.code}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+            <div className="bg-backgroundPrimary p-6 rounded-lg w-full max-w-lg lg:max-w-4xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6 gap-4">
+                    <div className="flex flex-col min-w-0">
+                        <h3 className="text-lg font-semibold text-textPrimary truncate">Détails - {grade.libelle}</h3>
+                        <p className="text-sm text-textTertiary break-words">{grade.code}</p>
                     </div>
                     <Button onClick={() => onClose && onClose()} status="secondary">✕</Button>
                 </div>
