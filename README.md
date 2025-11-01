@@ -18,7 +18,8 @@ Une application web améliorant l'expérience Lise pour les étudiants (gestion 
 Better Lise est une interface utilisateur couvrant :
 - Consultation du planning (agenda) avec chevauchement d'événements et indication de l'heure courante.
 - Connexion via l'identifiant Lise et récupération des notes.
-- Affichage du menu RU (repas) et intégration des données Crous pour Metz et Chalon (Les autres campus ne sont pas encore implémentés).
+- Statistiques 
+- Affichage du menu RU (repas) et intégration des données Crous pour Metz, Chalon, Bordeau et Angers (Les autres campus n'ont pas de RU Crous ou pas de menu disponible en ligne).
 - Thème sombre/clair, composants réutilisables et optimisations pour desktop/mobile.
 
 Le frontend est un site Next.js React en TypeScript.
@@ -76,24 +77,22 @@ Variables d'environnement à prévoir (exemples):
 
 ## Fonctionnalités actuelles
 
-(Cochez/complétez selon l'état réel)
-
 - [x] Affichage du planning hebdomadaire
 - [x] Calcul et affichage des chevauchements d'événements
 - [x] Récupération des notes et affichage dans `GradeTable`
+- [x] Statistiques sur les notes à partir de l'échantillon des utilisateurs de l'app (moyenne, médiane, écart-type)
+- [x] Affichage de la répartition des notes sur une évaluation
 - [x] Affichage du menu RU pour un TBK donné
-- [x] Auth minimal (sauvegarde local `lise_id`), formulaire de login (pas de stockage de mpd)
+- [x] Auth minimale (sauvegarde local `lise_id`), formulaire de login (pas de stockage de mpd)
 - [x] Thème clair/sombre
 
 ## Fonctionnalités prévues / Template
 
-- Authentification complète (pour pouvoir notifier lors de l'ajout d'une note par exemple)
 - Notifications push / Web Push
 - Synchronisation avec calendriers externes (Google Calendar, Outlook)
 - Visualisation des absences
 - Améliorations d'accessibilité
 - Documentation
-
 
 ## Contribuer
 
