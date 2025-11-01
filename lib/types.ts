@@ -40,3 +40,19 @@ export type RequestState = {
     data?: GradeType[] | AbsenceType[];
     success: boolean;
 }
+
+export type GradeDetailType = {
+    errors?: string,
+    data?: {
+        avg: number,
+        min: number,
+        max: number,
+        count: number,
+        median: number,
+        stdDeviation: number,
+        distribution: {
+          labels: string[],
+          counts: number[]
+        };
+    }
+}

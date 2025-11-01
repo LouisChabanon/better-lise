@@ -4,16 +4,30 @@ import React, { useEffect, useState } from "react";
 import { GradeType } from "@/lib/types";
 import GetGradeDetails from "@/actions/GetGradeDetails";
 import { Button } from "./Button";
+import GradeChart from "./GradeChart";
 
 interface GradeModalProps {
     grade: GradeType;
     onClose?: () => void;
 }
 
+type GradeDetail = {
+    avg: number,
+    min: number,
+    max: number,
+    count: number,
+    median: number,
+    stdDeviation: number,
+    distribution: {
+    labels: string[],
+    counts: number[]
+    };
+}
+
 export default function GradeModal({ grade, onClose }: GradeModalProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [data, setData] = useState<{ avg: number | null; min: number | null; max: number | null; count: number } | null>(null);
+    const [data, setData] = useState<GradeDetail | null>(null);
 
     useEffect(() => {
         let mounted = true;
@@ -34,10 +48,13 @@ export default function GradeModal({ grade, onClose }: GradeModalProps) {
     }, [grade.code]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-backgroundPrimary p-6 rounded-lg max-w-sm w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="bg-backgroundPrimary p-6 rounded-lg w-ful max-w-lg lg:max-w-4xl">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-semibold">Détails - {grade.libelle}</h3>
+                    <div className="flex flex-col">
+                        <h3 className="text-lg font-semibold text-textPrimary">Détails - {grade.libelle}</h3>
+                        <p className="text-sm text-textTertiary">{grade.code}</p>
+                    </div>
                     <Button onClick={() => onClose && onClose()} status="secondary">✕</Button>
                 </div>
 
@@ -49,11 +66,44 @@ export default function GradeModal({ grade, onClose }: GradeModalProps) {
                 {error && <div className="text-error">{error}</div>}
 
                 {!loading && !error && data && (
-                    <div className="space-y-2">
-                        <div className="flex justify-between"><span className="font-medium">Moyenne</span><span>{data.avg !== null ? data.avg.toFixed(2) : "—"}</span></div>
-                        <div className="flex justify-between"><span className="font-medium">Minimum</span><span>{data.min !== null ? data.min : "—"}</span></div>
-                        <div className="flex justify-between"><span className="font-medium">Maximum</span><span>{data.max !== null ? data.max : "—"}</span></div>
-                        <div className="flex justify-between"><span className="font-medium">Echantillon</span><span>{data.count}</span></div>
+                    <div className="lg:flex lg:flex-row lg:gap-8">
+                        <div className="lg:w-2/5 divide-y divide-y-backgroundSecondary/50 mt-6 lg:mt-0">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 pb-4">
+                                {grade.absence && (<>
+                                    <span className="font-medium text-textSecondary">Motif Absence</span>
+                                    <span className="font-bold text-lg text-textPrimary text-right">{grade.absence}</span></>)}
+                                {grade.comment && (<>
+                                    <span className="font-medium text-textSecondary">Appréciation :</span>
+                                    <span className="font-bold text-lg text-textPrimary text-right">{grade.comment}</span></>)}
+                                <span className="font-medium text-textSecondary ">Intervenants</span><span className="text-right">{grade.teachers}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-4 py-4">
+                                <span className="font-medium text-textSecondary">Moyenne</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right">{data.avg !== null ? data.avg.toFixed(2) : "—"}</span>
+                                <span className="font-medium text-textSecondary">Medianne</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right">{data.median !== null ? data.median.toFixed(2) : "—"}</span>
+                                <span className="font-medium text-textSecondary">Ecart Type</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right">{data.stdDeviation !== null ? data.stdDeviation.toFixed(2) : "—"}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 py-4">
+                                <span className="font-medium text-textSecondary">Minimum</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right">{data.min !== null ? data.min : "—"}</span>
+                                <span className="font-medium text-textSecondary">Maximum</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right">{data.max !== null ? data.max : "—"}</span>
+                                <span className="font-medium text-textSecondary">Echantillon</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right">{data.count}</span>
+                            </div>
+                        </div>
+                        <div className="lg:w-3/5">
+                            {data.distribution && data.distribution.counts.length > 0 ? (
+                                <GradeChart distributionData={data.distribution} />
+                            ) : (
+                                <div className="text-center text-textTertiary h-64 flex items-center justify-center">
+                                    Pas de données à afficher.
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                 )}
             </div>

@@ -1,6 +1,6 @@
 export default function LoadingPlaceholder() {
     return (
-        <div className="flex flex-col animate-pulse">
+        <div className="flex flex-col animate-pulse h-full w-full">
         {/* Header Skeleton */}
         <div className="sticky top-0 z-30 flex-none bg-backgroundPrimary shadow ring-opacity-5">
             <div className="grid grid-cols-5 text-sm sm:hidden">

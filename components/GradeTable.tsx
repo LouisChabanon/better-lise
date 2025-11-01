@@ -89,11 +89,8 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
                   <tr>
                     <th className="px-4 py-3 text-left w-1/3 min-w-[150px]">Libellé</th>
                     <th className="px-4 py-3 text-left left-0 z-20 min-w-[96px]">Note</th>
-                    <th className="px-4 py-3 text-left w-1/6 min-w-[120px]">Code</th>
                     <th className="px-4 py-3 text-left w-1/6 min-w-[110px]">Date</th>
-                    <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Motif d'absence</th>
-                    <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Appréciation</th>
-                    <th className="px-4 py-3 text-left w-1/6 min-w-[140px]">Intervenants</th>
+                    <th className="px-4 py-3 text-left w-1/6 min-w-[120px]">Code</th>
                   </tr>
                 </thead>
                 <tbody className="text-textSecondary">
@@ -119,11 +116,8 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
                             {g.note}
                           </span>
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{g.code}</td>
                         <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.date}</td>
-                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.absence}</td>
-                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.comment}</td>
-                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{g.teachers}</td>
+                        <td className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{g.code}</td>
                       </tr>
                     );
                   })}
