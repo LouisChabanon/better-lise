@@ -255,6 +255,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             calendarEvents={calendarEvents}
                             mapping={eventMapping}
                             isLoading={isCalendarLoading}
+                            tbk={tbk}
                         />
                     )}
 

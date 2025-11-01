@@ -15,12 +15,12 @@ interface AgendaProps {
     calendarEvents: CalendarEventProps[] | null;
     mapping: Record<string, {position: number, columns: number }>;
     isLoading: boolean;
+    tbk: tbk;
 }
 
 
-export default function Agenda({ calendarEvents, mapping, isLoading}: AgendaProps) {
+export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: AgendaProps) {
 
-    const [tbk, setTbk] = useState<tbk>("Sibers");
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [swipeOffset, setSwipeOffset] = useState<number>(0);
 

@@ -8,7 +8,8 @@ function CalculateEatingTime(events: CalendarEventProps[]){
     // will be removed so it doesn't show.
     const MEAL_START_HOUR = 11; // 11:00
     const MEAL_START_MIN = 30; // 11:30
-    const MEAL_END_HOUR = 14; // 14:00
+    const MEAL_END_HOUR = 13; // 13:00
+    const MEAL_END_MIN = 30;
     const MIN_MEAL_DURATION_MINUTES = 30; // minimum gap to consider a meal
 
     // Group events by day key and retain original indices
@@ -43,7 +44,7 @@ function CalculateEatingTime(events: CalendarEventProps[]){
         const parts = dayKey.split("-").map(Number);
         const day = parts[2];
         const mealWindowStart = new Date(year, month, day, MEAL_START_HOUR, MEAL_START_MIN, 0, 0);
-        const mealWindowEnd = new Date(year, month, day, MEAL_END_HOUR, 0, 0, 0);
+        const mealWindowEnd = new Date(year, month, day, MEAL_END_HOUR, MEAL_END_MIN, 0, 0);
 
         // compute gaps (within meal window) from nonRu events
         const gaps: { start: Date; end: Date }[] = [];
