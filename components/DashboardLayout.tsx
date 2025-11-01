@@ -229,7 +229,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
 
                 {/* Login modal for protected views */}
                 {loginModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40">
                         <div className="bg-backgroundPrimary p-6 rounded-lg max-w-md w-full">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex flex-col">
