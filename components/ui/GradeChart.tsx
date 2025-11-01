@@ -10,12 +10,9 @@ import {
     Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import annotationPlugin from 'chartjs-plugin-annotation';
 
 import { useTheme } from 'next-themes';
-
-
-
-
 
 ChartJS.register(
     CategoryScale,
@@ -23,7 +20,8 @@ ChartJS.register(
     BarElement,
     Title,
     Tooltip,
-    Legend
+    Legend,
+    annotationPlugin,
 );
 
 interface GradeDistributionData {
@@ -31,12 +29,32 @@ interface GradeDistributionData {
     counts: number[];
 }
 
-const GradeChart: React.FC<{ distributionData: GradeDistributionData }> = ({ distributionData }) => {
+interface GradeChartProps {
+    distributionData: GradeDistributionData,
+    userGrade: number
+}
+
+function getCategoryForGrade(grade: number): string | null {
+    if(grade == null || grade < 0 || grade > 20) return null
+
+    if(grade == 20) return '18-20';
+
+    const binIndex = Math.floor(grade / 2);
+    const low = binIndex*2
+    const up = (binIndex + 1) * 2
+
+    return `${low}-${up}`
+}
+
+const GradeChart: React.FC<GradeChartProps> = ({ distributionData, userGrade }) => {
 
     const isDarkMode = useTheme().theme === 'dark';
 
     const secondaryTextColor = isDarkMode ? "#FFFFFF" : "oklch(27.8% 0.033 256.848)"
     const textColor = isDarkMode ? "#FFFFFF" : "#6750A4"
+    const lineAnnotationColor = isDarkMode ? "#FF8F8F" : "#D93030";
+
+    const userGradeCategory = getCategoryForGrade(userGrade);
 
     const data = {
         labels: distributionData.labels,
@@ -64,6 +82,31 @@ const GradeChart: React.FC<{ distributionData: GradeDistributionData }> = ({ dis
             tooltip: {
                 callbacks: {
                     label: function(context: any){return `${context.parsed.y} ${context.parsed.y > 1 ? 'notes' : 'note'}`}
+                }
+            },
+            annotation: {
+                annotations: {
+                    ...(userGradeCategory ? {
+                        line: {
+                        type: 'line',
+                        xMin: userGradeCategory,
+                        xMax: userGradeCategory,
+                        borderColor: lineAnnotationColor,
+                        borderWidth: 2,
+                        borderDash: [6,6],
+                        label: {
+                            display: true,
+                            content: "Votre note",
+                            position: "start",
+                            backgroundColor: lineAnnotationColor,
+                            color: "white",
+                            font: { weight: 'bold'},
+                            borderRadius: 4,
+                            padding: 3,
+                            }
+                        }
+                    } : {})
+                    
                 }
             }
         },
@@ -101,7 +144,7 @@ const GradeChart: React.FC<{ distributionData: GradeDistributionData }> = ({ dis
 
     return (
         <div className="relative h-64 w-full">
-            <Bar options={options} data={data} />
+            <Bar options={options as any} data={data} />
         </div>
     )
 }

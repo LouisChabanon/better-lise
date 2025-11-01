@@ -96,7 +96,7 @@ export default function GradeModal({ grade, onClose }: GradeModalProps) {
                         </div>
                         <div className="lg:w-3/5">
                             {data.distribution && data.distribution.counts.length > 0 ? (
-                                <GradeChart distributionData={data.distribution} />
+                                <GradeChart distributionData={data.distribution} userGrade={grade.note} />
                             ) : (
                                 <div className="text-center text-textTertiary h-64 flex items-center justify-center">
                                     Pas de données à afficher.

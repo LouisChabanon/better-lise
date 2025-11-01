@@ -78,5 +78,5 @@ async function GetAndCalculateGradeDetails(grade: GradeType): Promise<GradeDetai
 }
 
 export default async function GetGradeDetails(grade: GradeType): Promise<GradeDetailType> {
-  return unstable_cache(() => GetAndCalculateGradeDetails(grade), ['grade-details', grade.code], { revalidate: 3600 })();
+  return unstable_cache(() => GetAndCalculateGradeDetails(grade), ['grade-details', grade.code], { revalidate: 600 })();
 }
