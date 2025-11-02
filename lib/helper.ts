@@ -1,7 +1,6 @@
 import { CalendarEventProps } from "@/lib/types";
 import * as cheerio from "cheerio";
 
-
 function CalculateEatingTime(events: CalendarEventProps[]){
     // Adjust RU events (from Crous) to fit into actual gaps during meal hours.
     // If no suitable gap is found for an RU event on a given day, the RU event
@@ -170,7 +169,7 @@ export function getHiddenFields($html: cheerio.CheerioAPI) {
     // console.log("LargeurDivCentre:", encodeURIComponent(largeurDivCentre));
 
     if (!viewState || !formIdInit) {
-        logger.warn("Could not find required hidden fields in the HTML.");
+        console.warn("Could not find required hidden fields in the HTML.");
         throw new Error("Required hidden fields not found");
     }
 
