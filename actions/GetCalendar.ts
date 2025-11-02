@@ -35,7 +35,7 @@ const GetCalendar = async (username: string | null) => {
         }
 
         const data = await res.text();
-        console.info("Calendar data fetched successfully", {username});
+        logger.info("Calendar data fetched successfully", {username});
         const calendarData = await ical.parseICS(data);
 
         const calendarEvents: CalendarEventProps[] = [];

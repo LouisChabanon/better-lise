@@ -20,13 +20,13 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
     const session = (await verifySession());
     if (!session.username) {
-        console.warn("User has no active session, failed to fetch grades");
+        logger.warn("User has no active session, failed to fetch grades");
         return {errors: "No username found in session.", success: false};
     }
     const user = await prisma.user.findUnique({ where: { username: session.username} })
 
     if (!user) {
-        console.warn("User not found in database. Failed to fetch grades", {username: session.username});
+        logger.warn("User not found in database. Failed to fetch grades", {username: session.username});
         return {errors: "User not found in database.", success: false};
     }
 
@@ -43,7 +43,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
     // Fetching data from Lise only if reload is true or if there are no grades in the database
     if (reload === true || db_grades.length === 0) {
-        console.info("Fetching user grades from Lise.", {username: user.username});
+        logger.info("Fetching user grades from Lise.", {username: user.username});
         const jar = new CookieJar(); // Create a new cookie jar to set Lise's JSESSIONID cookie
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000); // Useless at the moment

@@ -93,7 +93,7 @@ export async function verifySession() {
 
         // Check if the session is expired
         if (session.exp < Math.floor(Date.now() / 1000)) {
-            console.warn("User session has expired", {username: session.username, exp: session.exp});
+            logger.warn("User session has expired", {username: session.username, exp: session.exp});
             await deleteSession();
             return { isAuth: false};
         }
