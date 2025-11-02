@@ -37,8 +37,18 @@ export type tbk = "Chalons" | "Boquette" | "Cluny" | "Birse" | "P3" | "KIN" | "B
 
 export type RequestState = {
     errors?: string;
-    data?: GradeType[] | AbsenceType[];
+    data?: GradeType[]
     success: boolean;
+}
+
+export type AbsencesRequestState = {
+    errors?: string;
+    success: boolean;
+    data?: {
+        nbTotalAbsences: number;
+        dureeTotaleAbsences: string;
+        absences: AbsenceType[];
+    }
 }
 
 export type GradeDetailType = {
