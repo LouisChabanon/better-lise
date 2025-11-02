@@ -4,11 +4,6 @@ import { CalendarEventProps, tbk } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz";
 import crousData from "@/crous_data.json";
 
-// Ignore TLS errors (expired certificate on crous-lorraine.fr)
-// This fix is temporary and should be removed when the certificate is renewed
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 const tz = "Europe/Paris";
 
 const Months: Record<string, number> = {
