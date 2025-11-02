@@ -14,6 +14,8 @@ import { LoginForm } from "./LoginForm";
 import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 import SettingsDialog from "./ui/SettingsDialog";
 import { logOut } from "@/actions/Auth";
+import { VacanciesTable } from "./VacanciesTable";
+import logger from "@/lib/logger";
 
 type View = 'agenda' | 'grades' | 'vacancies';
 
@@ -40,7 +42,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
     const [loginRequestedView, setLoginRequestedView] = useState<View | null>(null);
 
     const [grades, setGrades] = useState<GradeType[] | null>(null);
-    const [absence, setAbsence] = useState<AbsenceType[] | null>(null);
+    const [absences, setAbsences] = useState<AbsenceType[] | null>(null);
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
 
     const [isGradesLoading, setGradesLoading] = useState(true);
@@ -148,7 +150,17 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
         setAbsencesLoading(true)
         const res = await getAbsenceData(reachServer)
         if(res.success && res.data){
-            //console.log(res.data)
+            const absenceItems = (res.data as AbsenceType[]).filter((a: any) => typeof a?.date !== 'undefined');
+            const sorted = absenceItems.sort((a: any, b: any) => {
+                const [dayA, monthA, yearA] = a.date.split('/').map(Number);
+                const [dayB, monthB, yearB] = b.date.split('/').map(Number);
+                const timeA = new Date(yearA, monthA - 1, dayA).getTime();
+                const timeB = new Date(yearB, monthB - 1, dayB).getTime();
+                return timeB - timeA;});
+            
+                setAbsences(sorted);
+        }else{
+            console.error("Failed to fetch grades",  res.errors || "Unknown error")
         }
         setAbsencesLoading(false)
     }
@@ -160,7 +172,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
             const hasUser = session?.username || localStorage.getItem("lise_id");
             if (hasUser) {
                 fetchGrades(true);
-                //fetchAbsences(true);
+                fetchAbsences(true);
             }
         }catch (err){
             setError(err instanceof Error ? err.message : "Une erreur inconnue s'est produite")
@@ -202,7 +214,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                         >Mes Notes
                         </button>
                         <button
-                            onClick={() => alert("Feature not Available")}
+                            onClick={() => handleViewChange('vacancies')}
                             className={`${commonButtonClass} ${selectedView === 'vacancies' ? activeButtonClass : inactiveButtonClass}`}
                             
                         >Mes Absences
@@ -271,6 +283,19 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             />
                         </>
                     )}
+                    {selectedView === 'vacancies' && (
+                        <>
+                            <h2 className="text-xl font-semibold text-textPrimary mb-4">
+                                Mes Absences
+                            </h2>
+                            <VacanciesTable
+                                absences={absences}
+                                isLoading={isAbsencesLoading}
+                                error={error} 
+                            />
+                        </>
+                    )
+                    }
                 </div>
             </div>
         </>

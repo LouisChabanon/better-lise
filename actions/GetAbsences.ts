@@ -6,6 +6,7 @@ import { verifySession, deleteSession } from "@/lib/sessions";
 import * as cheerio from "cheerio";
 import { AbsenceType, RequestState } from "@/lib/types";
 import { getHiddenFields } from "@/lib/helper";
+import logger from "@/lib/logger";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
 
