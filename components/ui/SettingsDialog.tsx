@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {Button} from "./Button";
 import DarkModeToggle from "./DarkModeToggle";
 import { tbk } from "@/lib/types";
@@ -29,8 +29,23 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
 
     const [username, setUsername] = useState<string | null>(localStorage.getItem("lise_id") || "");
     const [tbkValue, setTbkValue] = useState<tbk>(localStorage.getItem("tbk") as tbk || "Sibers");
+    const [isOptedOut, setIsOptedOut] = useState(false);
 
     if(!isOpen) return null;
+
+    useEffect(() => {
+      if(posthog){
+        setIsOptedOut(posthog.has_opted_out_capturing());
+      }
+    }, [posthog])
+
+    const handleToggle = () => {
+      if (isOptedOut){
+        setIsOptedOut(false);
+      }else{
+        setIsOptedOut(true);
+      }
+    }
 
     return (
     <div
@@ -59,7 +74,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
         </div>
 
         {/* body */}
-        <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-center gap-4 mb-2 pb-2">
             <label
               htmlFor="settings-lise-input"
               className="w-36 font-medium text-textSecondary"
@@ -80,7 +95,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
               </div>
             </div>
         </div>
-        <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-center gap-4 mb-2 pb-2">
             <label
               htmlFor="settings-tbk-input"
               className="w-36 font-medium text-textSecondary"
@@ -90,7 +105,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
             <div className="flex-1">
                 <div className="flex">
                     <select
-                        className="w-full rounded-lg border bg-backgroundSecondary px-3 py-2 focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400"
+                        className="w-full rounded-lg border bg-backgroundSecondary px-3 py-2 border-primary-400 focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400"
                         value={tbkValue}
                         onChange={(e) => setTbkValue(e.target.value as tbk)}>
                     {TBK_OPTIONS.map((option) => (
@@ -104,9 +119,23 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
         </div>
 
           {/* Dark mode / other toggles row */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 pb-2">
               <span className="font-medium text-textSecondary">Thème :</span>
               <DarkModeToggle />
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-medium text-texSecondary">Envoyer des statistiques anonymes :</span>
+            <button
+              onClick={handleToggle}
+              className="relative flex h-8 w-16 items-center rounded-full bg-backgroundTertiary transition-colors border-1 border-primary-400"
+            >
+              {/* Knob */}
+              <span
+                className={`absolute h-7 w-7 rounded-full bg-buttonPrimaryBackground shadow-md transform transition-transform duration-300 ${ isOptedOut
+                  ? "translate-x-8" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
 
           {/* actions */}
@@ -119,10 +148,14 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                     localStorage.setItem("lise_id", username);
                 }
                 if(tbkValue !== localStorage.getItem("tbk") || localStorage.getItem("tbk") == null){
-                  posthog.capture("select_tbk_event", {tbk: tbkValue, username: username})
+                  if(posthog.has_opted_in_capturing()){
+                    posthog.capture("select_tbk_event", {tbk: tbkValue, username: username})
+                  }
                 }
                 localStorage.setItem("tbk", tbkValue);
                 
+                isOptedOut ? posthog.opt_out_capturing() : posthog.opt_in_capturing()
+
                 onSave();
             }}>
               Sauvegarder

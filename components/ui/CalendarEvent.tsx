@@ -46,7 +46,9 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
 
     useEffect(() => {
         if(isActive && type == "RU"){
-            posthog.capture('RU_display_event', {tbk: tbk, date: startDate})
+            if (posthog.has_opted_in_capturing()){
+                posthog.capture('RU_display_event', {tbk: tbk, date: startDate})
+            }
         }
     },[isActive, posthog])
 

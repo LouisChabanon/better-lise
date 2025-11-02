@@ -55,7 +55,9 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
 
   // Open modal when a grade row is clicked
   const onRowClick = (grade: GradeType) => {
-    posthog.capture("view_grade_detail_event", {grade_code: grade.code})
+    if(posthog.has_opted_in_capturing()){
+      posthog.capture("view_grade_detail_event", {grade_code: grade.code})
+    }
     setSelectedGrade(grade);
   };
 
