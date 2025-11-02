@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Agenda from "./Agenda";
 import { GradeTable } from "./GradeTable";
-import { GradeType, AbsenceType, CalendarEventProps, tbk } from "@/lib/types";
+import { GradeType, AbsenceType, CalendarEventProps, tbk, AbsencesRequestState } from "@/lib/types";
 import { getGradeData } from "@/actions/GetGrades";
 import { getAbsenceData } from "@/actions/GetAbsences";
 import getCrousData from "@/actions/GetCrousData";
@@ -14,7 +14,7 @@ import { LoginForm } from "./LoginForm";
 import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 import SettingsDialog from "./ui/SettingsDialog";
 import { logOut } from "@/actions/Auth";
-import { VacanciesTable } from "./VacanciesTable";
+import { AbsencesTable } from "./AbsencesTable";
 import logger from "@/lib/logger";
 
 type View = 'agenda' | 'grades' | 'vacancies';
@@ -43,6 +43,8 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
 
     const [grades, setGrades] = useState<GradeType[] | null>(null);
     const [absences, setAbsences] = useState<AbsenceType[] | null>(null);
+    const [nbrAbsences, setnbrAbsences] = useState<number>(0);
+    const [dureeAbsences, setDureeAbsences] = useState<string>("00h00");
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
 
     const [isGradesLoading, setGradesLoading] = useState(true);
@@ -90,7 +92,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                 console.error("Failed to fetch calendar events");
         }
                 
-            setCalendarLoading(false);
+        setCalendarLoading(false);
     }
     
 
@@ -150,7 +152,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
         setAbsencesLoading(true)
         const res = await getAbsenceData(reachServer)
         if(res.success && res.data){
-            const absenceItems = (res.data as AbsenceType[]).filter((a: any) => typeof a?.date !== 'undefined');
+            const absenceItems = (res.data.absences as AbsenceType[]).filter((a: any) => typeof a?.date !== 'undefined');
             const sorted = absenceItems.sort((a: any, b: any) => {
                 const [dayA, monthA, yearA] = a.date.split('/').map(Number);
                 const [dayB, monthB, yearB] = b.date.split('/').map(Number);
@@ -159,7 +161,10 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                 return timeB - timeA;});
             
                 setAbsences(sorted);
+                setnbrAbsences(res.data.nbTotalAbsences);
+                setDureeAbsences(res.data.dureeTotaleAbsences);
         }else{
+            setAbsencesLoading(false);
             console.error("Failed to fetch grades",  res.errors || "Unknown error")
         }
         setAbsencesLoading(false)
@@ -288,6 +293,20 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             <h2 className="text-xl font-semibold text-textPrimary mb-4">
                                 Mes Absences
                             </h2>
+                            <div className="p-2 flex flex-wrap gap-4 sm:gap-6">
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-semibold text-textSecondary">Nombre total d'absences:</span>
+                                    <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
+                                        {nbrAbsences}
+                                    </span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-semibold text-textSecondary">Durée totale des absences:</span>
+                                    <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
+                                        {dureeAbsences}
+                                    </span>
+                                </div>                
+                            </div>
                             <VacanciesTable
                                 absences={absences}
                                 isLoading={isAbsencesLoading}

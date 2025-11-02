@@ -10,10 +10,10 @@ interface VacancyTableProps {
   error: string | null;
 }
 
-export function VacanciesTable({ absences, isLoading, error }: VacancyTableProps) {
+export function AbsencesTable({ absences, isLoading, error }: VacancyTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [fiteredVacancies, setFilteredVacancies] = useState<AbsenceType[]>([]);
+  const [fiteredAbsences, setFilteredAbsences] = useState<AbsenceType[]>([]);
 
 
   const pageSize = 15;
@@ -21,7 +21,7 @@ export function VacanciesTable({ absences, isLoading, error }: VacancyTableProps
 
   useEffect(() => {
     if (!absences) {
-      setFilteredVacancies([]);
+      setFilteredAbsences([]);
       setCurrentPage(1);
       return;
     }
@@ -33,13 +33,13 @@ export function VacanciesTable({ absences, isLoading, error }: VacancyTableProps
       a.matiere.includes(term)
     );
 
-    setFilteredVacancies(filtered);
+    setFilteredAbsences(filtered);
     setCurrentPage(1);
   }, [searchTerm, absences]);
 
-  const totalPages = Math.max(1, Math.ceil(fiteredVacancies.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(fiteredAbsences.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-  const currentVacancies = fiteredVacancies.slice(startIndex, startIndex + pageSize);
+  const currentVacancies = fiteredAbsences.slice(startIndex, startIndex + pageSize);
 
 
     return (
@@ -68,7 +68,7 @@ export function VacanciesTable({ absences, isLoading, error }: VacancyTableProps
         ) : (
           <>
             <div className="overflow-auto h-full rounded-lg bg-backgroundPrimary">
-              <table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
+              <table className="table-fixed rounded-lg min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-3 text-left w-1/3 min-w-[150px]">Date</th>
