@@ -2,6 +2,7 @@
 import prisma from '@/lib/db';
 import { GradeType, GradeDetailType } from '@/lib/types';
 import { unstable_cache } from 'next/cache';
+import logger from '@/lib/logger';
 
 
 
@@ -39,7 +40,9 @@ function calculateDistribution(grades: number[]): {labels: string[], counts: num
 
 async function GetAndCalculateGradeDetails(grade: GradeType): Promise<GradeDetailType> {
   
-    try {    
+    try {
+    logger.info("Getting statistics for grade", {code :grade.code})  
+
     const aggregate = await prisma.grade.aggregate({
       _avg: { grade: true },
       _min: { grade: true },
@@ -72,8 +75,12 @@ async function GetAndCalculateGradeDetails(grade: GradeType): Promise<GradeDetai
         distribution: distrib
     }
     };
-  } catch (err: any) {
-    return {errors: err}
+  } catch (error: any) {
+    logger.info("Failed to fetch grade statistics", {code :grade.code, 
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    return {errors: error}
   }
 }
 

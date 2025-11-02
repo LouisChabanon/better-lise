@@ -6,6 +6,7 @@ import { verifySession, deleteSession } from "@/lib/sessions";
 import * as cheerio from "cheerio";
 import { getHiddenFields } from "@/lib/helper";
 import { GradeType, RequestState } from "@/lib/types";
+import logger from "@/lib/logger";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
 
@@ -19,20 +20,20 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
     const session = (await verifySession());
     if (!session.username) {
-        console.error("No username found in session.");
+        console.warn("User has no active session, failed to fetch grades");
         return {errors: "No username found in session.", success: false};
     }
     const user = await prisma.user.findUnique({ where: { username: session.username} })
 
     if (!user) {
-        console.error("User not found in database.");
+        console.warn("User not found in database. Failed to fetch grades", {username: session.username});
         return {errors: "User not found in database.", success: false};
     }
 
     const jsessionid = session.sessionId
 
     if(!jsessionid){
-        console.error("No Lise session Id found in cookie");
+        logger.warn("No LISE session Id found in cookies", {username: session.username});
         return {errors: "Session id not found.", success: false}
     }
 
@@ -42,25 +43,23 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
     // Fetching data from Lise only if reload is true or if there are no grades in the database
     if (reload === true || db_grades.length === 0) {
-        console.log("Fetching grades from Lise...");
+        console.info("Fetching user grades from Lise.", {username: user.username});
         const jar = new CookieJar(); // Create a new cookie jar to set Lise's JSESSIONID cookie
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
+        const timeout = setTimeout(() => controller.abort(), 10000); // Useless at the moment
 
         const fetchWithCookies = fetchCookie(fetch, jar);
 
         jar.setCookieSync(`JSESSIONID=${jsessionid}`, LISE_URI); // Set the JSESSIONID cookie in the cookie jar
 
         try {
-            // Fetching home page to get grades because it's simpler. ( JSF IS BADDDDDDD )
-            // /faces/LearnerNotationListPage.xhtml has more data but is a pain in the ass.
             const res = await fetchWithCookies(LISE_URI);
             const html = await res.text();
             const $html = cheerio.load(html);
 
 
             if ($html('title').text().includes('Connectez-vous') || $html('title').text().includes('Sign in')){
-                console.error("User not connected or session expired")
+                logger.warn("User session has expired on LISE", {username: user.username})
                 await deleteSession();
                 return {errors: "Session has expired", success: false};
             }
@@ -213,7 +212,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
                     if (!hasDate || !hasCode || !hasLibelle || !hasNote) {
                         // Skip malformed rows. Log for debugging.
-                        console.warn(`Skipping grade row due to missing data at index ${index}:`, { date: rowData.date, code: rowData.code, libelle: rowData.libelle, note: rowData.note });
+                        logger.warn(`Skipping grade row due to missing data at index ${index}:`, { date: rowData.date, code: rowData.code, libelle: rowData.libelle, note: rowData.note });
                         
                     }else{
                         grades.push(rowData)
@@ -223,7 +222,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
             
 
             const newGrades = grades.filter(g => !db_grades.some(dbGrade => dbGrade.code === g.code));
-            console.log("New grades found:", newGrades.length);
+            logger.info("Found new grades for user", {username: user.username, newGrades: newGrades.length});
             await prisma.grade.createMany({
                  data: newGrades.map(g => ({ 
                     name: g.libelle,
@@ -237,11 +236,16 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
                  }))
             })
             
-            // // Append newGrades to the grades array with isNew flag
-            newGrades.forEach(g => g.isNew = true);
+            // // Append newGrades to the grades array with isNew flag skip if the number of new grade > 10 (looks bad)
+            if(newGrades.length < 10 ){
+                newGrades.forEach(g => g.isNew = true);
+            }
             
         }catch (error) {
-            console.error("Error fetching grades:", error);
+            logger.error("Error fetching user grades", {
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined
+            });
             return {errors: "Error fetching grades", success: false};
         }
     }

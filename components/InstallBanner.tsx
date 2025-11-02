@@ -14,7 +14,6 @@ export default function InstallAppBanner() {
   }, [])
 
   if (isStandalone) {
-    console.log("App is already installed");
     return;
   }
 

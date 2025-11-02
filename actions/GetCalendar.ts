@@ -2,7 +2,7 @@
 const ical = require("node-ical");
 import { CalendarEventProps } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz"
-
+import logger from "@/lib/logger";
 
 const tz = 'Europe/Paris';
 
@@ -21,7 +21,7 @@ const GetCalendar = async (username: string | null) => {
     }
 
     try {
-        console.log("Fetching calendar for user:", username);
+        logger.info("Fetching calendar data", {username});
         const res = await fetch(`${URI}${username}`, {
             method: "GET",
             headers: {
@@ -30,12 +30,12 @@ const GetCalendar = async (username: string | null) => {
         );
 
         if (!res.ok) {
-            console.error("Failed to fetch calendar:", res.statusText);
+            logger.error("Failed to fetch calendar data from LISE", {username: username, liseResponse: res.statusText});
             return { events: [], status: "error" } as CalendarDataResponse;
         }
 
         const data = await res.text();
-        console.log("Calendar data fetched successfully");
+        console.info("Calendar data fetched successfully", {username});
         const calendarData = await ical.parseICS(data);
 
         const calendarEvents: CalendarEventProps[] = [];
@@ -76,7 +76,10 @@ const GetCalendar = async (username: string | null) => {
 
 
     } catch (error) {
-        console.error("Error fetching calendar:", error);
+        logger.error("Error fetching calendar data", {username, 
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
         return { events: [], status: "error" } as CalendarDataResponse;
     }
 }

@@ -148,7 +148,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
         setAbsencesLoading(true)
         const res = await getAbsenceData(reachServer)
         if(res.success && res.data){
-            console.log(res.data)
+            //console.log(res.data)
         }
         setAbsencesLoading(false)
     }

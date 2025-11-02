@@ -2,7 +2,7 @@ import "server-only"; // Ensure this file is only run on the server
 
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import logger from "@/lib/logger";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -30,6 +30,7 @@ async function encrypt(payload: SessionPayload): Promise<string> {
 
 async function decrypt(token: string): Promise<SessionPayload | null> {
     if (!JWT_SECRET) {
+        logger.error("JWT_SECRET is not defined")
         throw new Error("JWT_SECRET is not defined");
     }
 
@@ -37,7 +38,10 @@ async function decrypt(token: string): Promise<SessionPayload | null> {
         const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
         return payload as SessionPayload;
     } catch (error) {
-        console.error("Failed to verify JWT:", error);
+        logger.error("Failed to verify JWT:", {
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
         await deleteSession(); // Delete session if verification fails
         return null; // Return null if verification fails
     }
@@ -45,7 +49,7 @@ async function decrypt(token: string): Promise<SessionPayload | null> {
 
 
 export const createSession = async (username: string, authToken: string): Promise<string> => {
-    console.log("Creating session for user:", username);
+    logger.info("Creating user session", { username });
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours expiration time
 
     const sessionPayload: SessionPayload = {
@@ -64,7 +68,10 @@ export const createSession = async (username: string, authToken: string): Promis
         path: "/",
     });
     } catch (error) {
-        console.error("Failed to set cookie:", error);
+        logger.error("Failed to set cookie:", {
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
     }
 
     return jwt;
@@ -74,32 +81,43 @@ export async function verifySession() {
     try {
         const cookie = (await cookies()).get("jwt_token")?.value;
         if (!cookie) {
-            //console.error("No session cookie found: " + cookie);
             return { isAuth: false };
         }
 
         const session = await decrypt(cookie);
 
         if (!session || !session.username) {
-            console.error("Invalid session data");
+            logger.warn("Invalid session data");
             return { isAuth: false};
         }
 
         // Check if the session is expired
         if (session.exp < Math.floor(Date.now() / 1000)) {
-            console.error("Session expired");
+            console.warn("User session has expired", {username: session.username, exp: session.exp});
             await deleteSession();
             return { isAuth: false};
         }
 
         return { isAuth: true, username: session.username, sessionId: session.authToken };
-    } catch (e: any) {
-        console.error("Error verifying session:", e.message);
+    } catch (error: any) {
+        logger.error("Error verifying session:", {
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
         return { isAuth: false };
     }
 
 }
 
 export async function deleteSession() {
-    (await cookies()).delete("jwt_token");
+    try {
+        (await cookies()).delete("jwt_token");
+        logger.info("Sucessfully deleted session")
+    }catch (error){
+       logger.error("Failed to delete session", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+       }) 
+    }
+    
 }

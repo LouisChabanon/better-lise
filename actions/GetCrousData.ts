@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import { CalendarEventProps, tbk } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz";
 import crousData from "@/crous_data.json";
+import logger from "@/lib/logger";
 
 const tz = "Europe/Paris";
 
@@ -32,13 +33,16 @@ export default async function getCrousData(tbk: tbk) {
     const mealEvents: CalendarEventProps[] = [];
 
     try {
+        logger.info("Fetching Crous data", {tbk})
         const crousURL = crousData.CrousData.find(item => item.tbk === tbk)?.url;
         if (!crousURL) {
+            logger.warn("No Crous URL provided for tbk", {tbk})
             return;
         }
         const res = await fetch(crousURL);
         if (!res.ok) {
-            throw new Error("Failed to fetch Crous data");
+            logger.warn("Failed to fetch Crous data", {tbk, crousStatus: res.status})
+            return;
         }
         const text = await res.text();
         const $ = cheerio.load(text);
@@ -107,8 +111,11 @@ export default async function getCrousData(tbk: tbk) {
                 });
             }
         });
-    } catch (err) {
-        console.error(err);
+    } catch (error) {
+        logger.error("Failed to fetch crous data", {tbk, 
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        })
     }
 
     return mealEvents;

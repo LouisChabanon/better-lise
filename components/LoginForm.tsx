@@ -61,7 +61,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 					router.push("/");
 				}
 			} else {
-				console.log("Login failed:", state?.errors);
 				setErrors(state?.errors || "An error occurred during login.");
 			}
 		} catch (error) {
