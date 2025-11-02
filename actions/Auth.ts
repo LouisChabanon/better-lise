@@ -63,6 +63,7 @@ export async function signIn(
         // If Lise does not redirect, it means the user does not exist
         // or the credentials are incorrect
         if (res.status === 200){
+            logger.info("data: ", {text: res.text()})
             logger.warn("Sign-In failed Invalid credentials or user does not exist on LISE", { username, liseStatus: res.status})
             return { success: false, errors: "Identifiant ou mot de passe invalide (Echec de l'authentification Lise)" };
         } 
