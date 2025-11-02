@@ -1,7 +1,8 @@
 import { format } from "date-fns";
 import { getWeekData } from "@/actions/GetWeekData";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { tbk } from "@/lib/types";
+import posthog from "posthog-js";
 
 type CalendarEventType = "CM" | "EXAMEN" | "TRAVAIL_AUTONOME" | "ED_TD" | "TPS" | "RU" | "PROJET";
 
@@ -42,6 +43,12 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const getMinutesFromStart = (date: Date) => {
        return (date.getHours() - calendarStartTime) * 60 + date.getMinutes();
     };
+
+    useEffect(() => {
+        if(isActive && type == "RU"){
+            posthog.capture('RU_display_event', {tbk: tbk, date: startDate})
+        }
+    },[isActive, posthog])
 
     const startOffset = getMinutesFromStart(startDate);
     const endOffset = getMinutesFromStart(endDate);

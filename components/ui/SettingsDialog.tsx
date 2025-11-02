@@ -4,6 +4,7 @@ import { useState } from "react";
 import {Button} from "./Button";
 import DarkModeToggle from "./DarkModeToggle";
 import { tbk } from "@/lib/types";
+import posthog from "posthog-js";
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -91,8 +92,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                     <select
                         className="w-full rounded-lg border bg-backgroundSecondary px-3 py-2 focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400"
                         value={tbkValue}
-                        onChange={(e) => setTbkValue(e.target.value as tbk)}
-                    >
+                        onChange={(e) => setTbkValue(e.target.value as tbk)}>
                     {TBK_OPTIONS.map((option) => (
                         <option key={option} value={option}>
                             {option}
@@ -118,7 +118,11 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                 if (username){
                     localStorage.setItem("lise_id", username);
                 }
+                if(tbkValue !== localStorage.getItem("tbk") || localStorage.getItem("tbk") == null){
+                  posthog.capture("select_tbk_event", {tbk: tbkValue, username: username})
+                }
                 localStorage.setItem("tbk", tbkValue);
+                
                 onSave();
             }}>
               Sauvegarder

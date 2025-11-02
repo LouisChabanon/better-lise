@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { logOut } from "@/actions/Auth";
 import { Button } from "./ui/Button";
 import { GradeType } from "@/lib/types";
 import { CaretRightFilled, CaretLeftFilled, LogoutOutlined } from "@ant-design/icons";
 import GradeModal from "./ui/GradeModal";
+import posthog from "posthog-js";
 
 interface GradeTableProps {
   grades: GradeType[] | null;
@@ -55,6 +55,7 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
 
   // Open modal when a grade row is clicked
   const onRowClick = (grade: GradeType) => {
+    posthog.capture("view_grade_detail_event", {grade_code: grade.code})
     setSelectedGrade(grade);
   };
 
