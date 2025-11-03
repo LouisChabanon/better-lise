@@ -34,17 +34,15 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
     if(!isOpen) return null;
 
     useEffect(() => {
-      if(posthog){
+      if(isOpen && posthog){
         setIsOptedOut(posthog.has_opted_out_capturing());
+        console.log("User opted out ?", isOptedOut)
       }
-    }, [posthog])
+    }, [isOpen])
 
     const handleToggle = () => {
-      if (isOptedOut){
-        setIsOptedOut(false);
-      }else{
-        setIsOptedOut(true);
-      }
+      setIsOptedOut(!isOptedOut)
+      console.log("User opted out of statistics :", isOptedOut)
     }
 
     return (
@@ -123,19 +121,22 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
               <span className="font-medium text-textSecondary">Thème :</span>
               <DarkModeToggle />
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="font-medium text-texSecondary">Envoyer des statistiques anonymes :</span>
-            <button
-              onClick={handleToggle}
-              className="relative flex h-8 w-16 items-center rounded-full bg-backgroundTertiary transition-colors border-1 border-primary-400"
+          <div className="flex items-center gap-4">
+            <label 
+              htmlFor="stats-toggle" 
+              className="flex items-center gap-3 font-medium text-textSecondary cursor-pointer"
             >
-              {/* Knob */}
-              <span
-                className={`absolute h-7 w-7 rounded-full bg-buttonPrimaryBackground shadow-md transform transition-transform duration-300 ${ isOptedOut
-                  ? "translate-x-8" : "translate-x-0"
-                }`}
+              Envoyer des statistiques anonymes :
+              <input
+                id="stats-toggle"
+                type="checkbox"
+                // The checkbox is checked if the user is *NOT* opted out
+                checked={!isOptedOut} 
+                onChange={handleToggle}
+                className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
               />
-            </button>
+              
+            </label>
           </div>
 
           {/* actions */}

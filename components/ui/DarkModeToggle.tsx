@@ -21,8 +21,8 @@ export default function ThemeToggle() {
       className="relative flex h-8 w-16 items-center rounded-full bg-backgroundTertiary transition-colors border-1 border-primary-400"
     >
       {/* Sun / Moon icons */}
-      <span className="absolute left-1 text-yellow-500 text-sm">☀️</span>
-      <span className="absolute right-1 text-gray-200 text-sm">🌙</span>
+      <span className="absolute right-1 text-yellow-500 text-sm">☀️</span>
+      <span className="absolute left-1 text-gray-200 text-sm">🌙</span>
 
       {/* Knob */}
       <span
