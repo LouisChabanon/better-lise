@@ -39,7 +39,7 @@ export function AbsencesTable({ absences, isLoading, error }: VacancyTableProps)
 
   const totalPages = Math.max(1, Math.ceil(fiteredAbsences.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-  const currentVacancies = fiteredAbsences.slice(startIndex, startIndex + pageSize);
+  const currentAbsences = fiteredAbsences.slice(startIndex, startIndex + pageSize);
 
 
     return (
@@ -78,13 +78,13 @@ export function AbsencesTable({ absences, isLoading, error }: VacancyTableProps)
                   </tr>
                 </thead>
                 <tbody className="text-textSecondary">
-                  {currentVacancies.length === 0 && (
+                  {currentAbsences.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-6 py-8 text-center text-textTertiary">Aucune absence trouvée.</td>
                     </tr>
                   )}
 
-                  {currentVacancies.map((a) => {
+                  {currentAbsences.map((a) => {
                     const baseRow = `transition hover:shadow-sm hover:bg-backgroundSecondary`;
                     return (
                       <tr key={a.date + a.horaire} className={`${baseRow} hover:cursor-pointer text-sm sm:text-base`}>

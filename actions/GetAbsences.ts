@@ -38,7 +38,7 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
     //if (!reload) absences.push(db_absences)
 
     if(reload === true){
-        console.log("Fetching vacancies from Lise...")
+        console.log("Fetching absences from Lise")
 
         const jar = new CookieJar();
         const controller = new AbortController();
@@ -186,8 +186,8 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
                 const html_third_req = await res_third_req.text();
 
                 const $table_html = cheerio.load(html_third_req);
-                const nbrTotalAbs = $table_html('#form\\:nbrAbs').text()
-                const dureeTotalAbs = $table_html('#form\\:dureeAbs').text()
+                const nbrTotalAbs = $table_html('#form\\:nbrAbs').text() != "" ? parseInt($table_html('#form\\:nbrAbs').text()) : 0
+                const dureeTotalAbs = $table_html('#form\\:dureeAbs').text() != "" ? $table_html('#form\\:dureeAbs').text() : "00h00"
                 
                 const rows = $table_html('#form\\table_data > tr');
                 rows.each((index, element) => {
@@ -207,12 +207,12 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
                 })
 
             
-            logger.log("Sucessfully fetched vacancies", {user: user.username, nbrTotalAbs, dureeTotalAbs});
-            return {success: true, data: {nbTotalAbsences: parseInt(nbrTotalAbs), dureeTotaleAbsences: dureeTotalAbs, absences}}
+            logger.log("Sucessfully fetched absences", {user: user.username, nbrTotalAbs, dureeTotalAbs});
+            return {success: true, data: {nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs, absences}}
             
         }catch(error){
-            console.error("Error fetching Vacancies: ", error)
-            return {errors: "Error fetch Vacancies", success: false}
+            console.error("Error fetching absences: ", error)
+            return {errors: "Error fetch absences", success: false}
         }
     }
     return {errors: "Feature is not ready yet", success: false}

@@ -17,7 +17,7 @@ import { logOut } from "@/actions/Auth";
 import { AbsencesTable } from "./AbsencesTable";
 import logger from "@/lib/logger";
 
-type View = 'agenda' | 'grades' | 'vacancies';
+type View = 'agenda' | 'grades' | 'absences';
 
 // Buttons should flex on small screens (horizontal bar) and be full width on md+ where nav is vertical
 const commonButtonClass = "flex-1 p-3 rounded-lg md:text-left md:font-medium text-center font-semibold text-base md:w-full";
@@ -140,7 +140,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                 if (hasUser) {
                         setSelectedView(view);
                         //if (view === 'grades') fetchGrades(true);
-                        //if (view === 'vacancies') fetchAbsences(true);
+                        //if (view === 'absences') fetchAbsences(true);
                 } else {
                         //console.log("No user found", hasUser)
                         setLoginRequestedView(view);
@@ -219,8 +219,8 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                         >Mes Notes
                         </button>
                         <button
-                            onClick={() => handleViewChange('vacancies')}
-                            className={`${commonButtonClass} ${selectedView === 'vacancies' ? activeButtonClass : inactiveButtonClass}`}
+                            onClick={() => handleViewChange('absences')}
+                            className={`${commonButtonClass} ${selectedView === 'absences' ? activeButtonClass : inactiveButtonClass}`}
                             
                         >Mes Absences
                         </button>
@@ -261,7 +261,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                 if (loginRequestedView) {
                                     setSelectedView(loginRequestedView);
                                     if (loginRequestedView === 'grades') await fetchGrades(true);
-                                    if (loginRequestedView === 'vacancies') await fetchAbsences(true);
+                                    if (loginRequestedView === 'absences') await fetchAbsences(true);
                                 }
                             }} />
                         </div>
@@ -288,7 +288,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             />
                         </>
                     )}
-                    {selectedView === 'vacancies' && (
+                    {selectedView === 'absences' && (
                         <>
                             <h2 className="text-xl font-semibold text-textPrimary mb-4">
                                 Mes Absences
@@ -307,7 +307,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                     </span>
                                 </div>                
                             </div>
-                            <VacanciesTable
+                            <AbsencesTable
                                 absences={absences}
                                 isLoading={isAbsencesLoading}
                                 error={error} 
