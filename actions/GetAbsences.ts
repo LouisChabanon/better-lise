@@ -207,7 +207,8 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
                 })
 
             
-            logger.log("Sucessfully fetched absences", {user: user.username, nbrTotalAbs, dureeTotalAbs});
+            logger.info("Sucessfully fetched absences", {user: user.username, nbrTotalAbs, dureeTotalAbs});
+            console.log(absences)
             return {success: true, data: {nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs, absences}}
             
         }catch(error){
