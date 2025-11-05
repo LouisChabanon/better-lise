@@ -10,6 +10,7 @@ export type CalendarEventProps = {
     teacher?: string;
     group?: string;
     type?: CalendarEventType;
+    isAllDay: boolean
 };
 
 export type GradeType = {

@@ -115,8 +115,8 @@ export function CalculateOverlaps(events: CalendarEventProps[]){
 
     sorted.forEach((event, index) => {
         let placed = false;
-        if(event.type === "RU"){
-
+        if(event.isAllDay){
+            placed = true;
         }
         for (const group of groups) {
             const lastIdx = group[group.length - 1];

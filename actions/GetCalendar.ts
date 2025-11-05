@@ -45,6 +45,9 @@ const GetCalendar = async (username: string | null) => {
                 const startDate = fromZonedTime(event.start, tz)
                 const endDate = fromZonedTime(event.end, tz)
 
+                const durationInMs = endDate.getTime() - startDate.getTime();
+
+                const isAllDay = durationInMs > 28800000;
                 //console.log("import Data", "Event Start:", startDate, "End:", endDate);
 
                 // Check if the event has a summary
@@ -65,6 +68,7 @@ const GetCalendar = async (username: string | null) => {
                     teacher: teacher ? teacher[1].trim() : "No teacher specified",
                     group: group ? group[1].trim() : "No group specified",
                     type: type ? type[1].trim() : "CM", // Change this once we have actual data
+                    isAllDay: isAllDay
                 };
 
                 calendarEvents.push(calendarEvent);

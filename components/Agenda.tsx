@@ -312,6 +312,7 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
                                 weekOffset={weekOffset}
                                 info={info}
                                 tbk={tbk}
+                                isAllDay={event.isAllDay}
                             />
                         )
                     })}

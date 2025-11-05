@@ -18,22 +18,19 @@ type CalendarEventProps = {
     weekOffset?: number; // Offset for the week, default is 0 (current week)
     info: { position: number, columns: number }; // Additional info for layout
     tbk: tbk;
+    isAllDay: boolean;
 };
 
 const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk }: CalendarEventProps) => {
+const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk, isAllDay }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
 
     const handleStart = () => setIsActive(true);
     const handleEnd = () => setIsActive(false);
-
-    const startTime = format(startDate, 'HH:mm');
-    const endTime = format(endDate, 'HH:mm');
-
 
     const eventDay = startDate.getDay();
     const eventDayISO = eventDay === 0 ? 7 : eventDay;
@@ -58,6 +55,9 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const startRow = Math.floor(startOffset / 5) + 1;
     const span = Math.max(1, Math.ceil((endOffset - startOffset) / 5));
 
+    if (isAllDay){
+        return null
+    }
 
     if (eventDayISO < 1 || eventDayISO > 5) {
         // If the event is on a weekend, we don't display it in the agenda
@@ -107,6 +107,8 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     let width = `${100 / info.columns}%`;
     let left = `${(info.position / info.columns) * 100}%`;
     let zIndex = 0;
+
+
     
     
     if (type === "RU") {
