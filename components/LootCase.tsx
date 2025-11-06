@@ -6,11 +6,9 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import confetti from "canvas-confetti";
 
 // --- Constants ---
-const ITEM_WIDTH = 150;
+const ITEM_WIDTH = 120;
 const REEL_SIZE = 50;
 const WINNING_INDEX = 47;
-const CENTER_MARK_X = 225;
-const CLICK_MARC_X = 300;
 
 // Helper function to generate a single random item
 const createRandomItem = () => {
@@ -25,6 +23,9 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
   const [isRolling, setIsRolling] = useState(false);
   const [showWinnerGlow, setShowWinnerGlow] = useState(false);
   const lastTickIndex = useRef(0);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   // Confetti effect function
   const triggerConfetti = useCallback(() => {
@@ -54,6 +55,22 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
   }, []);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if(container) {
+      setContainerWidth(container.offsetWidth);
+      
+      const resizeObserver = new ResizeObserver((entries) => {
+        if(entries[0]){
+          setContainerWidth(entries[0].contentRect.width);
+        }
+      });
+      resizeObserver.observe(container);
+
+      return () => resizeObserver.disconnect();
+    }
+  }, [])
+
+  useEffect(() => {
     if (grade === null || grade === undefined) return;
     const generated = Array.from({ length: REEL_SIZE }, createRandomItem);
     const { color } = getRarity(grade);
@@ -67,13 +84,13 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
   }, [grade, controls]);
 
   useEffect(() => {
-    if(items.length > 0){
+    if(items.length > 0 && containerWidth > 0 && !isRolling){
       startRoll()
     }
-  }, [items]);
+  }, [items, containerWidth]);
 
   const startRoll = async () => {
-    if (isRolling || items.length === 0) return;
+    if (isRolling || items.length === 0 || containerWidth === 0) return;
 
     setIsRolling(true);
     setShowWinnerGlow(false);
@@ -81,7 +98,13 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
 
     await controls.set({ x: 0 });
 
-    const stopPosition = -(WINNING_INDEX * ITEM_WIDTH) + CENTER_MARK_X;
+    const centerMarkX = containerWidth / 2
+    const centerOffset = centerMarkX - ITEM_WIDTH / 2;
+    
+    const startingIndexFloat = (centerMarkX - 0) / ITEM_WIDTH;
+    lastTickIndex.current = Math.floor(startingIndexFloat);
+
+    const stopPosition = -(WINNING_INDEX * ITEM_WIDTH) + centerOffset
     const jitter = (Math.random() - 0.5) * (ITEM_WIDTH * 0.4);
     const finalX = stopPosition + jitter;
 
@@ -112,7 +135,7 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className={`relative w-[600px] h-[160px] overflow-hidden border-4 border-backgroundTertiary rounded-xl bg-backgroundSecondary
+      <div ref={containerRef} className={`relative w-[90vw] md:w-[600px] h-[120px] md:h[160px] overflow-hidden border-4 border-backgroundTertiary dark:border-backgroundTertiary rounded-xl bg-backgroundSecondary
                       before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1/4 before:z-20 before:pointer-events-none before:bg-gradient-to-r before:from-backgroundSecondary before:to-transparent
                       after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-0 after:w-1/4 after:z-20 after:pointer-events-none after:bg-gradient-to-l after:from-backgroundSecondary after:to-transparent`}>
         
@@ -123,8 +146,10 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
           animate={controls}
           initial={{ x: 0 }}
           onUpdate={(latest) => {
+            
+            const tickerMarkX = containerWidth / 2;
             const currentX = parseFloat(String(latest.x));
-            const currentIndexFloat = (CLICK_MARC_X - currentX) / ITEM_WIDTH;
+            const currentIndexFloat = (tickerMarkX - currentX) / ITEM_WIDTH;
             const currentIndex = Math.floor(currentIndexFloat);
 
             if (currentIndex > lastTickIndex.current) {
@@ -147,7 +172,7 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
                 width: ITEM_WIDTH,
                 height: "100%",
                 background: item.color,
-                borderRight: "2px solid rgba(255,255,255,0.05)",
+                borderRight: "2px solid backgroundSecondary",
                 boxShadow: idx === WINNING_INDEX && showWinnerGlow ? `0 0 18px 6px ${item.color}, inset 0 0 10px 4px white` : "inset 0 0 6px rgba(0,0,0,.4)"
               }}
             >
