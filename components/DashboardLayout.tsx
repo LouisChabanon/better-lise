@@ -40,6 +40,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
     const [loginRequestedView, setLoginRequestedView] = useState<View | null>(null);
 
     const [grades, setGrades] = useState<GradeType[] | null>(null);
+    const [gambling, setIsGambling] = useState(false);
     const [absence, setAbsence] = useState<AbsenceType[] | null>(null);
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
 
@@ -93,7 +94,8 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
     
 
     async function fetchGrades(reachServer = false) {
-          setGradesLoading(true)
+          setGradesLoading(true);
+          setIsGambling(localStorage.getItem("gambling") === "true");
           const res = await getGradeData(reachServer);
                     if (res.success && res.data) {
 
@@ -224,6 +226,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                 }} onSave={() => {
                                     setSettingsModal(false);
                                     fetchCalendarEvents();
+                                    setIsGambling(localStorage.getItem("gambling") === "true");
                                 }} />
                             )}
 
@@ -266,6 +269,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             </h2>
                             <GradeTable 
                                 grades={grades}
+                                gambling={gambling}
                                 isLoading={isGradesLoading}
                                 error={error}
                             />
