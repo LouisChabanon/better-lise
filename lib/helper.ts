@@ -189,7 +189,7 @@ export function randomGaussianGrade(): number {
     const z = Math.sqrt( -2.0 * Math.log(u)) * Math.cos( 2.0 * Math.PI * v )
 
     const mean = 10;
-    const stDev = 4;
+    const stDev = 2;
     let grade = z * stDev + mean;
     grade = Math.max(0, Math.min(20, grade));
 

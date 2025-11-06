@@ -10,6 +10,7 @@ const ITEM_WIDTH = 150;
 const REEL_SIZE = 50;
 const WINNING_INDEX = 47;
 const CENTER_MARK_X = 225;
+const CLICK_MARC_X = 300;
 
 // Helper function to generate a single random item
 const createRandomItem = () => {
@@ -27,7 +28,7 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
 
   // Confetti effect function
   const triggerConfetti = useCallback(() => {
-    const duration = 2 * 1000;
+    const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
     function randomInRange(min: number, max: number) {
@@ -86,10 +87,10 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
 
     await controls.start({
       x: finalX,
-      transition: {
-        duration: 7,
-        ease: [0.22, 1, 0.36, 1],
-      },
+      transition: { 
+        duration: 8,
+        ease: [0, 0.65, 0.45, 1],
+       },
     });
 
     if(onReveal){
@@ -115,7 +116,7 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
                       before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1/4 before:z-20 before:pointer-events-none before:bg-gradient-to-r before:from-backgroundSecondary before:to-transparent
                       after:content-[''] after:absolute after:right-0 after:top-0 after:bottom-0 after:w-1/4 after:z-20 after:pointer-events-none after:bg-gradient-to-l after:from-backgroundSecondary after:to-transparent`}>
         
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[5px] bg-primary pointer-events-none z-10" />
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-backgroundPrimary pointer-events-none z-10" />
 
         <motion.div
           className="flex h-full"
@@ -123,7 +124,7 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
           initial={{ x: 0 }}
           onUpdate={(latest) => {
             const currentX = parseFloat(String(latest.x));
-            const currentIndexFloat = (CENTER_MARK_X - currentX) / ITEM_WIDTH;
+            const currentIndexFloat = (CLICK_MARC_X - currentX) / ITEM_WIDTH;
             const currentIndex = Math.floor(currentIndexFloat);
 
             if (currentIndex > lastTickIndex.current) {
@@ -137,7 +138,7 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
           {items.map((item, idx) => (
             <div
               key={idx}
-              className={`flex items-center justify-center rounded-xl text-white flex-shrink-0 relative ${
+              className={`flex items-center justify-center text-white flex-shrink-0 relative ${
                 showWinnerGlow && idx === WINNING_INDEX
                   ? "winner-glow"
                   : ""
@@ -146,10 +147,11 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
                 width: ITEM_WIDTH,
                 height: "100%",
                 background: item.color,
-                borderRight: "2px solid backgroundPrimary",
+                borderRight: "2px solid rgba(255,255,255,0.05)",
+                boxShadow: idx === WINNING_INDEX && showWinnerGlow ? `0 0 18px 6px ${item.color}, inset 0 0 10px 4px white` : "inset 0 0 6px rgba(0,0,0,.4)"
               }}
             >
-              <span className="text-3xl font-extrabold text-stroke">
+              <span className="text-3xl font-extrabold drop-shadow-md">
                 {item.grade.toFixed(2)}
               </span>
             </div>

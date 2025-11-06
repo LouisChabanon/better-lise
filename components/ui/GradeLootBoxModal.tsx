@@ -58,7 +58,7 @@ export default function GradeLootBoxModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex justify-center justify-center items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4`}
+      className={`fixed inset-0 z-50 flex justify-center justify-center items-start sm:items-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4`}
       onClick={onClose}
     >
       <div
@@ -78,17 +78,17 @@ export default function GradeLootBoxModal({
           </Button>
         </div>
         <div className="lg:flex lg:flex-row lg:gap-8 justify-center">
-          {/* --- Conditional Rendering --- */}
+
           {isOpening ? (
             <LootCase
               grade={grade.note}
               onTick={playTick}
               onReveal={handleReveal}
-              onComplete={onComplete} // <-- Pass onComplete to LootCase
+              onComplete={onComplete} 
             />
           ) : (
             <div className="flex flex-col items-center gap-4 w-full">
-              {/* Locked frame placeholder */}
+
               <div className="relative w-full max-w-[600px] h-[160px] overflow-hidden border-4 border-backgroundTertiary rounded-xl bg-backgroundSecondary flex items-center justify-center">
                 <span className="text-6xl text-textTertiary animate-pulse">
                   🎁
@@ -97,7 +97,7 @@ export default function GradeLootBoxModal({
                   Prêt à révéler ?
                 </p>
               </div>
-              {/* The "Open" button */}
+
               <Button
                 onClick={handleOpenClick}
                 status="primary"

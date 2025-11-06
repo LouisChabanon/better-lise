@@ -14,10 +14,11 @@ import GradeLootBoxModal from "./ui/GradeLootBoxModal";
 interface GradeTableProps {
   grades: GradeType[] | null;
   isLoading: boolean;
+  gambling: boolean;
   error: string | null;
 }
 
-export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
+export function GradeTable({ grades, isLoading, error, gambling }: GradeTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredGrades, setFilteredGrades] = useState<GradeType[]>([]);
@@ -37,6 +38,7 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
 
   // Update filtered list whenever grades or the search term change
   useEffect(() => {
+
     if (!grades) {
       setFilteredGrades([]);
       setCurrentPage(1);
@@ -64,9 +66,7 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
   const onRowClick = (grade: GradeType) => {
     const noteAsNumber = Number(grade.note);
 
-    if (grade.isNew && !isNaN(noteAsNumber)) {
-      const isRevealingLowGrade =
-        gradeToReveal && Number(gradeToReveal.note) < 10;
+    if (grade.isNew && !isNaN(noteAsNumber) && gambling) {
       setGradeToReveal(grade);
       setSelectedGrade(null);
     } else {
@@ -174,13 +174,13 @@ export function GradeTable({ grades, isLoading, error }: GradeTableProps) {
                 )}
 
                 {currentGrades.map((g) => {
-                  const isRevealabale = g.isNew && !isNaN(Number(g.note));
+                  const isRevealabale = g.isNew && !isNaN(Number(g.note)) && gambling;
                   const isNewClass = g.isNew ? "bg-eventDefaultBg" : "";
                   const baseRow = `transition hover:shadow-sm hover:bg-backgroundSecondary ${isNewClass}`;
 
                   const noteClass = isRevealabale ? "bg-ButtonPrimaryBackground text-textPrimary font-extrabold" : noteBadgeClass(g.note);
 
-                  const noteText = isRevealabale ? "🎁 Révéler" : g.note;
+                  const noteText = isRevealabale ? "*****" : g.note;
 
                   return (
                     <tr
