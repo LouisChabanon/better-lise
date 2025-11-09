@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react'
-import { RightOutlined, LeftOutlined, HomeOutlined } from '@ant-design/icons';
+import { RightOutlined, LeftOutlined, HomeOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
@@ -17,6 +17,7 @@ interface AgendaProps {
     mapping: Record<string, {position: number, columns: number }>;
     isLoading: boolean;
     tbk: tbk;
+    onReload?: () => void;
 }
 
 const variants: Variants = {
@@ -42,7 +43,7 @@ const variants: Variants = {
     })
 };
 
-export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: AgendaProps) {
+export default function Agenda({ calendarEvents, mapping, isLoading, tbk, onReload}: AgendaProps) {
 
     const [weekOffset, setWeekOffset] = useState<number>(0);
 
@@ -59,7 +60,7 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
         if (currentDayIndex === null || currentDayIndex >= 5 || currentDayIndex < 0) {
             setWeekOffset(1); // Reset to next week if it's a weekend
         }
-        console.log(currentDayIndex)
+        
     }, [])
 
     const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
@@ -112,11 +113,14 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
                         >Aujourd'hui</Button>
                     <Button
                         status="secondary"
-                        className='ml-2'
+                        className='ml-2 mr-2'
                         onClick={() => handleWeekChange(1)}
                         disabled={isLoading}
                         ><RightOutlined />
                     </Button>
+                    {onReload && (
+                        <Button status="primary" onClick={onReload} disabled={isLoading}><ReloadOutlined /></Button>
+                    )}
                     </div>         
                 </div>
             </header>
@@ -133,6 +137,9 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
                         >
                             <HomeOutlined />
                     </Button>
+                    {onReload && (
+                        <Button status="primary" onClick={onReload} disabled={isLoading}><ReloadOutlined /></Button>
+                    )}
                 </div>
             </header>
     <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">

@@ -2,15 +2,16 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/Button";
 import { AbsenceType } from "@/lib/types";
-import { CaretRightFilled, CaretLeftFilled, LogoutOutlined } from "@ant-design/icons";
+import { CaretRightFilled, CaretLeftFilled, ReloadOutlined } from "@ant-design/icons";
 
 interface VacancyTableProps {
   absences: AbsenceType[] | null;
   isLoading: boolean;
   error: string | null;
+  onReload?: () => void;
 }
 
-export function AbsencesTable({ absences, isLoading, error }: VacancyTableProps) {
+export function AbsencesTable({ absences, isLoading, error, onReload }: VacancyTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [fiteredAbsences, setFilteredAbsences] = useState<AbsenceType[]>([]);
@@ -54,6 +55,9 @@ export function AbsencesTable({ absences, isLoading, error }: VacancyTableProps)
             disabled={isLoading}
             className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus:ring-2"
           />
+          {onReload && (
+          <Button status="primary" onClick={onReload} disabled={isLoading}><ReloadOutlined /></Button>
+          )}
         </div>
       {isLoading ? (
           <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full h-full animate-pulse flex flex-col items-center justify-center">

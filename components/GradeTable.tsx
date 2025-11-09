@@ -6,6 +6,7 @@ import {
   CaretRightFilled,
   CaretLeftFilled,
   LogoutOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import GradeModal from "./ui/GradeModal";
 import posthog from "posthog-js";
@@ -16,9 +17,10 @@ interface GradeTableProps {
   isLoading: boolean;
   gambling: boolean;
   error: string | null;
+  onReload?: () => void;
 }
 
-export function GradeTable({ grades, isLoading, error, gambling }: GradeTableProps) {
+export function GradeTable({ grades, isLoading, error, gambling, onReload }: GradeTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredGrades, setFilteredGrades] = useState<GradeType[]>([]);
@@ -116,6 +118,9 @@ export function GradeTable({ grades, isLoading, error, gambling }: GradeTablePro
           disabled={isLoading}
           className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus:ring-2"
         />
+        {onReload && (
+          <Button status="primary" onClick={onReload} disabled={isLoading}><ReloadOutlined /></Button>
+        )}
       </div>
       {isLoading ? (
         <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full h-full animate-pulse flex flex-col items-center justify-center">
