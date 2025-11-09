@@ -45,7 +45,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
 
     const [gambling, setIsGambling] = useState(false);
   
-    const [absence, setAbsence] = useState<AbsenceType[] | null>(null);
+    const [absences, setAbsences] = useState<AbsenceType[] | null>(null);
     const [nbrAbsences, setnbrAbsences] = useState<number>(0);
     const [dureeAbsences, setDureeAbsences] = useState<string>("00h00");
   
