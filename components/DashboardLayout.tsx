@@ -279,6 +279,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             mapping={eventMapping}
                             isLoading={isCalendarLoading}
                             tbk={tbk}
+                            onReload={() => fetchCalendarEvents()}
                         />
                     )}
 
@@ -292,6 +293,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                 gambling={gambling}
                                 isLoading={isGradesLoading}
                                 error={error}
+                                onReload={() => fetchGrades(true)}
                             />
                         </>
                     )}
@@ -304,20 +306,21 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                 <div className="flex items-center space-x-2">
                                     <span className="text-sm font-semibold text-textSecondary">Nombre total d'absences:</span>
                                     <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
-                                        {nbrAbsences}
+                                        {isAbsencesLoading ? "--" : nbrAbsences}
                                     </span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <span className="text-sm font-semibold text-textSecondary">Durée totale des absences:</span>
                                     <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
-                                        {dureeAbsences}
+                                        {isAbsencesLoading ? "--h--" : dureeAbsences}
                                     </span>
                                 </div>                
                             </div>
                             <AbsencesTable
                                 absences={absences}
                                 isLoading={isAbsencesLoading}
-                                error={error} 
+                                error={error}
+                                onReload={() => fetchAbsences(true)} 
                             />
                         </>
                     )
