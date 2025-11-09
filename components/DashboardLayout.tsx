@@ -312,7 +312,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                 <div className="flex items-center space-x-2">
                                     <span className="text-sm font-semibold text-textSecondary">Durée totale des absences:</span>
                                     <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
-                                        {isAbsencesLoading ? "--h--" : dureeAbsences}
+                                        {isAbsencesLoading ? "--:--" : dureeAbsences}
                                     </span>
                                 </div>                
                             </div>

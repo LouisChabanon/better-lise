@@ -31,7 +31,8 @@ export function AbsencesTable({ absences, isLoading, error, onReload }: VacancyT
     const filtered = absences.filter((a) =>
       a.cours.toLowerCase().includes(term) ||
       a.date.includes(term) ||
-      a.matiere.includes(term)
+      a.matiere.includes(term) ||
+      a.intervenants.toLowerCase().includes(term)
     );
 
     setFilteredAbsences(filtered);
@@ -75,10 +76,12 @@ export function AbsencesTable({ absences, isLoading, error, onReload }: VacancyT
               <table className="table-fixed rounded-lg min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left w-1/3 min-w-[150px]">Date</th>
-                    <th className="px-4 py-3 text-left left-0 z-20 min-w-[96px]">Durée</th>
-                    <th className="px-4 py-3 text-left w-1/6 min-w-[110px]">Motif</th>
-                    <th className="px-4 py-3 text-left w-1/6 min-w-[120px]">Matiere</th>
+                    <th className="px-4 py-3 text-left w-1/6">Date</th>
+                    <th className="px-4 py-3 text-left w-1/6">Horaire</th>
+                    <th className="px-4 py-3 text-left w-1/6">Durée</th>
+                    <th className="px-4 py-3 text-left w-1/6">Cours</th>
+                    <th className="px-4 py-3 text-left w-1/6">Intervenants</th>
+                    <th className="px-4 py-3 text-left w-1/6">Motif</th>
                   </tr>
                 </thead>
                 <tbody className="text-textSecondary">
@@ -95,13 +98,17 @@ export function AbsencesTable({ absences, isLoading, error, onReload }: VacancyT
                         <td title={a.date} className="px-4 py-4 align-top max-w-[300px] overflow-hidden text-ellipsis">
                           <span className="align-middle">{a.date}</span>
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap font-semibold">
+                        <td title={a.horaire} className="px-4 py-4 align-top max-w-[300px] overflow-hidden text-ellipsis">
+                          <span className="align-middle">{a.horaire}</span>
+                        </td>
+                        <td title={a.duree} className="px-4 py-4 whitespace-nowrap font-semibold">
                           <span className={`inline-flex items-center justify-center px-3 py-1 text-sm font-medium`}>
                             {a.duree}
                           </span>
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{a.motif}</td>
-                        <td className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">{a.matiere}</td>
+                        <td title={a.cours} className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{a.cours}</td>
+                        <td title={a.intervenants} className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{a.intervenants}</td>
+                        <td title={a.motif} className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{a.motif !== "" ? a.motif : "Aucun"}</td>
                       </tr>
                     );
                   })}

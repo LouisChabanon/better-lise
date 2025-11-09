@@ -190,10 +190,10 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
                 const nbrTotalAbs = $table_html('#form\\:nbrAbs').text() != "" ? parseInt($table_html('#form\\:nbrAbs').text()) : 0
                 const dureeTotalAbs = $table_html('#form\\:dureeAbs').text() != "" ? $table_html('#form\\:dureeAbs').text() : "00h00"
 
-                const rows = $table_html('#form\\:table_data');
+                const rows = $table_html('#form\\:table_data > tr');
                 rows.each((index, element) => {
                     const cells = $table_html(element).find('td');
-
+                    
                     // If no absences, date is set to "Aucune absence." Fine for now but it's not pretty
                     const rowData: AbsenceType = {
                         date: $table_html(cells.eq(0)).clone().text().trim(),
@@ -204,10 +204,8 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
                         intervenants: $table_html(cells.eq(5)).clone().text().trim(),
                         matiere: $table_html(cells.eq(6)).clone().text().trim()
                     }
-
                     absences.push(rowData);
                 })
-
             
             logger.info("Sucessfully fetched absences", {user: session.username, nbrTotalAbs, dureeTotalAbs});
             return {success: true, data: {nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs, absences}}
