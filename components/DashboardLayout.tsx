@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Agenda from "./Agenda";
 import { GradeTable } from "./GradeTable";
-import { GradeType, AbsenceType, CalendarEventProps, tbk } from "@/lib/types";
+import { GradeType, AbsenceType, CalendarEventProps, tbk, AbsencesRequestState } from "@/lib/types";
 import { getGradeData } from "@/actions/GetGrades";
 import { getAbsenceData } from "@/actions/GetAbsences";
 import getCrousData from "@/actions/GetCrousData";
@@ -14,8 +14,10 @@ import { LoginForm } from "./LoginForm";
 import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 import SettingsDialog from "./ui/SettingsDialog";
 import { logOut } from "@/actions/Auth";
+import { AbsencesTable } from "./AbsencesTable";
+import logger from "@/lib/logger";
 
-type View = 'agenda' | 'grades' | 'vacancies';
+type View = 'agenda' | 'grades' | 'absences';
 
 // Buttons should flex on small screens (horizontal bar) and be full width on md+ where nav is vertical
 const commonButtonClass = "flex-1 p-3 rounded-lg md:text-left md:font-medium text-center font-semibold text-base md:w-full";
@@ -40,8 +42,13 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
     const [loginRequestedView, setLoginRequestedView] = useState<View | null>(null);
 
     const [grades, setGrades] = useState<GradeType[] | null>(null);
+
     const [gambling, setIsGambling] = useState(false);
-    const [absence, setAbsence] = useState<AbsenceType[] | null>(null);
+  
+    const [absences, setAbsences] = useState<AbsenceType[] | null>(null);
+    const [nbrAbsences, setnbrAbsences] = useState<number>(0);
+    const [dureeAbsences, setDureeAbsences] = useState<string>("00h00");
+  
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
 
     const [isGradesLoading, setGradesLoading] = useState(true);
@@ -89,7 +96,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                 console.error("Failed to fetch calendar events");
         }
                 
-            setCalendarLoading(false);
+        setCalendarLoading(false);
     }
     
 
@@ -138,7 +145,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                 if (hasUser) {
                         setSelectedView(view);
                         //if (view === 'grades') fetchGrades(true);
-                        //if (view === 'vacancies') fetchAbsences(true);
+                        //if (view === 'absences') fetchAbsences(true);
                 } else {
                         //console.log("No user found", hasUser)
                         setLoginRequestedView(view);
@@ -150,7 +157,20 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
         setAbsencesLoading(true)
         const res = await getAbsenceData(reachServer)
         if(res.success && res.data){
-            //console.log(res.data)
+            const absenceItems = (res.data.absences as AbsenceType[]).filter((a: any) => typeof a?.date !== 'undefined');
+            const sorted = absenceItems.sort((a: any, b: any) => {
+                const [dayA, monthA, yearA] = a.date.split('/').map(Number);
+                const [dayB, monthB, yearB] = b.date.split('/').map(Number);
+                const timeA = new Date(yearA, monthA - 1, dayA).getTime();
+                const timeB = new Date(yearB, monthB - 1, dayB).getTime();
+                return timeB - timeA;});
+            
+                setAbsences(sorted);
+                setnbrAbsences(res.data.nbTotalAbsences);
+                setDureeAbsences(res.data.dureeTotaleAbsences);
+        }else{
+            setAbsencesLoading(false);
+            console.error("Failed to fetch grades",  res.errors || "Unknown error")
         }
         setAbsencesLoading(false)
     }
@@ -162,7 +182,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
             const hasUser = session?.username || localStorage.getItem("lise_id");
             if (hasUser) {
                 fetchGrades(true);
-                //fetchAbsences(true);
+                fetchAbsences(true);
             }
         }catch (err){
             setError(err instanceof Error ? err.message : "Une erreur inconnue s'est produite")
@@ -204,8 +224,8 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                         >Mes Notes
                         </button>
                         <button
-                            onClick={() => alert("Feature not Available")}
-                            className={`${commonButtonClass} ${selectedView === 'vacancies' ? activeButtonClass : inactiveButtonClass}`}
+                            onClick={() => handleViewChange('absences')}
+                            className={`${commonButtonClass} ${selectedView === 'absences' ? activeButtonClass : inactiveButtonClass}`}
                             
                         >Mes Absences
                         </button>
@@ -247,7 +267,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                 if (loginRequestedView) {
                                     setSelectedView(loginRequestedView);
                                     if (loginRequestedView === 'grades') await fetchGrades(true);
-                                    if (loginRequestedView === 'vacancies') await fetchAbsences(true);
+                                    if (loginRequestedView === 'absences') await fetchAbsences(true);
                                 }
                             }} />
                         </div>
@@ -275,6 +295,33 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             />
                         </>
                     )}
+                    {selectedView === 'absences' && (
+                        <>
+                            <h2 className="text-xl font-semibold text-textPrimary mb-4">
+                                Mes Absences
+                            </h2>
+                            <div className="p-2 flex flex-wrap gap-4 sm:gap-6">
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-semibold text-textSecondary">Nombre total d'absences:</span>
+                                    <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
+                                        {nbrAbsences}
+                                    </span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-semibold text-textSecondary">Durée totale des absences:</span>
+                                    <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
+                                        {dureeAbsences}
+                                    </span>
+                                </div>                
+                            </div>
+                            <AbsencesTable
+                                absences={absences}
+                                isLoading={isAbsencesLoading}
+                                error={error} 
+                            />
+                        </>
+                    )
+                    }
                 </div>
             </div>
         </>
