@@ -48,9 +48,9 @@ export default function GradeModal({ grade, onClose }: GradeModalProps) {
     }, [grade.code]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
-            <div className="bg-backgroundPrimary p-6 rounded-lg w-full max-w-lg lg:max-w-4xl" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6 gap-4">
+        <div className="fixed inset-0 z-50 flex justify-center justify-center sm:items-center items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+            <div className="bg-backgroundPrimary p-4 sm:p-6 rounded-lg w-full max-w-lg lg:max-w-4xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4 sm:mb-6 gap-4">
                     <div className="flex flex-col min-w-0">
                         <h3 className="text-lg font-semibold text-textPrimary truncate">Détails - {grade.libelle}</h3>
                         <p className="text-sm text-textTertiary break-words">{grade.code}</p>

@@ -115,8 +115,8 @@ export function CalculateOverlaps(events: CalendarEventProps[]){
 
     sorted.forEach((event, index) => {
         let placed = false;
-        if(event.type === "RU"){
-
+        if(event.isAllDay){
+            placed = true;
         }
         for (const group of groups) {
             const lastIdx = group[group.length - 1];
@@ -181,5 +181,25 @@ export function getHiddenFields($html: cheerio.CheerioAPI) {
     });
 
     return { viewState, formIdInit, largeurDivCentre };
+}
 
+export function randomGaussianGrade(): number {
+    const u = 1 - Math.random();
+    const v = Math.random();
+    const z = Math.sqrt( -2.0 * Math.log(u)) * Math.cos( 2.0 * Math.PI * v )
+
+    const mean = 10;
+    const stDev = 2;
+    let grade = z * stDev + mean;
+    grade = Math.max(0, Math.min(20, grade));
+
+    return grade;
+}
+
+export function getRarity(grade: number){
+    if (grade >= 18) return { rarity: "Legendary", color: "oklch(82.8% 0.189 84.429)"}
+    if (grade >= 14) return { rarity: "Epic", color: "oklch(51.8% 0.253 323.949)" }
+    if (grade >= 10) return { rarity: "Common", color: "oklch(54.6% 0.245 262.881)"}
+    if (grade >= 7 ) return { rarity: "Basic", color: "oklch(55.3% 0.195 38.402)" }
+    return { rarity: "Poor", color: "oklch(50.5% 0.213 27.518)" } 
 }

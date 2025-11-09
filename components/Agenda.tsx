@@ -10,6 +10,7 @@ import { CalendarEventProps } from '@/lib/types';
 import { getMonthName } from '@/lib/helper';
 import LoadingPlaceholder from '@/components/ui/LoadingPlaceholder';
 import { tbk } from '@/lib/types';
+import { AnimatePresence, motion, PanInfo, Variants } from "framer-motion";
 
 interface AgendaProps {
     calendarEvents: CalendarEventProps[] | null;
@@ -18,18 +19,36 @@ interface AgendaProps {
     tbk: tbk;
 }
 
+const variants: Variants = {
+    enter: (direction: number) => ({
+        x: direction > 0 ? '100%' : '-100%', // Enter from right if direction is positive (next week), else from left
+        opacity: 0,
+    }),
+    center: {
+        x: '0%',
+        opacity: 1,
+        transition: {
+            x: { type: "tween", duration: 0.3, ease: "easeOut" },
+            opacity: { duration: 0.2 }
+        }
+    },
+    exit: (direction: number) => ({
+        x: direction < 0 ? '100%' : '-100%', // Exit to right if direction is negative (prev week), else to left
+        opacity: 0,
+        transition: {
+            x: { type: "tween", duration: 0.3, ease: "easeOut" },
+            opacity: { duration: 0.2 }
+        },
+    })
+};
 
 export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: AgendaProps) {
 
     const [weekOffset, setWeekOffset] = useState<number>(0);
-    const [swipeOffset, setSwipeOffset] = useState<number>(0);
 
-    
+    const [swipeDirection, setSwipeDirection] = useState<number>(0);
+
     const agendaRef = useRef<HTMLDivElement>(null);
-    const touchStartX = useRef<number | null>(null);
-    const touchStartY = useRef<number | null>(null);
-    const isSwiping = useRef<boolean>(false);
-    const animationFrameRef = useRef<number | null>(null);
 
     const { weekDates, currentDayIndex } = getWeekData(weekOffset);
 
@@ -40,74 +59,37 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
         if (currentDayIndex === null || currentDayIndex >= 5 || currentDayIndex < 0) {
             setWeekOffset(1); // Reset to next week if it's a weekend
         }
+        console.log(currentDayIndex)
     }, [])
 
     const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
-    const handleTouchStart = (e: React.TouchEvent) => {
-        touchStartX.current = e.touches[0].clientX;
-        touchStartY.current = e.touches[0].clientY;
-        setSwipeOffset(0);
-        isSwiping.current = false;
-    };
+    const handleDragEnd = (
+        event: MouseEvent | TouchEvent | PointerEvent,
+        info: PanInfo
+    ) => {
+        const swipeThreshold = 50;
+        const offset = info.offset.x;
 
-    const handleTouchMove = (e: React.TouchEvent) => {
-
-        if(touchStartX.current === null || touchStartY.current === null) return;
-        
-        const deltaX = e.touches[0].clientX - touchStartX.current;
-        const deltaY = e.touches[0].clientY - touchStartY.current;
-
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
-            // User is scrolling vertically, ignore horizontal swipe
-            return;
-        }
-
-        if(Math.abs(deltaX) < 10) return; // Ignore small movements
-
-        isSwiping.current = true;
-
-        e.preventDefault();
-
-        if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
-        }
-
-        animationFrameRef.current = requestAnimationFrame(() => {
-            setSwipeOffset(deltaX);
-        });
-    }
-
-    const handleTouchEnd = (e: React.TouchEvent) => {
-        if(!isSwiping.current || touchStartX.current === null){
-            touchStartX.current = null;
-            touchStartY.current = null;
-            return;
-        }
-        
-        const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-        
-
-        if( Math.abs(deltaX) > 50) {
-            if(deltaX > 0) {
+        if(Math.abs(offset) > swipeThreshold){
+            if(offset>0){
+                setSwipeDirection(-1);
                 setWeekOffset(prev => prev - 1);
             } else {
+                setSwipeDirection(1);
                 setWeekOffset(prev => prev + 1);
             }
         }
+    }
 
-        setTimeout(() => {
-            setSwipeOffset(0);
-        }, 100);
-        
-        touchStartX.current = null;
-        touchStartY.current = null;
-        isSwiping.current = false;
-    };
+    const handleWeekChange = (directon: -1 | 1) => {
+        setSwipeDirection(directon);
+        setWeekOffset(prev => prev + directon);
+    }
 
 
     return (
-        
+    
     <div className="flex h-full flex-col select-none">
         {/* Desktop Header */}
             <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
@@ -119,19 +101,19 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
                     <Button
                         status="secondary"
                         className='mr-2'
-                        onClick={() => setWeekOffset(weekOffset - 1)}
+                        onClick={() => handleWeekChange(-1)}
                         disabled={isLoading}
                         ><LeftOutlined className='font-semibold'/>
                     </Button>
                     <Button
                         status="secondary"
-                        onClick={() => setWeekOffset(0)}
-                        disabled={isLoading || weekOffset === 0}
+                        onClick={() => {setWeekOffset(0); setSwipeDirection(0);}}
+                        disabled={isLoading || weekOffset === 0 }
                         >Aujourd'hui</Button>
                     <Button
                         status="secondary"
                         className='ml-2'
-                        onClick={() => setWeekOffset(weekOffset + 1)}
+                        onClick={() => handleWeekChange(1)}
                         disabled={isLoading}
                         ><RightOutlined />
                     </Button>
@@ -146,7 +128,7 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
                 <div className="flex items-center gap-2">
                     <Button
                         status="secondary"
-                        onClick={() => setWeekOffset(0)}
+                        onClick={() => {setWeekOffset(0); setSwipeDirection(0);}}
                         disabled={isLoading || weekOffset === 0}
                         >
                             <HomeOutlined />
@@ -276,46 +258,52 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk}: Agend
                 </div>
 
                 {/* Events grid is 144 rows: 12h * 60min / 5min */}
-                <ol
-                    className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 bg-gradient-to-r from-primary-container/5 via-transparent to-primary/5 sm:bg-none h-full md:overflow-auto"
-                    style={{ 
-                        gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto',
-                        transform: `translateX(${swipeOffset}px)`, 
-                        transition: swipeOffset === 0 ? 'transform 0.2s ease-out' : 'none'
-                      }}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                    onTouchMove={handleTouchMove}
-                    onTouchCancel={handleTouchEnd}
-                      >
+                <AnimatePresence initial={false} custom={swipeDirection}>
+                    <motion.ol
+                        key={weekOffset}
+                        className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 bg-gradient-to-r from-primary-container/5 via-transparent to-primary/5 sm:bg-none h-full md:overflow-auto"
+                        style={{ 
+                            gridTemplateRows: 'repeat(144, minmax(0, 1fr)) auto',
+                        }}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        custom={swipeDirection}
+                        dragConstraints={{ left: 0, right: 0 }}
+                        drag="x"
+                        onDragEnd={handleDragEnd}
+                        >
 
-                    {weekOffset == 0 && (
-                        <CurrentTimeLine currentDay={currentDayIndex} />
-                    )}
-                    {calendarEvents && calendarEvents.map((event, i) => {
+                        {weekOffset == 0 && (
+                            <CurrentTimeLine currentDay={currentDayIndex} />
+                        )}
+                        {calendarEvents && calendarEvents.map((event, i) => {
 
-                        const key = event.title + i;
-                        const info = mapping[key] || { position: 0, columns: 1 };
-                        const zIndex = key;
+                            const key = event.title + i;
+                            const info = mapping[key] || { position: 0, columns: 1 };
+                            const zIndex = key;
 
-                        return (
-                            <CalendarEvent
-                                key={i}
-                                title={event.title}
-                                summary={event.summary}
-                                room={event.room}
-                                teacher={event.teacher}
-                                group={event.group}
-                                startDate={event.startDate}
-                                endDate={event.endDate}
-                                type={event.type}
-                                weekOffset={weekOffset}
-                                info={info}
-                                tbk={tbk}
-                            />
-                        )
-                    })}
-                </ol>
+                            return (
+                                <CalendarEvent
+                                    key={i}
+                                    title={event.title}
+                                    summary={event.summary}
+                                    room={event.room}
+                                    teacher={event.teacher}
+                                    group={event.group}
+                                    startDate={event.startDate}
+                                    endDate={event.endDate}
+                                    type={event.type}
+                                    weekOffset={weekOffset}
+                                    info={info}
+                                    tbk={tbk}
+                                    isAllDay={event.isAllDay}
+                                />
+                            )
+                        })}
+                    </motion.ol>
+                </AnimatePresence>
                 </div>
             </div>
             </div> 

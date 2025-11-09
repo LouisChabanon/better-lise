@@ -42,9 +42,13 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
     const [loginRequestedView, setLoginRequestedView] = useState<View | null>(null);
 
     const [grades, setGrades] = useState<GradeType[] | null>(null);
-    const [absences, setAbsences] = useState<AbsenceType[] | null>(null);
+
+    const [gambling, setIsGambling] = useState(false);
+  
+    const [absence, setAbsence] = useState<AbsenceType[] | null>(null);
     const [nbrAbsences, setnbrAbsences] = useState<number>(0);
     const [dureeAbsences, setDureeAbsences] = useState<string>("00h00");
+  
     const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
 
     const [isGradesLoading, setGradesLoading] = useState(true);
@@ -97,7 +101,8 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
     
 
     async function fetchGrades(reachServer = false) {
-          setGradesLoading(true)
+          setGradesLoading(true);
+          setIsGambling(localStorage.getItem("gambling") === "true");
           const res = await getGradeData(reachServer);
                     if (res.success && res.data) {
 
@@ -194,7 +199,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
             <div className="w-full flex flex-col md:flex-row gap-4 h-full">
                 <div className="w-full md:w-1/4 lg:w-1/5 flex flex-row md:flex-col p-2 md:p-4 bg-backgroundPrimary rounded-lg shadow-lg md:h-full">
                     <div className="hidden md:flex justify-between pb-4">
-                        <h2 className="hidden lg:flex text-xl align-center font-semibold text-textPrimary mb-4 px-2">
+                        <h2 className="hidden xl:flex text-lg align-center font-semibold text-textPrimary mb-4 px-2">
                             Navigation
                         </h2>
                         <div className="flex gap-2">
@@ -241,6 +246,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                 }} onSave={() => {
                                     setSettingsModal(false);
                                     fetchCalendarEvents();
+                                    setIsGambling(localStorage.getItem("gambling") === "true");
                                 }} />
                             )}
 
@@ -283,6 +289,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             </h2>
                             <GradeTable 
                                 grades={grades}
+                                gambling={gambling}
                                 isLoading={isGradesLoading}
                                 error={error}
                             />
