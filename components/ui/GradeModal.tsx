@@ -78,6 +78,10 @@ export default function GradeModal({ grade, onClose }: GradeModalProps) {
                                 <span className="font-medium text-textSecondary ">Intervenants</span><span className="text-right">{grade.teachers}</span>
                             </div>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-4 py-4">
+                                <span className="font-medium text-textSecondary">Ma note</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right">{grade.note}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-4 py-4">
                                 <span className="font-medium text-textSecondary">Moyenne</span>
                                 <span className="font-semibold text-lg text-textPrimary text-right">{data.avg !== null ? data.avg.toFixed(2) : "—"}</span>
                                 <span className="font-medium text-textSecondary">Medianne</span>
