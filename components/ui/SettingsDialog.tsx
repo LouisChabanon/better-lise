@@ -12,8 +12,6 @@ interface SettingsDialogProps {
   onSave: () => void;
 }
 
-
-
 const TBK_OPTIONS: tbk[] = [
     "Sibers",
     "Chalons",
@@ -25,12 +23,86 @@ const TBK_OPTIONS: tbk[] = [
     "Bordels",
 ];
 
+const TOOLTIP_CONTENT = {
+  liseId: {
+    title: "Identifiant Lise",
+    description: [
+      "Votre identifiant Lise (ex: 2024-1234).",
+      "Il est utilisé pour :",
+      "- Charger votre emploi du temps.",
+      "- Accéder à vos notes et absences (si vous vous connectez).",
+      "Cet identifiant est stocké localement sur votre appareil pour faciliter la reconnexion."
+    ]
+  },
+  tbk: {
+    title: "Sélection du Tabagn'ss",
+    description: [
+      "Choisissez votre Tabagn'ss.",
+      "Cela permet d'afficher le bon menu du Crous directement sur votre emploi du temps. (si disponible)"
+    ]
+  },
+  casino: {
+    title: "Mode Casino",
+    description: [
+      "Si vous n'arrivez pas à combler votre addiction aux jeux",
+      "Au lieu de voir vos notes directement, elles seront cachées derrière un mini-jeu type caisse cs-go",
+      "Désactivez-le pour un affichage instantané et classique de vos notes."
+    ],
+    videoUrl: ""
+  },
+  stats: {
+    title: "Statistiques Anonymes",
+    description: [
+      "Activez cette option pour aider à améliorer l'application.",
+      "Des événements d'utilisation anonymes sont envoyés (ex: 'clic sur le bouton des notes').",
+      "Aucune donnée personnelle (notes, identifiant) n'est jamais envoyée. Ce suivi est uniquement destiné à comprendre l'utilisation des fonctionnalités et à résoudre les bugs."
+    ]
+  }
+};
+
+const TooltipIcon = ({ onClick }: { onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="ml-2 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-buttonSecondaryHover text-buttonTextSecondary text-xs font-semibold"
+    aria-label="Afficher l'aide"
+  >
+    ?
+  </button>
+);
+
+const TooltipModal = ({ content, onClose }: { content: typeof TOOLTIP_CONTENT[keyof typeof TOOLTIP_CONTENT], onClose: () => void }) => (
+  <div
+    className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+    onClick={onClose}
+    aria-modal="true"
+    role="dialog"
+  >
+    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+    <div
+      className="relative bg-backgroundPrimary rounded-lg shadow-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h3 className="text-xl font-semibold text-textPrimary mb-4">{content.title}</h3>
+      {content.description.map((paragraph, index) => (
+        <p key={index} className="text-textSecondary mb-2 last:mb-0">
+          {paragraph}
+        </p>
+      ))}
+      <Button status="primary" onClick={onClose} className="w-full">
+        J'ai compris
+      </Button>
+    </div>
+  </div>
+);
+
 export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps) {
 
     const [username, setUsername] = useState<string | null>(localStorage.getItem("lise_id") || "");
     const [tbkValue, setTbkValue] = useState<tbk>(localStorage.getItem("tbk") as tbk || "Sibers");
     const [isGambling, setIsGambling] = useState(localStorage.getItem("gambling") === "true");
     const [isOptedOut, setIsOptedOut] = useState(false);
+    const [tooltipKey, setTooltipKey] = useState<keyof typeof TOOLTIP_CONTENT | null>(null);
 
     if(!isOpen) return null;
 
@@ -65,7 +137,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
       {/* modal panel */}
       <div className="relative bg-backgroundPrimary rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
         {/* header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg text-textPrimary font-semibold">Paramètres</h2>
           <Button
             status="secondary"
@@ -77,77 +149,80 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
         </div>
 
         {/* body */}
-        <div className="flex items-center gap-4 mb-2 pb-2">
-            <label
-              htmlFor="settings-lise-input"
-              className="w-36 font-medium text-textSecondary"
-            >
-              Identifiant :
-            </label>
+        <div className="space-y-6">
 
-            <div className="flex-1">
-              <div className="flex items-center px-3 py-2 bg-backgroundSecondary rounded-lg focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
-                <input
-                  id="settings-lise-input"
-                  type="text"
-                  className="w-full bg-transparent focus:outline-none"
-                  placeholder="Identifiant Lise"
-                  defaultValue={localStorage.getItem("lise_id") || ""}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
+          <div className="space-y-2">
+            <div className="flex items-center">
+              <label
+                htmlFor="settings-lise-input"
+                className="font-medium text-textSecondary"
+              >
+                Identifiant :
+              </label>
+              <TooltipIcon onClick={() => setTooltipKey("liseId")} />
             </div>
-        </div>
-        <div className="flex items-center gap-4 mb-2 pb-2">
-            <label
-              htmlFor="settings-tbk-input"
-              className="w-36 font-medium text-textSecondary"
-            >
-              Tabagn'ss :
-            </label>
-            <div className="flex-1">
-                <div className="flex">
-                    <select
-                        className="w-full rounded-lg border bg-backgroundSecondary px-3 py-2 border-primary-400 focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400"
-                        value={tbkValue}
-                        onChange={(e) => setTbkValue(e.target.value as tbk)}>
-                    {TBK_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
-                    </select>
-                </div>
+            <div className="flex items-center px-3 py-2 bg-backgroundSecondary rounded-lg focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
+              <input
+                id="settings-lise-input"
+                type="text"
+                className="w-full bg-transparent focus:outline-none"
+                placeholder="Identifiant Lise"
+                defaultValue={localStorage.getItem("lise_id") || ""}
+                onChange={(e) => setUsername(e.target.value)}
+              />
             </div>
-        </div>
+          </div>
 
-          {/* Dark mode / other toggles row */}
-          <div className="flex items-center justify-between gap-4 pb-2">
+          <div className="space-y-2">
+            <div className="flex items-center">
+              <label htmlFor="settings-tbk-input" className="font-medium text-textSecondary">
+                Tabagn'ss :
+              </label>
+              <TooltipIcon onClick={() => setTooltipKey("tbk")} />
+            </div>
+            <select
+              className="w-full rounded-lg border bg-backgroundSecondary px-3 py-2 border-primary-400 focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400"
+              value={tbkValue}
+              onChange={(e) => setTbkValue(e.target.value as tbk)}>
+              {TBK_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        
+          <div className="space-y-4 pt-4 border-t border-primary">
+          
+            <div className="flex items-center justify-between gap-4">
               <span className="font-medium text-textSecondary">Thème :</span>
               <DarkModeToggle />
-          </div>
-          <div className="flex items-center gap-4">
-            <label 
-              htmlFor="stats-toggle" 
-              className="flex items-center gap-3 font-medium text-textSecondary cursor-pointer"
-            >
-              Mode Casino : 
-              <input
-                id="stats-toggle"
-                type="checkbox"
-                checked={isGambling} 
-                onChange={handleGamblingToggle}
-                className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
-              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center">
+                <label htmlFor="stats-toggle" className="font-medium text-textSecondary cursor-pointer">
+                  Mode Casino : 
+                </label>
+                <TooltipIcon onClick={() => setTooltipKey("casino")} />
+                </div>
+                <input
+                  id="stats-toggle"
+                  type="checkbox"
+                  checked={isGambling} 
+                  onChange={handleGamblingToggle}
+                  className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
+                />
               
-            </label>
-          </div>
-          <div className="flex items-center gap-4">
-            <label 
-              htmlFor="stats-toggle" 
-              className="flex items-center gap-3 font-medium text-textSecondary cursor-pointer"
-            >
-              Envoyer des statistiques anonymes :
+            </div>            
+            
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center">
+                <label htmlFor="stats-toggle" className="font-medium text-textSecondary cursor-pointer">
+                  Envoyer des statistiques anonymes :
+                </label>
+                <TooltipIcon onClick={() => setTooltipKey("stats")} />
+              </div>
               <input
                 id="stats-toggle"
                 type="checkbox"
@@ -156,9 +231,20 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                 onChange={handleToggle}
                 className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
               />
-              
-            </label>
+            </div>
           </div>
+
+      </div>
+
+      <div className="mt-6 text-center text-sm">
+        <a
+          href="https://github.com/LouisChabanon/better-lise/blob/main/confidentialite.md"
+          target="_blank"
+          className="text-textTertiary hover:text-textPrimary underline"
+        >
+          Politique de confidentialité
+        </a>
+      </div>
 
           {/* actions */}
           <div className="flex justify-end gap-3 mt-8">
@@ -185,6 +271,12 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
             </Button>
           </div>
       </div>
+      {tooltipKey && (
+          <TooltipModal
+            content={TOOLTIP_CONTENT[tooltipKey]}
+            onClose={() => setTooltipKey(null)}
+          />
+        )}
     </div>
     
     )
