@@ -48,7 +48,7 @@ const TOOLTIP_CONTENT = {
       "Au lieu de voir vos notes directement, elles seront cachées derrière un mini-jeu type caisse cs-go",
       "Désactivez-le pour un affichage instantané et classique de vos notes."
     ],
-    videoUrl: ""
+    videoSrc: "/videos/casino-demo.mp4"
   },
   stats: {
     title: "Statistiques Anonymes",
@@ -89,6 +89,21 @@ const TooltipModal = ({ content, onClose }: { content: typeof TOOLTIP_CONTENT[ke
           {paragraph}
         </p>
       ))}
+      {'videoSrc' in content && content.videoSrc && (
+        <div className="mt-4 mb-4 aspect-video w-full rounded-lg overflow-hidden">
+          <video
+            width="100%"
+            height="100%"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full"
+            >
+              <source src={content.videoSrc} type="video/mp4" />
+            </video>
+        </div>
+      )}
       <Button status="primary" onClick={onClose} className="w-full">
         J'ai compris
       </Button>
