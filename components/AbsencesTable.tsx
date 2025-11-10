@@ -3,15 +3,20 @@ import React, { useEffect, useState } from "react";
 import { Button } from "./ui/Button";
 import { AbsenceType } from "@/lib/types";
 import { CaretRightFilled, CaretLeftFilled, ReloadOutlined } from "@ant-design/icons";
+import { useAbsencesData } from "@/hooks/useAbsencesData";
 
-interface VacancyTableProps {
-  absences: AbsenceType[] | null;
-  isLoading: boolean;
-  error: string | null;
-  onReload?: () => void;
-}
+export function AbsencesTable({ session }: {session: any}) {
 
-export function AbsencesTable({ absences, isLoading, error, onReload }: VacancyTableProps) {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useAbsencesData(session);
+
+  const absences = data?.absences;
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [fiteredAbsences, setFilteredAbsences] = useState<AbsenceType[]>([]);
@@ -56,9 +61,7 @@ export function AbsencesTable({ absences, isLoading, error, onReload }: VacancyT
             disabled={isLoading}
             className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus:ring-2"
           />
-          {onReload && (
-          <Button status="primary" onClick={onReload} disabled={isLoading}><ReloadOutlined /></Button>
-          )}
+          <Button status="primary" onClick={() => refetch()} disabled={isLoading}><ReloadOutlined /></Button>
         </div>
       {isLoading ? (
           <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full h-full animate-pulse flex flex-col items-center justify-center">
@@ -70,6 +73,10 @@ export function AbsencesTable({ absences, isLoading, error, onReload }: VacancyT
             En attente de Lise ... (c'est long)
             </div>
             </div>
+        ) : isError ? (
+          <div className="text-center text-error p-8">
+            Erreur lors de la récupération des absences: {(error as Error).message}
+          </div>
         ) : (
           <>
             <div className="overflow-auto h-full rounded-lg bg-backgroundPrimary">

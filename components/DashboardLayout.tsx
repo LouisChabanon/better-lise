@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Agenda from "./Agenda";
 import { GradeTable } from "./GradeTable";
-import { GradeType, AbsenceType, CalendarEventProps, tbk, AbsencesRequestState } from "@/lib/types";
-import { getGradeData } from "@/actions/GetGrades";
-import { getAbsenceData } from "@/actions/GetAbsences";
-import getCrousData from "@/actions/GetCrousData";
-import GetCalendar from "@/actions/GetCalendar";
-import { CalculateOverlaps } from "@/lib/helper";
+import AbsencesStats from "./AbsencesStats";
 import { Button } from "./ui/Button";
 import { LoginForm } from "./LoginForm";
 import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 import SettingsDialog from "./ui/SettingsDialog";
 import { logOut } from "@/actions/Auth";
 import { AbsencesTable } from "./AbsencesTable";
-import logger from "@/lib/logger";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 type View = 'agenda' | 'grades' | 'absences';
 
@@ -33,169 +29,45 @@ type DashboardLayoutProps = {
 export default function DashboardLayout({ session }: DashboardLayoutProps){
 
     const [selectedView, setSelectedView] = useState<View>('agenda');
-
     const [settingsModal, setSettingsModal] = useState<boolean>(false);
-    const [tbk, setTbk] = useState<tbk>("Sibers");
 
-    // Login modal handling when user requests a protected view
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [loginRequestedView, setLoginRequestedView] = useState<View | null>(null);
 
-    const [grades, setGrades] = useState<GradeType[] | null>(null);
-
     const [gambling, setIsGambling] = useState(false);
   
-    const [absences, setAbsences] = useState<AbsenceType[] | null>(null);
-    const [nbrAbsences, setnbrAbsences] = useState<number>(0);
-    const [dureeAbsences, setDureeAbsences] = useState<string>("00h00");
-  
-    const [calendarEvents, setCalendarEvents] = useState<CalendarEventProps[] | null>(null);
-
-    const [isGradesLoading, setGradesLoading] = useState(true);
-    const [isAbsencesLoading, setAbsencesLoading] = useState(true);
-    const [isCalendarLoading, setCalendarLoading] = useState(true);
-
     const [error, setError] = useState<string | null>(null);
 
-    const [eventMapping, setEventMapping] = useState<Record<string, { position: number, columns: number }>>({});
+    const queryClient = useQueryClient();
+    const router = useRouter();
+
+    const logoutMutation = useMutation({
+        mutationFn: logOut,
+        onSuccess: () => {
+            queryClient.clear();
+            handleViewChange("agenda");
+            router.refresh()
+        }
+    })
 
     const handleLogout = () => {
-        handleViewChange("agenda");
-        logOut();
-    }
-
-    async function fetchCalendarEvents(){
-        setCalendarLoading(true)
-        const savedUsername = localStorage.getItem("lise_id");
-        const savedTbk = (localStorage.getItem("tbk") || "Sibers") as tbk;
-        setTbk(savedTbk);
-
-        if (!savedUsername) {
-            setSettingsModal(true);
-            setCalendarLoading(false);
-            return;
-        }
-
-        if(!savedTbk){
-            setSettingsModal(true);
-            setCalendarLoading(false);
-            return;
-        }
-
-        const calendarDataRes = await GetCalendar(savedUsername);
-        const crousData = await getCrousData(savedTbk);
-
-        if (calendarDataRes.status === "success") {
-        
-            const eventData = calendarDataRes.events.concat(crousData || []);
-            const { sorted, mapping } = CalculateOverlaps(eventData);
-        
-            setCalendarEvents(sorted);
-            setEventMapping(mapping);
-            } else if (calendarDataRes.status === "no user") {
-                setCalendarEvents([]);
-                setSettingsModal(true);
-                console.warn("No user session found. Please log in to view your calendar.");
-            } else {
-                setCalendarEvents([]);
-                console.error("Failed to fetch calendar events");
-        }
-                
-        setCalendarLoading(false);
-    }
+        logoutMutation.mutate();
+    };
     
 
-    async function fetchGrades(reachServer = false) {
-          setGradesLoading(true);
-          setIsGambling(localStorage.getItem("gambling") === "true");
-          const res = await getGradeData(reachServer);
-                    if (res.success && res.data) {
-
-                    // Ensure we operate on grade-like items; the API should return GradeType[]
-                        const gradeItems = (res.data as GradeType[]).filter((g: any) => typeof g?.date !== 'undefined');
-
-                    // Sort grades by date in descending order
-                        const sorted = gradeItems.sort((a: any, b: any) => {
-                            const [dayA, monthA, yearA] = a.date.split('/').map(Number);
-                            const [dayB, monthB, yearB] = b.date.split('/').map(Number);
-                            const timeA = new Date(yearA, monthA - 1, dayA).getTime();
-                            const timeB = new Date(yearB, monthB - 1, dayB).getTime();
-                            return timeB - timeA;});
-
-                    // Sort new grades to the top (use loose checks to avoid union-type issues)
-                    const sortNew = sorted.sort((a: any, b: any) => {
-                        const aIsNew = !!a?.isNew;
-                        const bIsNew = !!b?.isNew;
-                        if (aIsNew && !bIsNew) return -1;
-                        if (!aIsNew && bIsNew) return 1;
-                        return 0;
-                    });
-                        setGrades(sortNew as GradeType[]);
-                    setGradesLoading(false);
-                } else {
-                    setGradesLoading(false);
-                    console.error("Failed to fetch grades:", res.errors || "Unknown error");
-                }
-      }
-
-        function handleViewChange(view: View) {
-                // Agenda is always allowed
-                if (view === 'agenda') {
-                        setSelectedView('agenda');
-                        return;
-                }
-
-                const hasUser = session?.username;
-                //console.log("Changing page to ", view)
-                if (hasUser) {
-                        setSelectedView(view);
-                        //if (view === 'grades') fetchGrades(true);
-                        //if (view === 'absences') fetchAbsences(true);
-                } else {
-                        //console.log("No user found", hasUser)
-                        setLoginRequestedView(view);
-                        setLoginModalOpen(true);
-                }
+    function handleViewChange(view: View) {
+        if (view === 'agenda') {
+            setSelectedView('agenda');
+            return;
         }
-
-    async function fetchAbsences(reachServer = false){
-        setAbsencesLoading(true)
-        const res = await getAbsenceData(reachServer)
-        if(res.success && res.data){
-            const absenceItems = (res.data.absences as AbsenceType[]).filter((a: any) => typeof a?.date !== 'undefined');
-            const sorted = absenceItems.sort((a: any, b: any) => {
-                const [dayA, monthA, yearA] = a.date.split('/').map(Number);
-                const [dayB, monthB, yearB] = b.date.split('/').map(Number);
-                const timeA = new Date(yearA, monthA - 1, dayA).getTime();
-                const timeB = new Date(yearB, monthB - 1, dayB).getTime();
-                return timeB - timeA;});
-            
-                setAbsences(sorted);
-                setnbrAbsences(res.data.nbTotalAbsences);
-                setDureeAbsences(res.data.dureeTotaleAbsences);
-        }else{
-            setAbsencesLoading(false);
-            console.error("Failed to fetch grades",  res.errors || "Unknown error")
+        
+        if (session?.username) {
+            setSelectedView(view);
+        } else {
+            setLoginRequestedView(view);
+            setLoginModalOpen(true);
         }
-        setAbsencesLoading(false)
     }
-
-    useEffect(() => {
-        try {
-            fetchCalendarEvents()
-            // Only fetch grades/absences if we have a known username (session or localStorage)
-            // const hasUser = session?.username || localStorage.getItem("lise_id");
-            // if (hasUser) {
-            //     fetchGrades(true);
-            //     fetchAbsences(true);
-            // }
-        }catch (err){
-            setError(err instanceof Error ? err.message : "Une erreur inconnue s'est produite")
-            setCalendarLoading(false);
-            setAbsencesLoading(false);
-            setGradesLoading(false);
-        }
-    }, [])
 
 
     return (
@@ -211,7 +83,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             <Button onClick={() => setSettingsModal(true)}>
                                 <SettingOutlined />
                             </Button>
-                            <Button onClick={handleLogout} disabled={session?.username == null}>
+                            <Button onClick={handleLogout} disabled={session?.username == null || logoutMutation.isPending}>
                                 <LogoutOutlined />
                             </Button>
                         </div>
@@ -250,7 +122,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                                     setSettingsModal(false);
                                 }} onSave={() => {
                                     setSettingsModal(false);
-                                    fetchCalendarEvents();
+                                    queryClient.invalidateQueries({ queryKey: ["calendar"]});
                                     setIsGambling(localStorage.getItem("gambling") === "true");
                                 }} />
                             )}
@@ -269,23 +141,17 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             
                             <LoginForm onSuccess={async () => {
                                 setLoginModalOpen(false);
+                                queryClient.invalidateQueries();
                                 if (loginRequestedView) {
                                     setSelectedView(loginRequestedView);
-                                    if (loginRequestedView === 'grades') await fetchGrades(true);
-                                    if (loginRequestedView === 'absences') await fetchAbsences(true);
                                 }
+                                router.refresh();
                             }} />
                         </div>
                     </div>
                 )}
                     {selectedView === 'agenda' && (
-                        <Agenda
-                            calendarEvents={calendarEvents}
-                            mapping={eventMapping}
-                            isLoading={isCalendarLoading}
-                            tbk={tbk}
-                            onReload={() => fetchCalendarEvents()}
-                        />
+                        <Agenda onSettingsClick={() => setSettingsModal(true)}/>
                     )}
 
                     {selectedView === 'grades' && (
@@ -293,40 +159,13 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             <h2 className="text-xl font-semibold text-textPrimary mb-4">
                                 Mes Notes
                             </h2>
-                            <GradeTable 
-                                grades={grades}
-                                gambling={gambling}
-                                isLoading={isGradesLoading}
-                                error={error}
-                                onReload={() => fetchGrades(true)}
-                            />
+                            <GradeTable session={session} gambling={gambling} />
                         </>
                     )}
                     {selectedView === 'absences' && (
                         <>
-                            <h2 className="text-xl font-semibold text-textPrimary mb-4">
-                                Mes Absences
-                            </h2>
-                            <div className="p-2 flex flex-wrap gap-4 sm:gap-6">
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm font-semibold text-textSecondary">Nombre total d'absences:</span>
-                                    <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
-                                        {isAbsencesLoading ? "--" : nbrAbsences}
-                                    </span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-sm font-semibold text-textSecondary">Durée totale des absences:</span>
-                                    <span className="text-sm font-medium text-textPrimary px-2 py-0.5 bg-backgroundTertiary rounded-md">
-                                        {isAbsencesLoading ? "--:--" : dureeAbsences}
-                                    </span>
-                                </div>                
-                            </div>
-                            <AbsencesTable
-                                absences={absences}
-                                isLoading={isAbsencesLoading}
-                                error={error}
-                                onReload={() => fetchAbsences(true)} 
-                            />
+                            <AbsencesStats session={session} />
+                            <AbsencesTable session={session} />
                         </>
                     )
                     }

@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/ThemeProvider";
+import Providers from "./providers";
 
 export const metadata: Metadata = {
   applicationName: "Better Lise",
@@ -44,13 +45,14 @@ export default function RootLayout({
             <Analytics />
             <SpeedInsights />
             <ThemeProvider>
-              {/* Lock page to viewport height on md+ and prevent body scrolling there; on mobile keep normal document flow so footer follows content */}
-              <div className="flex flex-col bg-backgroundPrimary overflow-auto md:overflow-hidden min-h-screen">
-                <main className="flex-1 min-h-0 md:h-screen overflow-auto md:overflow-hidden pb-20 md:pb-0">
-                  {children}
-                </main>
-                <Footer />
-              </div>
+              <Providers>
+                <div className="flex flex-col bg-backgroundPrimary overflow-auto md:overflow-hidden min-h-screen">
+                  <main className="flex-1 min-h-0 md:h-screen overflow-auto md:overflow-hidden pb-20 md:pb-0">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+              </Providers>
             </ThemeProvider>
       </body>
     </html>

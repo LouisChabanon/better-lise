@@ -6,19 +6,10 @@ import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
 import { getWeekData } from '@/actions/GetWeekData';
-import { CalendarEventProps } from '@/lib/types';
 import { getMonthName } from '@/lib/helper';
 import LoadingPlaceholder from '@/components/ui/LoadingPlaceholder';
-import { tbk } from '@/lib/types';
 import { AnimatePresence, motion, PanInfo, Variants } from "framer-motion";
-
-interface AgendaProps {
-    calendarEvents: CalendarEventProps[] | null;
-    mapping: Record<string, {position: number, columns: number }>;
-    isLoading: boolean;
-    tbk: tbk;
-    onReload?: () => void;
-}
+import { useCalendarData } from '@/hooks/useCalendarData';
 
 const variants: Variants = {
     enter: (direction: number) => ({
@@ -43,19 +34,33 @@ const variants: Variants = {
     })
 };
 
-export default function Agenda({ calendarEvents, mapping, isLoading, tbk, onReload}: AgendaProps) {
+export default function Agenda({ onSettingsClick }: { onSettingsClick: () => void }) {
+
+    const {
+        data,
+        isLoading,
+        isError,
+        error,
+        refetch
+    } = useCalendarData();
+
+    const calendarEvents = data?.events;
+    const mapping = data?.mapping;
+    const tbk = data?.tbk;
 
     const [weekOffset, setWeekOffset] = useState<number>(0);
-
     const [swipeDirection, setSwipeDirection] = useState<number>(0);
 
     const agendaRef = useRef<HTMLDivElement>(null);
-
     const { weekDates, currentDayIndex } = getWeekData(weekOffset);
 
+    useEffect(() =>{
+        if(data?.status === "no user"){
+            onSettingsClick();
+        }
+    }, [data?.status, onSettingsClick])
 
     useEffect(() => {
-
         // If currentDayIndex is a weekend (Saturday or Sunday), display the next week
         if (currentDayIndex === null || currentDayIndex >= 5 || currentDayIndex < 0) {
             setWeekOffset(1); // Reset to next week if it's a weekend
@@ -118,9 +123,7 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk, onRelo
                         disabled={isLoading}
                         ><RightOutlined />
                     </Button>
-                    {onReload && (
-                        <Button status="primary" onClick={onReload} disabled={isLoading}><ReloadOutlined /></Button>
-                    )}
+                    <Button status="primary" onClick={() => refetch()} disabled={isLoading}><ReloadOutlined /></Button>
                     </div>         
                 </div>
             </header>
@@ -137,14 +140,16 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk, onRelo
                         >
                             <HomeOutlined />
                     </Button>
-                    {onReload && (
-                        <Button status="primary" onClick={onReload} disabled={isLoading}><ReloadOutlined /></Button>
-                    )}
+                    <Button status="primary" onClick={() => refetch} disabled={isLoading}><ReloadOutlined /></Button>
                 </div>
             </header>
     <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">
             {isLoading ? (
                 <LoadingPlaceholder />
+            ) : isError ? (
+                <div className="text-center text-error p-8">
+                    Erreur lors du chargement de l'agenda: {(error as Error).message}
+                </div>
             ) : (
             <div ref={agendaRef} className="flex-1 min-h-0 flex flex-col md:overflow-hidden">
             <div
@@ -288,7 +293,7 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk, onRelo
                         {calendarEvents && calendarEvents.map((event, i) => {
 
                             const key = event.title + i;
-                            const info = mapping[key] || { position: 0, columns: 1 };
+                            const info = data.mapping[key] || { position: 0, columns: 1 };
                             const zIndex = key;
 
                             return (
@@ -304,7 +309,7 @@ export default function Agenda({ calendarEvents, mapping, isLoading, tbk, onRelo
                                     type={event.type}
                                     weekOffset={weekOffset}
                                     info={info}
-                                    tbk={tbk}
+                                    tbk={data.tbk}
                                     isAllDay={event.isAllDay}
                                 />
                             )
