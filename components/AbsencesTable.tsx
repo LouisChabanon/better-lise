@@ -10,6 +10,7 @@ export function AbsencesTable({ session }: {session: any}) {
   const {
     data,
     isLoading,
+    isFetching,
     isError,
     error,
     refetch
@@ -58,12 +59,12 @@ export function AbsencesTable({ session }: {session: any}) {
             placeholder="Rechercher..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            disabled={isLoading}
+            disabled={isFetching}
             className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus:ring-2"
           />
-          <Button status="primary" onClick={() => refetch()} disabled={isLoading}><ReloadOutlined /></Button>
+          <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
         </div>
-      {isLoading ? (
+      {isFetching ? (
           <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full h-full animate-pulse flex flex-col items-center justify-center">
             <div>
               <svg className="mr-3 size-5 animate-spin inline-block" viewBox="0 0 24 24">

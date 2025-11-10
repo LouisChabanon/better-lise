@@ -102,7 +102,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
             
 
             const newGrades = grades.filter(g => !db_grades.some(dbGrade => dbGrade.code === g.code));
-            logger.info("Found new grades for user", {username: user.username, newGrades: newGrades.length});
+            
             await prisma.grade.createMany({
                  data: newGrades.map(g => ({ 
                     name: g.libelle,
@@ -116,8 +116,9 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
                  }))
             })
             
-            // // Append newGrades to the grades array with isNew flag skip if the number of new grade > 10 (looks bad)
+            // Append newGrades to the grades array with isNew flag skip if the number of new grade > 10 (looks ugly)
             if(newGrades.length < 10 ){
+                logger.info("Found new grades for user", {username: user.username, newGrades: newGrades.length});
                 newGrades.forEach(g => g.isNew = true);
             }
             

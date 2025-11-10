@@ -39,14 +39,13 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
     const {
         data,
         isLoading,
+        isFetching,
         isError,
         error,
         refetch
     } = useCalendarData();
 
     const calendarEvents = data?.events;
-    const mapping = data?.mapping;
-    const tbk = data?.tbk;
 
     const [weekOffset, setWeekOffset] = useState<number>(0);
     const [swipeDirection, setSwipeDirection] = useState<number>(0);
@@ -108,22 +107,22 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                         status="secondary"
                         className='mr-2'
                         onClick={() => handleWeekChange(-1)}
-                        disabled={isLoading}
+                        disabled={isFetching}
                         ><LeftOutlined className='font-semibold'/>
                     </Button>
                     <Button
                         status="secondary"
                         onClick={() => {setWeekOffset(0); setSwipeDirection(0);}}
-                        disabled={isLoading || weekOffset === 0 }
+                        disabled={isFetching || weekOffset === 0 }
                         >Aujourd'hui</Button>
                     <Button
                         status="secondary"
                         className='ml-2 mr-2'
                         onClick={() => handleWeekChange(1)}
-                        disabled={isLoading}
+                        disabled={isFetching}
                         ><RightOutlined />
                     </Button>
-                    <Button status="primary" onClick={() => refetch()} disabled={isLoading}><ReloadOutlined /></Button>
+                    <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
                     </div>         
                 </div>
             </header>
@@ -136,15 +135,15 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                     <Button
                         status="secondary"
                         onClick={() => {setWeekOffset(0); setSwipeDirection(0);}}
-                        disabled={isLoading || weekOffset === 0}
+                        disabled={isFetching || weekOffset === 0}
                         >
                             <HomeOutlined />
                     </Button>
-                    <Button status="primary" onClick={() => refetch} disabled={isLoading}><ReloadOutlined /></Button>
+                    <Button status="primary" onClick={() => refetch} disabled={isFetching}><ReloadOutlined /></Button>
                 </div>
             </header>
     <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">
-            {isLoading ? (
+            {isFetching ? (
                 <LoadingPlaceholder />
             ) : isError ? (
                 <div className="text-center text-error p-8">
