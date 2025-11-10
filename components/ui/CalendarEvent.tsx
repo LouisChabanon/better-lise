@@ -6,7 +6,7 @@ import { tbk } from "@/lib/types";
 import posthog from "posthog-js";
 import { motion, AnimatePresence } from "framer-motion";
 
-type CalendarEventType = "CM" | "EXAMEN" | "TRAVAIL_AUTONOME" | "ED_TD" | "TPS" | "RU" | "PROJET";
+type CalendarEventType = "CM" | "EXAMEN" | "TRAVAIL_AUTONOME" | "ED_TD" | "TPS" | "RU" | "PROJET" | "TEST";
 
 type CalendarEventProps = {
     title: string;
@@ -82,6 +82,10 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
             eventText = "text-eventCmText";
             break;
         case "EXAMEN":
+            eventClass = "bg-eventExamBg text-eventExamText hover:bg-eventExamBg/80";
+            eventText = "text-eventExamText";
+            break;
+        case "TEST":
             eventClass = "bg-eventExamBg text-eventExamText hover:bg-eventExamBg/80";
             eventText = "text-eventExamText";
             break;
