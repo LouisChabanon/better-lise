@@ -59,6 +59,11 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
 
     const [eventMapping, setEventMapping] = useState<Record<string, { position: number, columns: number }>>({});
 
+    const handleLogout = () => {
+        handleViewChange("agenda");
+        logOut();
+    }
+
     async function fetchCalendarEvents(){
         setCalendarLoading(true)
         const savedUsername = localStorage.getItem("lise_id");
@@ -179,11 +184,11 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
         try {
             fetchCalendarEvents()
             // Only fetch grades/absences if we have a known username (session or localStorage)
-            const hasUser = session?.username || localStorage.getItem("lise_id");
-            if (hasUser) {
-                fetchGrades(true);
-                fetchAbsences(true);
-            }
+            // const hasUser = session?.username || localStorage.getItem("lise_id");
+            // if (hasUser) {
+            //     fetchGrades(true);
+            //     fetchAbsences(true);
+            // }
         }catch (err){
             setError(err instanceof Error ? err.message : "Une erreur inconnue s'est produite")
             setCalendarLoading(false);
@@ -206,7 +211,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                             <Button onClick={() => setSettingsModal(true)}>
                                 <SettingOutlined />
                             </Button>
-                            <Button onClick={() => logOut()} disabled={session?.username == null}>
+                            <Button onClick={handleLogout} disabled={session?.username == null}>
                                 <LogoutOutlined />
                             </Button>
                         </div>
@@ -234,7 +239,7 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
                         <Button onClick={() => setSettingsModal(true)}>
                             <SettingOutlined />
                         </Button>
-                        <Button onClick={() => logOut()} disabled={session?.username == null}>
+                        <Button onClick={handleLogout} disabled={session?.username == null}>
                             <LogoutOutlined />
                         </Button>
                     </div>
