@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Agenda from "./Agenda";
 import { GradeTable } from "./GradeTable";
 import AbsencesStats from "./AbsencesStats";
@@ -40,6 +40,12 @@ export default function DashboardLayout({ session }: DashboardLayoutProps){
 
     const queryClient = useQueryClient();
     const router = useRouter();
+
+    useEffect(() => {
+        if(!session?.username && (selectedView === 'grades' || selectedView === 'absences')){
+            setSelectedView('agenda');
+        }
+    }, [session, selectedView])
 
     const logoutMutation = useMutation({
         mutationFn: logOut,
