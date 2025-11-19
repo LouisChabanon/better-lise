@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import GetCalendar from "@/actions/GetCalendar";
 import getCrousData from "@/actions/GetCrousData";
 import { CalculateOverlaps } from "@/lib/helper";
-import { tbk } from "@/lib/types";
+import { CalendarEventProps, tbk } from "@/lib/types";
 
 const getSettings = () => {
     if(typeof window === "undefined") {
@@ -34,7 +34,10 @@ export const useCalendarData = () => {
                 return { events: [], mapping: {}, tbk, status: calendarDataRes.status}
             }
 
-            const eventData = calendarDataRes.events.concat(crousData || []);
+            const mainEvents: CalendarEventProps[] = calendarDataRes.events;
+            const mealEvents: CalendarEventProps[] = crousData || [];
+            
+            const eventData = mainEvents.concat(mealEvents);
             const {sorted, mapping} = CalculateOverlaps(eventData);
 
             return { events: sorted, mapping, tbk, status: "sucess"};

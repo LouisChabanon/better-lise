@@ -6,16 +6,28 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/actions/Auth";
 import { liseIdChecker } from "@/lib/helper";
-
-type FieldType = {
-	username: string;
-	password: string;
-};
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 type PassInputType = "password" | "text";
 
 type LoginFormProps = {
 	onSuccess?: () => void;
+};
+
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.3 // Wait for card to finish opening
+        }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, x: -10 },
+    show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
@@ -80,8 +92,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-6">
-			<div className="flex items-center gap-4">
+		<motion.form onSubmit={handleSubmit} className="space-y-6" variants={containerVariants} initial="hidden" animate="show">
+			<motion.div className="flex items-center gap-4" variants={itemVariants}>
 				<label htmlFor="username" className="w-40 font-medium text-textSecondary">
 					Identifiant :
 				</label>
@@ -89,8 +101,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 					<UserOutlined className="text-gray-500 mr-2" />
 					<input type="text" id="username" name="username" placeholder="20xx-xxxx" defaultValue={username || ""} required disabled={loading} className="w-full focus:outline-none" />
 				</div>
-			</div>
-			<div className="flex items-center gap-4">
+			</motion.div>
+			<motion.div className="flex items-center gap-4" variants={itemVariants}>
 				<label htmlFor="Password" className="w-40 font-medium text-textSecondary">
 					Mot de passe :
 				</label>
@@ -99,13 +111,29 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 					<input type={passInputType} id="password" name="password" required disabled={loading} className="w-full focus:outline-none" />
 					{passInputType == "password" ? <EyeOutlined onClick={handleShowPassword} /> : <EyeInvisibleOutlined onClick={handleShowPassword} />}
 				</div>
-			</div>
-			{errors && <div className="p-4 bg-error-container border border-error text-error rounded-md">{errors}</div>}
+			</motion.div>
+			<AnimatePresence mode="wait">
+				{errors && 
+				<motion.div 
+					className="p-3 bg-error-container border border-error/20 text-error rounded-lg text-sm font-medium text-center overflow-hidden"
+					initial={{ opacity: 0, height: 0, y: -10 }}
+					animate={{ 
+						opacity: 1, 
+						height: "auto", 
+						y: 0,
+						x: [0, -5, 5, -5, 5, 0],
+						transition: { duration: 0.4 }
+					}}
+					exit={{ opacity: 0, height: 0, y: -10 }}
+					>
+						{errors}
+					</motion.div>}
+			</AnimatePresence>
 			<div>
 				<Button type="submit" className="w-full" disabled={loading}>
 					<span className="font-semibold text-lg">{loading ? "Connexion..." : "Connexion"}</span>
 				</Button>
 			</div>
-		</form>
+		</motion.form>
 	);
 }

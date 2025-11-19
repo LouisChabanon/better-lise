@@ -113,20 +113,29 @@ const TooltipModal = ({ content, onClose }: { content: typeof TOOLTIP_CONTENT[ke
 
 export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDialogProps) {
 
-    const [username, setUsername] = useState<string | null>(localStorage.getItem("lise_id") || "");
-    const [tbkValue, setTbkValue] = useState<tbk>(localStorage.getItem("tbk") as tbk || "Sibers");
-    const [isGambling, setIsGambling] = useState(localStorage.getItem("gambling") === "true");
+    const [username, setUsername] = useState<string | null>("");
+    const [tbkValue, setTbkValue] = useState<tbk>("Sibers");
+    const [isGambling, setIsGambling] = useState(false);
     const [isOptedOut, setIsOptedOut] = useState(false);
     const [tooltipKey, setTooltipKey] = useState<keyof typeof TOOLTIP_CONTENT | null>(null);
 
-    if(!isOpen) return null;
-
     useEffect(() => {
+      const storedUser = localStorage.getItem("lise_id");
+      if (storedUser) setUsername(storedUser)
+
+      const storedTbk = localStorage.getItem("tbk");
+      if(storedTbk) setTbkValue(storedTbk as tbk);
+
+      const storedGambling = localStorage.getItem("gambling");
+      if(storedGambling) setIsGambling(storedGambling === "true");
+
       if(isOpen && posthog){
         setIsOptedOut(posthog.has_opted_out_capturing());
         console.log("User opted out ?", isOptedOut)
       }
     }, [isOpen])
+
+    if(!isOpen) return null;
 
     const handleToggle = () => {
       setIsOptedOut(!isOptedOut)

@@ -3,6 +3,7 @@ const ical = require("node-ical");
 import { CalendarEventProps } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz"
 import logger from "@/lib/logger";
+import { liseIdChecker } from "@/lib/helper";
 
 const tz = 'Europe/Paris';
 
@@ -18,6 +19,10 @@ const GetCalendar = async (username: string | null) => {
     
     if (!username) {
         return { events: [], status: "no user" } as CalendarDataResponse;
+    }
+
+    if (!liseIdChecker(username)){
+        return { events: [], status: "error"}
     }
 
     try {

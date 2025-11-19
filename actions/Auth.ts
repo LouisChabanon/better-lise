@@ -5,6 +5,7 @@ import prisma from "@/lib/db";
 import { CookieJar } from "tough-cookie";
 import fetchCookie from "fetch-cookie";
 import logger from "@/lib/logger";
+import { headers } from "next/headers";
 
 export type FormState = |{
     errors?: string;
@@ -15,10 +16,44 @@ export type FormState = |{
 
 const LISE_URI = process.env.LISE_URI;
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+const WINDOW_DURATION = 60*1000;
+const MAX_ATTEMPTS = 5;
+
+function isRateLimited(ip: string): boolean {
+    const now = Date.now();
+    const record = rateLimitMap.get(ip);
+
+    if(!record || now > record.resetAt){
+        rateLimitMap.set(ip, {count: 1, resetAt: now + WINDOW_DURATION });
+        return false;
+    }
+
+    if(record.count >= MAX_ATTEMPTS){
+        return true;
+    }
+
+    record.count +=1
+    return false;
+}
+
 export async function signIn(
     state: FormState,
     formData: FormData,
 ): Promise<FormState> {
+
+    const headersList = await headers();
+    const forwaredFor = headersList.get("x-forwarded-for");
+    const ip = forwaredFor ? forwaredFor.split(",")[0].trim() : "127.0.0.1";
+
+    if(isRateLimited(ip)){
+        logger.warn("Sign-In blocked: Rate limit exceeded", {ip})
+        return {
+            success: false,
+            errors: "Trop de tentatives de connexion. Veuillez réessayer dans une minute."
+        }
+    }
 
     const jar = new CookieJar(); // Create a new cookie jar to get Lise's JSESSIONID cookie
     const fetchWithCookies = fetchCookie(fetch, jar)
