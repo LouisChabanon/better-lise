@@ -10,7 +10,7 @@ export default async function DashboardRootLayout({
   const session = await verifySession();
 
   return (
-    <div className="flex items-start md:flex-row bg-backgroundSecondary min-h-0 p-0 xl:p-8 lg:p-4 h-full">
+    <div className="flex items-start md:flex-row bg-backgroundSecondary min-h-0 p-0 xl:p-8 lg:p-4 h-screen">
       <div className="flex md:flex-row gap-8 w-full h-full md:min-h-0">
         <AppSidebar session={session}>
             {children}
