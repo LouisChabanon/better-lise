@@ -129,7 +129,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
         <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
       </div>
       {isFetching ? (
-        <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full h-full animate-pulse flex flex-col items-center justify-center">
+        <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full animate-pulse flex flex-col items-center justify-center">
           <div>
             <svg
               className="mr-3 size-5 animate-spin inline-block"
@@ -158,9 +158,9 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
         </div>
       ) :(
         <>
-          <div className="overflow-auto h-full rounded-lg bg-backgroundPrimary">
+          <div className="md:overflow-auto rounded-lg bg-backgroundPrimary">
             <table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
-              <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
+              <thead className="bg-backgroundTertiary uppercase text-xs font-semibold z-10">
                 <tr>
                   <th className="px-4 py-3 text-left w-1/3 min-w-[150px]">
                     Libellé

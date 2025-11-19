@@ -27,6 +27,19 @@ const normalizeDate = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+const getColStartClass = (dayIso: number) => {
+    const map: Record<number, string> = {
+        1: "col-start-1",
+        2: "col-start-2",
+        3: "col-start-3",
+        4: "col-start-4",
+        5: "col-start-5",
+        6: "col-start-6",
+        7: "col-start-7",
+    };
+    return map[dayIso] || "col-start-1";
+};
+
 const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk, isAllDay }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
@@ -37,6 +50,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const eventDay = startDate.getDay();
     const eventDayISO = eventDay === 0 ? 7 : eventDay;
 
+    // FIXED: Changed from 7 to 8 to match the Agenda grid start time
     const calendarStartTime = 7;
 
     const getMinutesFromStart = (date: Date) => {
@@ -54,6 +68,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const startOffset = getMinutesFromStart(startDate);
     const endOffset = getMinutesFromStart(endDate);
 
+    // Grid rows are calculated in 5-minute increments
     const startRow = Math.floor(startOffset / 5) + 1;
     const span = Math.max(1, Math.ceil((endOffset - startOffset) / 5));
 
@@ -108,51 +123,54 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     
     let width = `${100 / info.columns}%`;
     let left = `${(info.position / info.columns) * 100}%`;
-    let zIndex = 0;
+    let zIndex = info.columns > 1 ? 10 + info.position : 1;
 
-    // --- Define inactive styles ---
     const inactiveAClasses = type === "RU" ? "text-5xl" : "text-[10px] sm:text-sm";
     
     return (
         <>
-            {/* 1. The In-Grid Click Target */}
             <li
-                className={`relative col-start-${eventDayISO} cursor-pointer`}
+                className={`relative flex ml-1 mr-1 ${getColStartClass(eventDayISO)} pointer-events-none`}
                 style={{
                     gridRow: `${startRow} / span ${span}`,
-                    width: width,
-                    left: left,
-                    zIndex: zIndex,
+                    marginTop: "2px", 
+                    marginBottom: "2px"
                 }}
-                onMouseDown={handleStart}
             >
+                {/* Inner container for positioning overlaps */}
                 <a
                     className={`
                         ${eventClass} group items-center justify-center text-center whitespace-normal overflow-hidden break-words
-                        absolute inset-1 flex flex-col rounded-lg p-1 transition-all duration-200 gap-2 
+                        absolute flex flex-col rounded-lg p-1 transition-all duration-200 gap-2 
+                        cursor-pointer pointer-events-auto border border-white/10 shadow-sm
                         ${inactiveAClasses}
                     `}
+                    style={{
+                        top: 0,
+                        bottom: 0,
+                        left: left,
+                        width: width,
+                        zIndex: zIndex
+                    }}
+                    onMouseDown={handleStart}
                 >
-                    {/* Inactive Content */}
                     {type === "RU" ? (
                         <p className="order-1 font-semibold drop-shadow-md line-clamp-3 text-center self-center">{title}</p>
                     ) : (
                         <>
-                            <p className="order-1 font-semibold line-clamp-3">{title.replace(/_/g, " ")}</p>
-                            <p className={`order-2 ${eventText}`}>
-                                {type.replace(/_/g, " ")} - {room?.replace(/_/g, " ") || ""}
+                            <p className="order-1 font-semibold line-clamp-3 leading-tight">{title.replace(/_/g, " ")}</p>
+                            <p className={`order-2 ${eventText} text-[9px] sm:text-xs opacity-90`}>
+                                {type.replace(/_/g, " ")} {room ? ` - ${room.replace(/_/g, " ")}` : ""}
                             </p>
                         </>
                     )}
                 </a>
             </li>
 
-            {/* 2. The Portal for the Modal */}
             {createPortal(
                 <AnimatePresence>
                     {isActive && (
                         <>
-                            {/* A. The Overlay */}
                             <motion.div
                                 className="fixed inset-0 bg-backgroundPrimary/30 backdrop-blur-sm z-40"
                                 onClick={handleEnd}
@@ -162,11 +180,10 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                                 transition={{ duration: 0.15, ease: "easeOut" }}
                             />
 
-                            {/* B. The Modal Content */}
                             <motion.div
-                                className={`fixed z-50 w-[90%] max-w-[400px] rounded-xl overflow-y-auto p-4
+                                className={`fixed z-50 w-[90%] max-w-[400px] rounded-xl overflow-y-auto p-6 shadow-2xl
                                     ${type === "RU" ? "max-h-[80vh]" : ""}
-                                    ${eventClass} // Apply event color to the modal background
+                                    ${eventClass} 
                                 `}
                                 style={{
                                     top: "50%",
@@ -177,21 +194,26 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                                 exit={{ opacity: 0, scale: 0.85, x: "-50%", y: "-50%", pointerEvents: "none" }}
                                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
                             >
-                                {/* Active Content */}
                                 {type === "RU" ? (
                                     <div className="flex flex-col w-full">
-                                        <p>Menu RU de {tbk}</p>
-                                        <p className="order-2 mt-2 mb-2 text-gray-600 dark:text-white whitespace-pre-line">{summary}</p>
+                                        <h3 className="text-lg font-bold mb-2">Menu RU de {tbk}</h3>
+                                        <p className="text-gray-600 dark:text-white/90 whitespace-pre-line leading-relaxed">{summary}</p>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col gap-2 text-base">
-                                        <p className="order-1 font-semibold line-clamp-3">{title.replace(/_/g, " ")}</p>
-                                        <p className={`order-2 ${eventText}`}>
-                                            {type.replace(/_/g, " ")} - {room?.replace(/_/g, " ") || ""}
-                                        </p>
-                                        <p className="order-2 mt-2 text-gray-600 dark:text-white whitespace-pre-line">
-                                            {summary} {teacher || "Aucun professeur assigné"} - {group || "Aucun groupe spécifié"} - {startDate.getHours()}h{startDate.getMinutes()} - {endDate.getHours()}h{endDate.getMinutes()}
-                                        </p>
+                                    <div className="flex flex-col gap-3">
+                                        <div>
+                                            <h3 className="text-xl font-bold leading-snug">{title.replace(/_/g, " ")}</h3>
+                                            <p className={`text-sm font-medium opacity-90 mt-1`}>
+                                                {type.replace(/_/g, " ")} - {room?.replace(/_/g, " ") || "Sans salle"}
+                                            </p>
+                                        </div>
+                                        <div className="h-px bg-current opacity-20 my-1" />
+                                        <div className="space-y-2 text-sm">
+                                            <p><strong>Professeur:</strong> {teacher || "Non assigné"}</p>
+                                            <p><strong>Groupe:</strong> {group || "Non spécifié"}</p>
+                                            <p><strong>Horaire:</strong> {startDate.getHours()}h{startDate.getMinutes().toString().padStart(2, '0')} - {endDate.getHours()}h{endDate.getMinutes().toString().padStart(2, '0')}</p>
+                                        </div>
+                                        {summary && <p className="mt-2 opacity-80 whitespace-pre-line text-sm">{summary}</p>}
                                     </div>
                                 )}
                             </motion.div>

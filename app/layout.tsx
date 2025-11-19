@@ -46,8 +46,8 @@ export default function RootLayout({
             <SpeedInsights />
             <ThemeProvider>
               <Providers>
-                <div className="flex flex-col bg-backgroundPrimary overflow-auto md:overflow-hidden min-h-screen">
-                  <main className="flex-1 min-h-0 md:h-screen overflow-auto md:overflow-hidden pb-20 md:pb-0">
+                <div className="flex flex-col bg-backgroundPrimary overflow-hidden h-screen">
+                  <main className="flex-1 min-h-0 overflow-hidden md:pb-0 flex flex-col">
                     {children}
                   </main>
                   <Footer />

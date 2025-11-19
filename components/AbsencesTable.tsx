@@ -65,7 +65,7 @@ export function AbsencesTable({ session }: {session: any}) {
           <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
         </div>
       {isFetching ? (
-          <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full h-full animate-pulse flex flex-col items-center justify-center">
+          <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full animate-pulse flex flex-col items-center justify-center">
             <div>
               <svg className="mr-3 size-5 animate-spin inline-block" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4}></circle>
@@ -80,7 +80,7 @@ export function AbsencesTable({ session }: {session: any}) {
           </div>
         ) : (
           <>
-            <div className="overflow-auto h-full rounded-lg bg-backgroundPrimary">
+            <div className="md:overflow-auto rounded-lg bg-backgroundPrimary">
               <table className="table-fixed rounded-lg min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>
