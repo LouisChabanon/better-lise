@@ -13,6 +13,7 @@ import GradeModal from "./ui/GradeModal";
 import posthog from "posthog-js";
 import GradeLootBoxModal from "./ui/GradeLootBoxModal";
 import { useGradesData } from "@/hooks/useGradesData";
+import { useScraperLoading } from "@/hooks/useScraperLoading";
 
 interface GradeTableProps {
   session: any;
@@ -29,6 +30,8 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
     refetch
   } = useGradesData(session);
 
+  const { progress, message } = useScraperLoading(isFetching || isLoading);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredGrades, setFilteredGrades] = useState<GradeType[]>([]);
@@ -37,7 +40,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 
   const pageSize = 15;
 
-  // --- Helpers ---
+
   function noteBadgeClass(note: number | string) {
     const n = Number(note);
     if (isNaN(n)) return "bg-gray-200 text-gray-800";
@@ -139,10 +142,31 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
       </div>
 
       {/* --- Loading / Error States --- */}
-      {isFetching && !grades ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-textTertiary p-8 animate-pulse">
-           <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"/>
-           <p>En attente de Lise... (c'est long)</p>
+      {isFetching ? (
+        <div className="w-full flex flex-col items-center justify-center py-12 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+            {/* Text Label */}
+            <div className="flex items-center justify-between w-full max-w-md px-1">
+                <span className="text-xs font-bold text-textPrimary uppercase tracking-wider animate-pulse">
+                    {message}
+                </span>
+                <span className="text-xs font-mono text-textTertiary">
+                    {Math.round(progress)}%
+                </span>
+            </div>
+
+            {/* The Bar Container */}
+            <div className="w-full max-w-md h-2 bg-backgroundSecondary border border-buttonSecondaryBorder rounded-full overflow-hidden shadow-inner relative">
+                <div 
+                    className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_10px] shadow-primary/50"
+                    style={{ width: `${progress}%` }}
+                />
+
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+            </div>
+
+            <p className="text-[10px] text-textTertiary max-w-xs text-center pt-2">
+                En attente de Lise. C'est long...
+            </p>
         </div>
       ) : isError ? (
         <div className="text-center text-error p-8 bg-error/5 rounded-xl border border-error/10">
