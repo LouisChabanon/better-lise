@@ -115,6 +115,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
 
     const [username, setUsername] = useState<string | null>("");
     const [tbkValue, setTbkValue] = useState<tbk>("Sibers");
+    const [displayRUMenu, setDisplayRUMenu] = useState<boolean>(true);
     const [isGambling, setIsGambling] = useState(false);
     const [isOptedOut, setIsOptedOut] = useState(false);
     const [tooltipKey, setTooltipKey] = useState<keyof typeof TOOLTIP_CONTENT | null>(null);
@@ -128,6 +129,9 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
 
       const storedGambling = localStorage.getItem("gambling");
       if(storedGambling) setIsGambling(storedGambling === "true");
+
+      const storedDisplayRUMenu = localStorage.getItem("display_ru_menu");
+      if(storedDisplayRUMenu) setDisplayRUMenu(storedDisplayRUMenu === "true");
 
       if(isOpen && posthog){
         setIsOptedOut(posthog.has_opted_out_capturing());
@@ -144,6 +148,10 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
 
     const handleGamblingToggle = () => {
       setIsGambling(!isGambling);
+    }
+
+    const handleRuMenugToggle = () => {
+      setDisplayRUMenu(!displayRUMenu);
     }
 
     return (
@@ -214,7 +222,24 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                 </option>
               ))}
             </select>
+
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center">
+                <label htmlFor="stats-toggle" className="font-medium text-textSecondary cursor-pointer">
+                  Afficher le menu du Crous dans l'emploi du temps : 
+                </label>
+                </div>
+                <input
+                  id="stats-toggle"
+                  type="checkbox"
+                  checked={displayRUMenu} 
+                  onChange={handleRuMenugToggle}
+                  className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
+                />
+              
+            </div>
           </div>
+
         
           <div className="space-y-4 pt-4 border-t border-primary">
           
@@ -285,6 +310,9 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                   }
                   localStorage.setItem("tbk", tbkValue);
                 }
+                
+                if(displayRUMenu !==  (localStorage.getItem("display_ru_menu") === "true") || localStorage.getItem("display_ru_menu") == null) localStorage.setItem("display_ru_menu", displayRUMenu.toString())
+                
                 if(isGambling !==  (localStorage.getItem("gambling") === "true") || localStorage.getItem("gambling") == null) localStorage.setItem("gambling", isGambling.toString())
                 
                 isOptedOut ? posthog.opt_out_capturing() : posthog.opt_in_capturing()

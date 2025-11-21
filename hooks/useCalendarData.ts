@@ -12,24 +12,30 @@ const getSettings = () => {
     }
     const username = localStorage.getItem("lise_id");
     const tbk =(localStorage.getItem("tbk") || "Sibers") as tbk;
-    return { username, tbk }
+    const display_ru_menu = (localStorage.getItem("display_ru_menu") === "true");
+    return { username, tbk, display_ru_menu }
 };
 
 export const useCalendarData = () => {
 
-    const queryKey = ["calendar", getSettings().username, getSettings().tbk];
+    const queryKey = ["calendar", getSettings().username, getSettings().tbk, getSettings().display_ru_menu];
 
     return useQuery({
         queryKey: queryKey,
         queryFn: async () => {
-            const {username, tbk} = getSettings();
+            const {username, tbk, display_ru_menu} = getSettings();
             if(!username){
                 return { events: [], mapping: {}, tbk, status: "no user"};
             }
 
-            const calendarDataRes = await GetCalendar(username);
-            const crousData = await getCrousData(tbk);
 
+            const calendarDataRes = await GetCalendar(username);
+            let crousData: CalendarEventProps[] | undefined = undefined;
+
+            if(display_ru_menu){
+                crousData = await getCrousData(tbk);
+            }
+            
             if(calendarDataRes.status !== "success"){
                 return { events: [], mapping: {}, tbk, status: calendarDataRes.status}
             }

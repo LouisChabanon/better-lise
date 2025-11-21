@@ -5,8 +5,9 @@ import { GradeType } from "@/lib/types";
 import {
   CaretRightFilled,
   CaretLeftFilled,
-  LogoutOutlined,
   ReloadOutlined,
+  CalendarOutlined,
+  BarcodeOutlined
 } from "@ant-design/icons";
 import GradeModal from "./ui/GradeModal";
 import posthog from "posthog-js";
@@ -19,7 +20,6 @@ interface GradeTableProps {
 }
 
 export function GradeTable({ session, gambling }: GradeTableProps) {
-
   const {
     data: grades,
     isLoading,
@@ -33,11 +33,11 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredGrades, setFilteredGrades] = useState<GradeType[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<GradeType | null>(null);
-
   const [gradeToReveal, setGradeToReveal] = useState<GradeType | null>(null);
 
   const pageSize = 15;
 
+  // --- Helpers ---
   function noteBadgeClass(note: number | string) {
     const n = Number(note);
     if (isNaN(n)) return "bg-gray-200 text-gray-800";
@@ -46,9 +46,8 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
     return "bg-green-100 text-green-800";
   }
 
-  // Update filtered list whenever grades or the search term change
+  // --- Effects ---
   useEffect(() => {
-
     if (!grades) {
       setFilteredGrades([]);
       setCurrentPage(1);
@@ -68,11 +67,12 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
     setCurrentPage(1);
   }, [searchTerm, grades]);
 
+  // --- Pagination Calculation ---
   const totalPages = Math.max(1, Math.ceil(filteredGrades.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
   const currentGrades = filteredGrades.slice(startIndex, startIndex + pageSize);
 
-  // Open modal when a grade row is clicked
+  // --- Handlers ---
   const onRowClick = (grade: GradeType) => {
     const noteAsNumber = Number(grade.note);
 
@@ -98,160 +98,161 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
         was_revealed: true,
       });
     }
-
-    // Create a new grade object with isNew set to false
     const revealedGrade = { ...gradeToReveal, isNew: false };
-
-    // Update the filteredGrades state to reflect the change
     setFilteredGrades((prevGrades) =>
-      prevGrades.map((g) =>
-        g.code === revealedGrade.code ? revealedGrade : g
-      )
+      prevGrades.map((g) => (g.code === revealedGrade.code ? revealedGrade : g))
     );
-
-    // Open the regular details modal with the updated grade
     setSelectedGrade(revealedGrade);
-    // Close the lootbox modal
     setGradeToReveal(null);
   };
 
+  // --- Render Helpers ---
+  const renderGradeBadge = (g: GradeType) => {
+    const isRevealabale = g.isNew && !isNaN(Number(g.note)) && gambling;
+    const noteClass = isRevealabale 
+      ? "bg-ButtonPrimaryBackground text-textPrimary font-extrabold shadow-md" 
+      : noteBadgeClass(g.note);
+    const noteText = isRevealabale ? "?" : g.note;
+
+    return (
+      <span className={`inline-flex items-center justify-center h-10 w-10 rounded-xl text-sm font-bold ${noteClass}`}>
+        {noteText}
+      </span>
+    );
+  };
+
   return (
-    <>
-      <div className="flex flex-row sm:items-center sm:justify-between mb-4 gap-2">
+    <div className="flex flex-col md:h-full relative w-full">
+      {/* --- Search Header --- */}
+      <div className="flex flex-row sm:items-center sm:justify-between mb-4 gap-2 shrink-0">
         <input
           type="text"
           placeholder="Rechercher..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           disabled={isFetching}
-          className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus:ring-2"
+          className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-xl w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
         />
-        <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
+        <Button status="primary" onClick={() => refetch()} disabled={isFetching}>
+          <ReloadOutlined spin={isFetching} />
+        </Button>
       </div>
-      {isFetching ? (
-        <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full animate-pulse flex flex-col items-center justify-center">
-          <div>
-            <svg
-              className="mr-3 size-5 animate-spin inline-block"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth={4}
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            En attente de Lise ... (c'est long)
-          </div>
+
+      {/* --- Loading / Error States --- */}
+      {isFetching && !grades ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-textTertiary p-8 animate-pulse">
+           <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"/>
+           <p>En attente de Lise... (c'est long)</p>
         </div>
       ) : isError ? (
-        <div className="text-center text-error p-8">
-          Erreur lors du chargement des notes: {(error as Error).message}
+        <div className="text-center text-error p-8 bg-error/5 rounded-xl border border-error/10">
+          Erreur: {(error as Error).message}
         </div>
-      ) :(
+      ) : (
         <>
-          <div className="md:overflow-auto rounded-lg bg-backgroundPrimary">
-            <table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
-              <thead className="bg-backgroundTertiary uppercase text-xs font-semibold z-10">
-                <tr>
-                  <th className="px-4 py-3 text-left w-1/3 min-w-[150px]">
-                    Libellé
-                  </th>
-                  <th className="px-4 py-3 text-left left-0 z-20 min-w-[96px]">
-                    Note
-                  </th>
-                  <th className="px-4 py-3 text-left w-1/6 min-w-[110px]">
-                    Date
-                  </th>
-                  <th className="px-4 py-3 text-left w-1/6 min-w-[120px]">
-                    Code
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-textSecondary">
-                {currentGrades.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-8 text-center text-textTertiary"
-                    >
-                      Aucune note trouvée.
-                    </td>
-                  </tr>
-                )}
+          <div className="flex-1 min-h-0 flex flex-col">
+            {currentGrades.length === 0 ? (
+               <div className="text-center text-textTertiary py-12 bg-backgroundPrimary rounded-xl border border-backgroundSecondary">
+                  Aucune note trouvée.
+               </div>
+            ) : (
+              <>
+                {/* ================= MOBILE VIEW: CARD LIST (< md) ================= */}
 
-                {currentGrades.map((g) => {
-                  const isRevealabale = g.isNew && !isNaN(Number(g.note)) && gambling;
-                  const isNewClass = g.isNew ? "bg-eventDefaultBg" : "";
-                  const baseRow = `transition hover:shadow-sm hover:bg-backgroundSecondary ${isNewClass}`;
-
-                  const noteClass = isRevealabale ? "bg-ButtonPrimaryBackground text-textPrimary font-extrabold" : noteBadgeClass(g.note);
-
-                  const noteText = isRevealabale ? "*****" : g.note;
-
-                  return (
-                    <tr
+                <div className="md:hidden space-y-3 pb-2">
+                  {currentGrades.map((g) => (
+                    <div 
                       key={g.code}
                       onClick={() => onRowClick(g)}
-                      className={`${baseRow} hover:cursor-pointer text-sm sm:text-base`}
+                      className={`
+                        relative flex items-center justify-between p-4 rounded-2xl border border-backgroundSecondary bg-backgroundPrimary 
+                        active:scale-[0.98] transition-transform touch-manipulation shadow-sm
+                        ${g.isNew ? "ring-2 ring-primary ring-offset-1" : ""}
+                      `}
                     >
-                      <td
-                        title={g.libelle}
-                        className="px-4 py-4 align-top max-w-[300px] overflow-hidden text-ellipsis"
-                      >
-                        {g.isNew && (
-                          <span className="inline-block bg-on-primary text-white text-[10px] font-semibold px-2 py-0.5 rounded-full mr-2">
-                            🔥New
-                          </span>
-                        )}
-                        <span className="align-middle">{g.libelle}</span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap font-semibold">
-                        <span
-                          className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium ${noteClass}`}
-                        >
-                          {noteText}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">
-                        {g.date}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap max-w-[300px] overflow-hidden text-ellipsis">
-                        {g.code}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                       {/* Left Side: Info */}
+                       <div className="flex-1 pr-4 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {g.isNew && <span className="text-[10px] bg-primary text-white px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide">New</span>}
+                            <h3 className="font-semibold text-textPrimary text-sm truncate w-full" title={g.libelle}>
+                              {g.libelle}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-textTertiary">
+                             <span className="flex items-center gap-1"><CalendarOutlined /> {g.date}</span>
+                             <span className="w-px h-3 bg-border/50"></span>
+                             <span className="flex items-center gap-1 truncate"><BarcodeOutlined /> {g.code}</span>
+                          </div>
+                       </div>
+
+                       {/* Right Side: Grade */}
+                       <div className="shrink-0">
+                          {renderGradeBadge(g)}
+                       </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ================= DESKTOP VIEW: TABLE (>= md) ================= */}
+                {/* Hidden on small screens */}
+                <div className="hidden md:block flex-1 overflow-auto rounded-t-lg bg-backgroundPrimary border border-backgroundSecondary">
+                  <table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
+                    <thead className="bg-backgroundTertiary uppercase text-xs font-semibold z-10 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left w-1/3">Libellé</th>
+                        <th className="px-4 py-3 text-left w-24">Note</th>
+                        <th className="px-4 py-3 text-left w-32">Date</th>
+                        <th className="px-4 py-3 text-left w-32">Code</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-textSecondary divide-y divide-gray-100">
+                      {currentGrades.map((g) => {
+                        const isRevealabale = g.isNew && !isNaN(Number(g.note)) && gambling;
+                        const rowBg = g.isNew ? "bg-primary/5" : "hover:bg-backgroundSecondary";
+                        
+                        return (
+                          <tr
+                            key={g.code}
+                            onClick={() => onRowClick(g)}
+                            className={`${rowBg} transition-colors cursor-pointer`}
+                          >
+                            <td className="px-4 py-3 align-middle truncate" title={g.libelle}>
+                              {g.isNew && (
+                                <span className="inline-block bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded mr-2">
+                                  NEW
+                                </span>
+                              )}
+                              {g.libelle}
+                            </td>
+                            <td className="px-4 py-3 font-semibold">
+                              {isRevealabale ? (
+                                <span className="bg-primary text-white px-2 py-1 rounded-lg font-bold shadow-sm">?</span>
+                              ) : (
+                                <span className={`px-2 py-1 rounded-lg ${noteBadgeClass(g.note)}`}>
+                                  {g.note}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-textTertiary">{g.date}</td>
+                            <td className="px-4 py-3 text-textTertiary text-xs font-mono">{g.code}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Grade modal display */}
-          {selectedGrade && (
-            <GradeModal
-              grade={selectedGrade}
-              onClose={() => setSelectedGrade(null)}
-            />
-          )}
+          {/* --- Pagination --- */}
+          <div className="
+            mt-4 md:mt-0
+            md:sticky md:bottom-0 md:z-40
+            flex justify-between items-center 
+            md:p-4 md:bg-backgroundPrimary md:border-t md:border-buttonSecondaryBorder md:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]
 
-          {gradeToReveal && (
-            <GradeLootBoxModal
-              grade={gradeToReveal}
-              onClose={() => setGradeToReveal(null)}
-              onComplete={handleRevealComplete}
-            />
-          )}
-
-          {/* Pagination Controls */}
-          <div className="mt-4 flex justify-between items-center">
+          ">
             <Button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
@@ -259,21 +260,31 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
             >
               <CaretLeftFilled />
             </Button>
-            <span className="text-sm text-textTertiary">
-              Page {currentPage} of {totalPages}
+            <span className="text-sm text-textTertiary font-medium">
+              Page {currentPage} / {totalPages}
             </span>
             <Button
-              onClick={() =>
-                setCurrentPage((p) => Math.min(p + 1, totalPages))
-              }
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
               disabled={currentPage === totalPages}
               status="secondary"
             >
               <CaretRightFilled />
             </Button>
           </div>
+
+          {/* --- Modals --- */}
+          {selectedGrade && (
+            <GradeModal grade={selectedGrade} onClose={() => setSelectedGrade(null)} />
+          )}
+          {gradeToReveal && (
+            <GradeLootBoxModal
+              grade={gradeToReveal}
+              onClose={() => setGradeToReveal(null)}
+              onComplete={handleRevealComplete}
+            />
+          )}
         </>
       )}
-    </>
+    </div>
   );
 }
