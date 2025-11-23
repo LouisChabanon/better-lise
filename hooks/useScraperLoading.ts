@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
 const LOADING_PHASES = [
-  { threshold: 30, ms: 500, msg: "Initialisation..." },     // Fast
-  { threshold: 60, ms: 1500, msg: "Connexion à LISE..." },  // Medium
-  { threshold: 80, ms: 3000, msg: "Récupération des notes..." }, // Slowing down
-  { threshold: 90, ms: 5000, msg: "Analyse des données..." }, // Crawling
+  { threshold: 10, msg: "Initialisation..." },
+  { threshold: 25, msg: "Préparation de la requête..." },
+  { threshold: 35, msg: "Contact du serveur..." },
+  { threshold: 50, msg: "Connexion à LISE..." }, 
+  { threshold: 60, msg: "Navigation dans l'interface..." }, 
+  { threshold: 75, msg: "Récupération des données..." }, 
+  { threshold: 90, msg: "Finalisation de l'analyse..." }, 
 ];
 
 export function useScraperLoading(isLoading: boolean) {
@@ -20,34 +23,36 @@ export function useScraperLoading(isLoading: boolean) {
       const resetTimer = setTimeout(() => {
         setProgress(0);
         setMessage("");
-      }, 800); // Wait a bit before hiding so user sees the 100%
+      }, 800);
       
       return () => clearTimeout(resetTimer);
     }
 
-    setProgress(5); // Start at 5% immediately for feedback
+    setProgress(5);
     setMessage(LOADING_PHASES[0].msg);
 
     const updateProgress = () => {
       setProgress((prev) => {
-        // If we are already high, increment by tiny amounts (asymptotic)
-        if (prev >= 90) return Math.min(prev + 0.1, 95); 
         
-        // Find current phase
-        const phase = LOADING_PHASES.find(p => prev < p.threshold) || LOADING_PHASES[LOADING_PHASES.length - 1];
+        if (prev >= 95) return Math.min(prev + 0.05, 99); 
+        
+        // Find next phase
+        const nextPhase = LOADING_PHASES.find(p => p.threshold > prev);
         
         // Update text if needed
-        if(prev > phase.threshold - 10) setMessage(phase.msg);
+        if (nextPhase) {
+            setMessage(nextPhase.msg);
+        }
 
         // Randomize increment for "organic" feel
-        const diff = phase.threshold - prev;
-        const increment = Math.max(0.5, Math.random() * (diff / 10));
+        const target = nextPhase ? nextPhase.threshold : 100;
+        const diff = target - prev;
+        const increment = Math.max(0.2, Math.random() * (diff / 8));
         
         return prev + increment;
       });
       
-      // The closer we get to 100, the slower the tick rate
-      timerRef.current = setTimeout(updateProgress, 150); 
+      timerRef.current = setTimeout(updateProgress, 100); 
     };
 
     updateProgress();
