@@ -7,11 +7,16 @@ import * as cheerio from "cheerio";
 import { getHiddenFields, navigateToLisePage } from "@/lib/helper";
 import { GradeType, RequestState } from "@/lib/types";
 import logger from "@/lib/logger";
+import PostHogClient from "@/lib/posthog-server";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
 
 
 export async function getGradeData(reload: boolean = true): Promise<RequestState> {
+    const start = Date.now();
+
+    const posthog = PostHogClient();
+    
     const grades:GradeType[] = [];
 
     const session = (await verifySession());
@@ -124,13 +129,34 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
                 logger.info(`Inserted ${newGrades.length} new grades into database.`, {username: user.username});
                 newGrades.forEach(g => { mappedDbGrades.push({...g, isNew: !isFirstSync}) });
             }
+
+            // Measure performance of scraper
+            const end = Date.now();
+            const duration = end - start;
+            posthog.capture({
+                distinctId: user.username,
+                event: "scraper_performance",
+                properties: {
+                    endpoint: "grades",
+                    duration_ms: duration,
+                    is_new_data: newGrades.length > 0,
+                    grade_count: newGrades.length
+                }
+            });
             
         }catch (error) {
+            posthog.capture({
+                distinctId: user.username || "unknown_user",
+                event: "scraper_error",
+                properties: { error: String(error) }
+            })
             logger.error("Error fetching user grades", {
                 error: error instanceof Error ? error.message : String(error),
                 stack: error instanceof Error ? error.stack : undefined
             });
             return {errors: "Error fetching grades", success: false};
+        }finally {
+            await posthog.shutdown();
         }
     }
     return { data: mappedDbGrades, success: true }

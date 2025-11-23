@@ -1,5 +1,4 @@
 import AppSidebar from '@/components/AppSidebar';
-import InstallAppBanner from '@/components/InstallBanner';
 import { verifySession } from '@/lib/sessions';
 
 export default async function DashboardRootLayout({
