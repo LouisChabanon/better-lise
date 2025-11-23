@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "@/actions/Auth";
 import { liseIdChecker } from "@/lib/helper";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import posthog from "posthog-js";
 
 type PassInputType = "password" | "text";
 
@@ -53,7 +54,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 		const form = e.currentTarget;
 		const formData = new FormData(form);
 		const username = formData.get("username") as string;
-		const password = formData.get("password") as string;
 
 		if (!liseIdChecker(username)) {
 			setErrors("L'identifiant doit être au format 20xx-xxxx");
@@ -62,17 +62,27 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 		localStorage.setItem("lise_id", username);
 		setLoading(true);
 
+		if(posthog.has_opted_in_capturing()) {
+			posthog.capture("login_attempt", { lise_id: username });
+		}
+
 		try {
 			// Call the signIn action
 			const state = await signIn(undefined, formData);
 			if (state?.success) {
-				// If parent provided an onSuccess handler (modal usage), call it.
+				if(posthog.has_opted_in_capturing()) {
+					posthog.capture("login_success", { lise_id: username });
+				}
+				
 				if (onSuccess) {
 					onSuccess();
 				} else {
 					router.push("/");
 				}
 			} else {
+				if(posthog.has_opted_in_capturing()) {
+					posthog.capture("login_failure", { lise_id: username });
+				}
 				setErrors(state?.errors || "An error occurred during login.");
 			}
 		} catch (error) {

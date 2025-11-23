@@ -147,11 +147,20 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
     }
 
     const handleGamblingToggle = () => {
-      setIsGambling(!isGambling);
+      const newState = !isGambling;
+      setIsGambling(newState);
+      if(posthog.has_opted_in_capturing()){
+        posthog.capture('settings_toggle_gambling', { enabled: newState });
+      }
     }
 
     const handleRuMenugToggle = () => {
-      setDisplayRUMenu(!displayRUMenu);
+      const newState = !displayRUMenu;
+      setDisplayRUMenu(newState);
+
+      if(posthog.has_opted_in_capturing()){
+        posthog.capture('settings_toggle_ru_menu', { enabled: newState });
+      }
     }
 
     return (

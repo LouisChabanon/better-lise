@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import { useAbsencesData } from "@/hooks/useAbsencesData";
 import { useScraperLoading } from "@/hooks/useScraperLoading";
+import posthog from "posthog-js";
 
 export function AbsencesTable({ session }: { session: any }) {
   const {
@@ -79,7 +80,12 @@ export function AbsencesTable({ session }: { session: any }) {
           disabled={isFetching}
           className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-xl w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
         />
-        <Button status="primary" onClick={() => refetch()} disabled={isFetching}>
+        <Button status="primary" onClick={() => {
+            refetch()
+            if(posthog.has_opted_in_capturing()) {
+              posthog.capture("absences_refresh");
+            }
+          }} disabled={isFetching}>
           <ReloadOutlined spin={isFetching} />
         </Button>
       </div>

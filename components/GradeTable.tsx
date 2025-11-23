@@ -172,7 +172,12 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
               <span className="ml-2 sm:hidden">Tout vu</span>
             </Button>
           )}
-          <Button status="primary" onClick={() => refetch()} disabled={isFetching}>
+          <Button status="primary" onClick={() => {
+              refetch()
+              if(posthog.has_opted_in_capturing()){
+                posthog.capture("grades_refresh");
+              }
+            }} disabled={isFetching}>
             <ReloadOutlined spin={isFetching} />
           </Button>
         </div>
