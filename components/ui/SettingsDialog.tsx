@@ -311,9 +311,25 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
               Annuler
             </Button>
             <Button status="primary" type="submit" onClick={() => {
-                if (username){
-                    localStorage.setItem("lise_id", username);
+                if (username) {
+                  const previousUsername = localStorage.getItem("lise_id");
+
+                  if (previousUsername && previousUsername !== username) {
+                      posthog.reset(); 
+                  }
+
+                  localStorage.setItem("lise_id", username);
+                  if (!isOptedOut) {
+                      posthog.identify(username);
+                      
+                      posthog.people.set({
+                          tbk: tbkValue,
+                          gambling_enabled: isGambling,
+                          ru_menu_enabled: displayRUMenu
+                      });
                 }
+            }
+
                 if(tbkValue !== localStorage.getItem("tbk") || localStorage.getItem("tbk") == null){
                   if(posthog.has_opted_in_capturing()){
                     posthog.capture("select_tbk_event", {tbk: tbkValue, username: username})
