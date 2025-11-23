@@ -2,11 +2,19 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/Button";
 import { AbsenceType } from "@/lib/types";
-import { CaretRightFilled, CaretLeftFilled, ReloadOutlined } from "@ant-design/icons";
+import { 
+  CaretRightFilled, 
+  CaretLeftFilled, 
+  ReloadOutlined, 
+  CalendarOutlined, 
+  ClockCircleOutlined,
+  UserOutlined,
+  InfoCircleOutlined
+} from "@ant-design/icons";
 import { useAbsencesData } from "@/hooks/useAbsencesData";
+import { useScraperLoading } from "@/hooks/useScraperLoading";
 
-export function AbsencesTable({ session }: {session: any}) {
-
+export function AbsencesTable({ session }: { session: any }) {
   const {
     data,
     isLoading,
@@ -17,24 +25,29 @@ export function AbsencesTable({ session }: {session: any}) {
   } = useAbsencesData(session);
 
   const absences = data?.absences;
+  const { progress, message } = useScraperLoading(isFetching || isLoading);
 
+  const [localAbsences, setLocalAbsences] = useState<AbsenceType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [fiteredAbsences, setFilteredAbsences] = useState<AbsenceType[]>([]);
+  const [filteredAbsences, setFilteredAbsences] = useState<AbsenceType[]>([]);
 
-
-  const pageSize = 15;
-
+  // --- Effects ---
+  useEffect(() => {
+    if (absences) {
+      setLocalAbsences(absences);
+    }
+  }, [absences]);
 
   useEffect(() => {
-    if (!absences) {
+    if (!localAbsences) {
       setFilteredAbsences([]);
       setCurrentPage(1);
       return;
     }
 
     const term = searchTerm.trim().toLowerCase();
-    const filtered = absences.filter((a) =>
+    const filtered = localAbsences.filter((a) =>
       a.cours.toLowerCase().includes(term) ||
       a.date.includes(term) ||
       a.matiere.includes(term) ||
@@ -43,109 +56,192 @@ export function AbsencesTable({ session }: {session: any}) {
 
     setFilteredAbsences(filtered);
     setCurrentPage(1);
-  }, [searchTerm, absences]);
+  }, [searchTerm, localAbsences]);
 
-  const totalPages = Math.max(1, Math.ceil(fiteredAbsences.length / pageSize));
+  // --- Pagination Calculation ---
+  const pageSize = 15;
+  const totalPages = Math.max(1, Math.ceil(filteredAbsences.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-  const currentAbsences = fiteredAbsences.slice(startIndex, startIndex + pageSize);
+  
+  // Only used for Desktop view now
+  const currentAbsences = filteredAbsences.slice(startIndex, startIndex + pageSize);
 
+  return (
+    <div className="flex flex-col w-full relative md:h-full md:overflow-hidden">
+      
+      {/* --- Search Header --- */}
+      <div className="flex flex-row sm:items-center sm:justify-between mb-4 gap-2 shrink-0">
+        <input
+          type="text"
+          placeholder="Rechercher..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          disabled={isFetching}
+          className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-xl w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+        />
+        <Button status="primary" onClick={() => refetch()} disabled={isFetching}>
+          <ReloadOutlined spin={isFetching} />
+        </Button>
+      </div>
 
-    return (
-      <>
-      {/* Header: Search + Reload */}
-        <div className="flex flex-row sm:items-center sm:justify-between mb-4 gap-2">
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            disabled={isFetching}
-            className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-md w-full sm:w-1/2 focus:outline-none focus:ring-2"
-          />
-          <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
-        </div>
+      {/* --- Loading / Error States --- */}
       {isFetching ? (
-          <div className="text-center text-textTertiary py-8 bg-backgroundPrimary rounded-lg w-full animate-pulse flex flex-col items-center justify-center">
-            <div>
-              <svg className="mr-3 size-5 animate-spin inline-block" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4}></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            En attente de Lise ... (c'est long)
+        <div className="w-full flex flex-col items-center justify-center py-12 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+            {/* Text Label */}
+            <div className="flex items-center justify-between w-full max-w-md px-1">
+                <span className="text-xs font-bold text-textPrimary uppercase tracking-wider animate-pulse">
+                    {message}
+                </span>
+                <span className="text-xs font-mono text-textTertiary">
+                    {Math.round(progress)}%
+                </span>
             </div>
-            </div>
-        ) : isError ? (
-          <div className="text-center text-error p-8">
-            Erreur lors de la récupération des absences: {(error as Error).message}
-          </div>
-        ) : (
-          <>
-            <div className="md:overflow-auto rounded-lg bg-backgroundPrimary">
-              <table className="table-fixed rounded-lg min-w-full text-sm divide-y divide-gray-200">
-                <thead className="bg-backgroundTertiary uppercase text-xs font-semibold sticky top-0 z-10">
-                  <tr>
-                    <th className="px-4 py-3 text-left w-1/6">Date</th>
-                    <th className="px-4 py-3 text-left w-1/6">Horaire</th>
-                    <th className="px-4 py-3 text-left w-1/6">Durée</th>
-                    <th className="px-4 py-3 text-left w-1/6">Cours</th>
-                    <th className="px-4 py-3 text-left w-1/6">Intervenants</th>
-                    <th className="px-4 py-3 text-left w-1/6">Motif</th>
-                  </tr>
-                </thead>
-                <tbody className="text-textSecondary">
-                  {currentAbsences.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-textTertiary">Aucune absence trouvée.</td>
-                    </tr>
-                  )}
 
-                  {currentAbsences.map((a) => {
-                    const baseRow = `transition hover:shadow-sm hover:bg-backgroundSecondary`;
-                    return (
-                      <tr key={a.date + a.horaire} className={`${baseRow} hover:cursor-pointer text-sm sm:text-base`}>
-                        <td title={a.date} className="px-4 py-4 align-top max-w-[300px] overflow-hidden text-ellipsis">
-                          <span className="align-middle">{a.date}</span>
-                        </td>
-                        <td title={a.horaire} className="px-4 py-4 align-top max-w-[300px] overflow-hidden text-ellipsis">
-                          <span className="align-middle">{a.horaire}</span>
-                        </td>
-                        <td title={a.duree} className="px-4 py-4 whitespace-nowrap font-semibold">
-                          <span className={`inline-flex items-center justify-center px-3 py-1 text-sm font-medium`}>
-                            {a.duree}
+            {/* The Bar Container */}
+            <div className="w-full max-w-md h-2 bg-backgroundSecondary border border-buttonSecondaryBorder rounded-full overflow-hidden shadow-inner relative">
+                <div 
+                    className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_10px] shadow-primary/50"
+                    style={{ width: `${progress}%` }}
+                />
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+            </div>
+
+            <p className="text-[10px] text-textTertiary max-w-xs text-center pt-2">
+                En attente de Lise. C'est long...
+            </p>
+        </div>
+      ) : isError ? (
+        <div className="text-center text-error p-8 bg-error/5 rounded-xl border border-error/10">
+          Erreur: {(error as Error).message}
+        </div>
+      ) : (
+        <>
+          {/* Content Area: Mobile Scroll / Desktop Scroll */}
+          <div className="min-h-0 flex flex-col pb-24 md:pb-0 md:flex-1 md:overflow-y-auto">
+            
+            {filteredAbsences.length === 0 ? (
+               <div className="text-center text-textTertiary py-12 bg-backgroundPrimary rounded-xl border border-backgroundSecondary">
+                 Aucune absence trouvée.
+               </div>
+            ) : (
+              <>
+                {/* ================= MOBILE VIEW: CARD LIST (< md) ================= */}
+                <div className="md:hidden space-y-3 pb-2">
+                  {filteredAbsences.map((a, index) => (
+                    <div 
+                      key={index}
+                      className="flex flex-col p-4 rounded-2xl border border-backgroundSecondary bg-backgroundPrimary shadow-sm"
+                    >
+                       {/* Header: Course Name & Date */}
+                       <div className="flex justify-between items-start mb-2 gap-2">
+                          <h3 className="font-semibold text-textPrimary text-sm leading-tight">
+                            {a.cours}
+                          </h3>
+                          <span className="shrink-0 text-xs font-medium bg-backgroundSecondary text-textSecondary px-2 py-1 rounded-lg whitespace-nowrap">
+                            {a.date}
                           </span>
-                        </td>
-                        <td title={a.cours} className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{a.cours}</td>
-                        <td title={a.intervenants} className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{a.intervenants}</td>
-                        <td title={a.motif} className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis">{a.motif !== "" ? a.motif : "Aucun"}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                       </div>
 
-            {/* Pagination Controls */}
-            <div className="mt-4 flex justify-between items-center">
-              <Button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-                status="secondary"
-              >
-                <CaretLeftFilled />
-              </Button>
-              <span className="text-sm text-textTertiary">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                status="secondary"
-              >
-                <CaretRightFilled />
-              </Button>
-            </div>
-          </>
-        )}
-    </>
+                       {/* Info Row 1: Time & Duration */}
+                       <div className="flex items-center gap-4 text-xs text-textTertiary mb-2">
+                          <div className="flex items-center gap-1">
+                             <ClockCircleOutlined />
+                             <span>{a.horaire}</span>
+                          </div>
+                          <div className="flex items-center gap-1 font-semibold text-textSecondary">
+                             <span>{a.duree}</span>
+                          </div>
+                       </div>
+
+                       {/* Info Row 2: Teachers */}
+                       <div className="flex items-center gap-2 text-xs text-textTertiary mb-2">
+                          <UserOutlined />
+                          <span className="truncate">{a.intervenants}</span>
+                       </div>
+
+                       {/* Footer: Reason (if any) */}
+                       {a.motif && (
+                         <div className="mt-2 pt-2 border-t border-backgroundSecondary flex items-start gap-2 text-xs text-textSecondary">
+                            <InfoCircleOutlined className="mt-0.5 text-primary/60" />
+                            <span>{a.motif}</span>
+                         </div>
+                       )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* ================= DESKTOP VIEW: TABLE (>= md) ================= */}
+                <div className="hidden md:block flex-1 overflow-auto rounded-t-lg bg-backgroundPrimary border border-backgroundSecondary">
+                  <table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
+                    <thead className="bg-backgroundTertiary uppercase text-xs font-semibold z-10 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left w-1/6">Date</th>
+                        <th className="px-4 py-3 text-left w-1/6">Horaire</th>
+                        <th className="px-4 py-3 text-left w-1/6">Durée</th>
+                        <th className="px-4 py-3 text-left w-1/6">Cours</th>
+                        <th className="px-4 py-3 text-left w-1/6">Intervenants</th>
+                        <th className="px-4 py-3 text-left w-1/6">Motif</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-textSecondary divide-y divide-gray-100">
+                      {currentAbsences.map((a, index) => (
+                        <tr key={index} className="hover:bg-backgroundSecondary transition-colors">
+                          <td className="px-4 py-4 align-top">
+                            <div className="flex items-center gap-2">
+                                <CalendarOutlined className="text-textTertiary"/>
+                                <span>{a.date}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 align-top text-textTertiary">
+                            {a.horaire}
+                          </td>
+                          <td className="px-4 py-4 align-top font-semibold">
+                            <span className="inline-flex items-center justify-center px-2 py-1 rounded bg-backgroundSecondary text-textPrimary text-xs">
+                              {a.duree}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 align-top truncate" title={a.cours}>{a.cours}</td>
+                          <td className="px-4 py-4 align-top truncate text-textTertiary" title={a.intervenants}>{a.intervenants}</td>
+                          <td className="px-4 py-4 align-top text-textTertiary truncate" title={a.motif}>
+                            {a.motif || "Aucun"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* --- Pagination --- */}
+          <div className="
+            hidden md:flex
+            mt-4 md:mt-0
+            md:sticky md:bottom-0 md:z-40
+            justify-between items-center 
+            md:p-4 md:bg-backgroundPrimary md:border-t md:border-buttonSecondaryBorder md:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]
+          ">
+            <Button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              status="secondary"
+            >
+              <CaretLeftFilled />
+            </Button>
+            <span className="text-sm text-textTertiary font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              status="secondary"
+            >
+              <CaretRightFilled />
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
