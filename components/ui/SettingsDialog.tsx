@@ -222,7 +222,8 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                 </option>
               ))}
             </select>
-
+          </div>
+          <div className="space-y-2">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center">
                 <label htmlFor="stats-toggle" className="font-medium text-textSecondary cursor-pointer">

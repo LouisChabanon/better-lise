@@ -36,10 +36,13 @@ const variants: Variants = {
 
 // --- CONFIGURATION ---
 const START_HOUR = 7; // Start at 7:00
-const END_HOUR = 20;  // End at 20:00
-const HOURS_COUNT = END_HOUR - START_HOUR; // 13 hours
+const END_HOUR = 19;  // End at 19:00
+const HOURS_COUNT = END_HOUR - START_HOUR; // 12 hours
 const HOUR_HEIGHT = "4rem"; // Fixed height for alignment
-const FIVE_MIN_HEIGHT = "calc(4rem / 12)"; 
+const FIVE_MIN_HEIGHT = "calc(4rem / 12)";
+
+const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
+const timeLabels = Array.from({ length: HOURS_COUNT }, (_, i) => i + START_HOUR); // Generate time labels (7:00 to 18:00)
 
 export default function Agenda({ onSettingsClick }: { onSettingsClick: () => void }) {
 
@@ -52,6 +55,7 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
     const agendaRef = useRef<HTMLDivElement>(null);
     const { weekDates, currentDayIndex } = getWeekData(weekOffset);
 
+    // -- EFFECTS --
     useEffect(() =>{
         if(data?.status === "no user"){
             onSettingsClick();
@@ -64,8 +68,8 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
         }
     }, [])
 
-    const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
-
+    
+    // -- HANDLERS --
     const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
         const swipeThreshold = 50;
         const offset = info.offset.x;
@@ -85,12 +89,10 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
         setWeekOffset(prev => prev + directon);
     }
 
-    // Generate time labels (7:00 to 19:00/20:00)
-    const timeLabels = Array.from({ length: HOURS_COUNT }, (_, i) => i + START_HOUR);
-
     return (
         <div className="flex flex-col h-full select-none overflow-hidden rounded-xl">
-            {/* Desktop Header */}
+            
+            {/* ================= DESKTOP HEADER =================  */}
             <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
                 <h1 className="text-xl font-semibold text-textPrimary">
                     <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
@@ -111,7 +113,7 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                 </div>
             </header>
 
-            {/* Mobile Header */}
+            {/* ================= MOBILE HEADER =================  */}
             <header className="flex sm:hidden flex-none items-center justify-between py-2 px-6">
                 <h1 className="text-xl font-semibold text-textPrimary">
                     <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
@@ -125,6 +127,7 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
             </header>
 
             <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">
+                {/* --- Loading / Error States --- */}
                 {isFetching ? (
                     <LoadingPlaceholder />
                 ) : isError ? (
@@ -133,9 +136,9 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                     </div>
                 ) : (
                     <div ref={agendaRef} className="flex-1 min-h-0 flex flex-col md:overflow-hidden">
-                        {/* Day Headers */}
+                        {/* --- SUBHEADERS --- */}
                         <div className="sticky top-0 z-30 flex-none bg-backgroundPrimary shadow ring-opacity-5 border-b border-calendarGridBorder">
-                            {/* Mobile Days */}
+                            {/* ======== MOBILE DAY HEADER ========= */}
                             <div className="grid grid-cols-5 text-sm text-textPrimary sm:hidden">
                                 <div className="col-end-1 w-14" />
                                 {weekDates.map((date, i) => (
@@ -146,7 +149,7 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                                 ))}
                             </div>
 
-                            {/* Desktop Days */}
+                            {/* ======== DESKTOP DAY HEADER ========= */}
                             <div className="-mr-px hidden grid-cols-5 divide-x divide-calendarGridBorder border-r border-calendarGridBorder text-sm leading-6 text-gray-500 sm:grid">
                                 <div className="col-end-1 w-14" />
                                 {weekDates.map((date, i) => (
@@ -158,27 +161,28 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                                 ))}
                             </div>
                         </div>
-
+                        
+                        {/* --- AGENDA GRID & EVENTS --- */}
                         <div className="flex-1 min-h-0 flex overflow-y-auto">
                             <div className="sticky left-0 z-10 w-14 bg-backgroundPrimary ring-1 ring-calendarGridBorder flex-none" />
                             <div className="grid flex-1 min-h-0 grid-cols-1 grid-rows-1">
-                                {/* Horizontal Lines (Hour markers) */}
+                                {/* --- Horizontal Lines (Hour markers) ---*/}
                                 <div
                                     className="col-start-1 col-end-2 row-start-1 grid divide-y divide-calendarGridBorder"
                                     style={{ 
                                         gridTemplateRows: `repeat(${HOURS_COUNT}, ${HOUR_HEIGHT})` 
                                     }}
                                 >
-                                    {timeLabels.map((hour) => (
+                                    {timeLabels.map((hour, index) => (
                                         <div key={hour}>
                                             <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-textQuaternary">
-                                                {hour}:00
+                                                {index > 0 ? `${hour}:00` : ""}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Vertical Lines */}
+                                {/* --- Vertical Lines --- */}
                                 <div className="col-start-1 col-end-2 row-start-1 grid-rows-1 divide-x divide-calendarGridBorder grid grid-cols-5 h-full pointer-events-none">
                                     <div className="col-start-1 row-span-full" />
                                     <div className="col-start-2 row-span-full" />
@@ -187,7 +191,7 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                                     <div className="col-start-5 row-span-full" />
                                 </div>
 
-                                {/* Events Container */}
+                                {/* ============= EVENTS CONTAINER ============= */}
                                 <AnimatePresence initial={false} custom={swipeDirection}>
                                     <motion.ol
                                         key={weekOffset}
