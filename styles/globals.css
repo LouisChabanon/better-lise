@@ -3,15 +3,15 @@
 
 :root {
   --background-primary: #FFFFFF;
-  --background-secondary: #FDF7FF;
-  --background-tertiary: #FDF7FF;
+  --background-secondary: #f9f9fc;
+  --background-tertiary: #f3f4f6;
   --text-primary: #6750A4;
-  --text-secondary: oklch(27.8% 0.033 256.848);
-  --text-tertiary: oklch(44.6% 0.03 256.802);
-  --text-quaternary: oklch(60.2% 0.02 256.802);
-  --calendar-grid-border: oklch(96.7% 0.003 264.542);
+  --text-secondary: #6b7280;
+  --text-tertiary: #6b7280;
+  --text-quaternary: #9ca3af;
+  --calendar-grid-border: #e5e7eb;
   --primary-400: #7551CC;
-  --primary-50: #f8f7fd;
+  --primary-50: #f3e8ff;
   --primary-100: #D7CCF3;
 
   --button-text-primary: #FFFFFF;     
@@ -44,51 +44,90 @@
 
   --event-default-bg: #E9DDFF;
   --event-default-text: #6750A4;
+
+  --badge-success-bg: #ecfdf5; 
+  --badge-success-text: #047857;
+  
+  --badge-warning-bg: #fffbeb; 
+  --badge-warning-text: #b45309;
+  
+  --badge-danger-bg: oklch(93.6% 0.032 17.717);
+  --badge-danger-text: oklch(39.6% 0.141 25.723);
+  
+  --badge-neutral-bg: oklch(96.7% 0.003 264.542);
+  --badge-neutral-text: oklch(27.8% 0.033 256.848);
 }
 
 .dark {
-  --background-primary: #302d34;       /* near black background */ 
-  --background-secondary: #1b181f;    /* slightly lighter for cards/inputs */
-  --background-tertiary: #46444a;
-  --text-primary: #FFFFFF;            /* light lavender for high contrast */
-  --text-secondary: #FFFFFF; /* lighter grayish-blue for secondary */
-  --text-tertiary: oklch(70% 0.025 256.8);
-  --text-quaternary: #FFFFFF;;
-  --calendar-grid-border: #46444a; /* subtle border */
-  --primary-400: #A892FF;             /* brighter purple for visibility */
-  --primary-50: #2A233B;              /* dark-tinted version */
-  --primary-100: #4D3E7C;             /* darker muted purple */
+  /* --- BACKGROUNDS --- */
 
-  --button-text-primary: #000000;     /* keep buttons readable */
-  --button-primary-background: #7862ae; /* brighter button background */
-  --button-primary-hover: #8974b8;      /* hover state */
-  --button-primary-border: #A892FF;     /* border color */
+  --background-primary: #1e1b22; 
 
-  --button-text-secondary: #FFFFFF;     
-  --button-secondary-background: #46444a; 
-  --button-secondary-hover: #1b181f;      
-  --button-secondary-border: #46444a;
+  --background-secondary: #28252d; 
 
-  --button-text-disabled: #FFFFFF;
-  --button-disabled-background: #777479;
+  --background-tertiary: #333038; 
+
+  --text-primary: #FFFFFF; 
+
+  --text-secondary: #e6e1e5; 
+
+  --text-tertiary: #c4c7c5; 
+
+  --text-quaternary: #78767a; 
+
+  /* --- BORDERS --- */
+  --calendar-grid-border: #49454f; 
+
+  /* --- BRAND / ACCENTS --- */
+  --primary-400: #d0bcff; 
+
+  --primary-50: rgba(208, 188, 255, 0.12); 
   
-  --event-cm-bg: #a87a2a;
+  --primary-100: #4f378b; 
+
+  /* --- BUTTONS --- */
+  --button-text-primary: #381e72; 
+  --button-primary-background: #d0bcff; 
+  --button-primary-hover: #e8def8; 
+  --button-primary-border: #d0bcff; 
+
+  --button-text-secondary: #e6e1e5;     
+  --button-secondary-background: transparent; 
+  --button-secondary-hover: #333038;      
+  --button-secondary-border: #938f99;
+
+  --button-text-disabled: #1d1b20;
+  --button-disabled-background: #49454f;
+  
+  --event-cm-bg: #B27C0E; 
   --event-cm-text: #FFFFFF;
 
-  --event-exam-bg: #9c2121;
+  --event-exam-bg: #9E2A2B;
   --event-exam-text: #FFFFFF;
 
-  --event-auto-bg: oklch(22% 0.028 342.258);
-  --event-auto-text: #FFFFFF;
+  --event-auto-bg: #3D405B;
+  --event-auto-text: #E0E1DD;
 
-  --event-tp-bg: #4077d1;
+  --event-tp-bg: #1D4E89;
   --event-tp-text: #FFFFFF;
 
-  --event-ru-bg: #717171;
-  --event-ru-text: #FFFFFF;
+  --event-ru-bg: #4A4E69;
+  --event-ru-text: #F2E9E4;
 
-  --event-default-bg: #6750a4;
+  --event-default-bg: #453375;
   --event-default-text: #FFFFFF;
+
+  --badge-success-bg: #064e3b; 
+  --badge-success-text: #6ee7b7; 
+
+  --badge-warning-bg: #78350f; 
+  --badge-warning-text: #fcd34d; 
+
+  --badge-danger-bg: #7f1d1d; 
+  --badge-danger-text: #fca5a5; 
+
+  --badge-neutral-bg: #374151; 
+  --badge-neutral-text: #d1d5db;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -131,11 +170,22 @@
 
   --color-buttonTextDisabled: var(--button-text-disabled);
   --color-buttonDisabledBackground: var(--button-disabled-background);
+
+  --color-badgeSuccessBg: var(--badge-success-bg);
+  --color-badgeSuccessText: var(--badge-success-text);
+
+  --color-badgeWarningBg: var(--badge-warning-bg);
+  --color-badgeWarningText: var(--badge-warning-text);
+
+  --color-badgeDangerBg: var(--badge-danger-bg);
+  --color-badgeDangerText: var(--badge-danger-text);
+
+  --color-badgeNeutralBg: var(--badge-neutral-bg);
+  --color-badgeNeutralText: var(--badge-neutral-text);
 }
 
 @theme {
   /* Primary Color */
-  --color-primary-50: #f8f7fd;
   --color-primary-200: #B6A2E9;
   --color-primary-300: #9577DF;
   --color-primary-500: #6647B2;

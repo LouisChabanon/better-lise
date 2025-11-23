@@ -25,6 +25,7 @@ model Grade {
   absence    String
   comment    String
   teachers   String
+  opened     Boolean @default(false)
   user       User   @relation(fields: [userId], references: [id])
   userId     Int
 }
