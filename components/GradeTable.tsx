@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Button } from "./ui/Button";
 import { GradeType } from "@/lib/types";
 import {
@@ -7,13 +7,15 @@ import {
   CaretLeftFilled,
   ReloadOutlined,
   CalendarOutlined,
-  BarcodeOutlined
+  BarcodeOutlined,
+  CheckOutlined
 } from "@ant-design/icons";
 import GradeModal from "./ui/GradeModal";
 import posthog from "posthog-js";
 import GradeLootBoxModal from "./ui/GradeLootBoxModal";
 import { useGradesData } from "@/hooks/useGradesData";
 import { useScraperLoading } from "@/hooks/useScraperLoading";
+import { markGradeAsOpened, markAllGradesAsOpened, markGradeAsNew } from "@/actions/MarkGradeOpened";
 
 interface GradeTableProps {
   session: any;
@@ -27,38 +29,45 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
     isFetching,
     isError,
     error,
-    refetch
+    refetch,
   } = useGradesData(session);
 
   const { progress, message } = useScraperLoading(isFetching || isLoading);
 
+  const [localGrades, setLocalGrades] = useState<GradeType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredGrades, setFilteredGrades] = useState<GradeType[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<GradeType | null>(null);
   const [gradeToReveal, setGradeToReveal] = useState<GradeType | null>(null);
 
-  const pageSize = 15;
-
+  const hasNewGrades = localGrades.some((g) => g.isNew);
 
   function noteBadgeClass(note: number | string) {
     const n = Number(note);
-    if (isNaN(n)) return "bg-gray-200 text-gray-800";
-    if (n < 10) return "bg-red-100 text-red-800";
-    if (n >= 10 && n < 12) return "bg-yellow-100 text-yellow-800";
-    return "bg-green-100 text-green-800";
+    if (isNaN(n)) return "bg-badgeNeutralBg text-badgeNeutralText";
+    if (n < 10) return "bg-badgeDangerBg text-badgeDangerText";
+    if (n >= 10 && n < 12) return "bg-badgeWarningBg text-badgeWarningText";
+    return "bg-badgeSuccessBg text-badgeSuccessText";
   }
 
   // --- Effects ---
+
+    useEffect(() => {
+    if (grades){
+      setLocalGrades(grades);
+    }
+  }, [grades])
+
   useEffect(() => {
-    if (!grades) {
+    if (!localGrades) {
       setFilteredGrades([]);
       setCurrentPage(1);
       return;
     }
 
     const term = searchTerm.trim().toLowerCase();
-    const filtered = grades.filter(
+    const filtered = localGrades.filter(
       (g) =>
         g.code.toLowerCase().includes(term) ||
         g.note.toString().includes(term) ||
@@ -68,9 +77,26 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 
     setFilteredGrades(filtered);
     setCurrentPage(1);
-  }, [searchTerm, grades]);
+  }, [searchTerm, localGrades]);
+
+  const markAsOpenedLocally = (code: string) => {
+    setLocalGrades((prev => prev.map(g => g.code === code ? {...g, isNew: false} : g))
+    );
+  }
+
+  const handleMarkAllRead = () => {
+    setLocalGrades(prev => prev.map(g => ({ ...g, isNew: false })));
+    markAllGradesAsOpened();
+  };
+
+  const handleMarkAsNew = (grade: GradeType) => {
+    setLocalGrades(prev => prev.map(g => g.code === grade.code ? { ...g, isNew: true } : g));
+    setSelectedGrade(null);
+    markGradeAsNew(grade.code);
+  }
 
   // --- Pagination Calculation ---
+  const pageSize = 15;
   const totalPages = Math.max(1, Math.ceil(filteredGrades.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
   const currentGrades = filteredGrades.slice(startIndex, startIndex + pageSize);
@@ -91,41 +117,43 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
       setSelectedGrade(grade);
       setGradeToReveal(null);
     }
+
+    // Mark grade as opened in the database and refetch grades
+    if (grade.isNew) {
+      markAsOpenedLocally(grade.code);
+      markGradeAsOpened(grade.code);
+    }
   };
 
   const handleRevealComplete = () => {
     if (!gradeToReveal) return;
-    if (posthog.has_opted_in_capturing()) {
-      posthog.capture("view_grade_detail_event", {
-        grade_code: gradeToReveal.code,
-        was_revealed: true,
-      });
-    }
-    const revealedGrade = { ...gradeToReveal, isNew: false };
-    setFilteredGrades((prevGrades) =>
-      prevGrades.map((g) => (g.code === revealedGrade.code ? revealedGrade : g))
-    );
-    setSelectedGrade(revealedGrade);
+
+    markAsOpenedLocally(gradeToReveal.code);
+
+    markGradeAsOpened(gradeToReveal.code);
+
+    const revealedGrade = {...gradeToReveal, isNew: false };
     setGradeToReveal(null);
+    setSelectedGrade(revealedGrade);
   };
 
   // --- Render Helpers ---
   const renderGradeBadge = (g: GradeType) => {
     const isRevealabale = g.isNew && !isNaN(Number(g.note)) && gambling;
     const noteClass = isRevealabale 
-      ? "bg-ButtonPrimaryBackground text-textPrimary font-extrabold shadow-md" 
+      ? "bg-buttonPrimaryBackground text-buttonTextPrimary font-extrabold border-2 border-primary-50" 
       : noteBadgeClass(g.note);
     const noteText = isRevealabale ? "?" : g.note;
 
     return (
-      <span className={`inline-flex items-center justify-center h-10 w-10 rounded-xl text-sm font-bold ${noteClass}`}>
+      <span className={`inline-flex items-center justify-center h-10 w-14 rounded-xl text-sm font-bold shrink-0 ${noteClass}`}>
         {noteText}
       </span>
     );
   };
 
   return (
-    <div className="flex flex-col md:h-full relative w-full">
+    <div className="flex flex-col w-full relative md:h-full md:overflow-hidden">
       {/* --- Search Header --- */}
       <div className="flex flex-row sm:items-center sm:justify-between mb-4 gap-2 shrink-0">
         <input
@@ -136,9 +164,18 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
           disabled={isFetching}
           className="px-4 py-2 border border-buttonSecondaryBorder bg-backgroundSecondary rounded-xl w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
         />
-        <Button status="primary" onClick={() => refetch()} disabled={isFetching}>
-          <ReloadOutlined spin={isFetching} />
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          {hasNewGrades && (
+            <Button status="secondary" onClick={handleMarkAllRead} className="whitespace-nowrap">
+              <CheckOutlined />
+              <span className="ml-2 hidden sm:inline">Tout marquer comme vu</span>
+              <span className="ml-2 sm:hidden">Tout vu</span>
+            </Button>
+          )}
+          <Button status="primary" onClick={() => refetch()} disabled={isFetching}>
+            <ReloadOutlined spin={isFetching} />
+          </Button>
+        </div>
       </div>
 
       {/* --- Loading / Error States --- */}
@@ -175,7 +212,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
       ) : (
         <>
           <div className="flex-1 min-h-0 flex flex-col">
-            {currentGrades.length === 0 ? (
+            {filteredGrades.length === 0 ? (
                <div className="text-center text-textTertiary py-12 bg-backgroundPrimary rounded-xl border border-backgroundSecondary">
                   Aucune note trouvée.
                </div>
@@ -184,14 +221,14 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                 {/* ================= MOBILE VIEW: CARD LIST (< md) ================= */}
 
                 <div className="md:hidden space-y-3 pb-2">
-                  {currentGrades.map((g) => (
+                  {filteredGrades.map((g) => (
                     <div 
                       key={g.code}
                       onClick={() => onRowClick(g)}
                       className={`
                         relative flex items-center justify-between p-4 rounded-2xl border border-backgroundSecondary bg-backgroundPrimary 
                         active:scale-[0.98] transition-transform touch-manipulation shadow-sm
-                        ${g.isNew ? "ring-2 ring-primary ring-offset-1" : ""}
+                        ${g.isNew ? "ring-2 ring-primary ring-offset-1 ring-offset-primary-500" : ""}
                       `}
                     >
                        {/* Left Side: Info */}
@@ -205,7 +242,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                           <div className="flex items-center gap-3 text-xs text-textTertiary">
                              <span className="flex items-center gap-1"><CalendarOutlined /> {g.date}</span>
                              <span className="w-px h-3 bg-border/50"></span>
-                             <span className="flex items-center gap-1 truncate"><BarcodeOutlined /> {g.code}</span>
+                             <span className="flex items-center gap-1 truncate text-textQuaternary"><BarcodeOutlined /> {g.code}</span>
                           </div>
                        </div>
 
@@ -218,7 +255,6 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                 </div>
 
                 {/* ================= DESKTOP VIEW: TABLE (>= md) ================= */}
-                {/* Hidden on small screens */}
                 <div className="hidden md:block flex-1 overflow-auto rounded-t-lg bg-backgroundPrimary border border-backgroundSecondary">
                   <table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
                     <thead className="bg-backgroundTertiary uppercase text-xs font-semibold z-10 sticky top-0">
@@ -229,9 +265,9 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                         <th className="px-4 py-3 text-left w-32">Code</th>
                       </tr>
                     </thead>
-                    <tbody className="text-textSecondary divide-y divide-gray-100">
+                    <tbody className="text-textSecondary divide-y divide-calendarGridBorder">
                       {currentGrades.map((g) => {
-                        const isRevealabale = g.isNew && !isNaN(Number(g.note)) && gambling;
+                        const isRevealabale = g.isNew && !isNaN(Number(g.note.toFixed(2))) && gambling;
                         const rowBg = g.isNew ? "bg-primary/5" : "hover:bg-backgroundSecondary";
                         
                         return (
@@ -252,13 +288,13 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                               {isRevealabale ? (
                                 <span className="bg-primary text-white px-2 py-1 rounded-lg font-bold shadow-sm">?</span>
                               ) : (
-                                <span className={`px-2 py-1 rounded-lg ${noteBadgeClass(g.note)}`}>
-                                  {g.note}
-                                </span>
+                                <>
+                                  {renderGradeBadge(g)}
+                                </>
                               )}
                             </td>
                             <td className="px-4 py-3 text-textTertiary">{g.date}</td>
-                            <td className="px-4 py-3 text-textTertiary text-xs font-mono">{g.code}</td>
+                            <td className="px-4 py-3 text-textQuaternary text-xs font-mono">{g.code}</td>
                           </tr>
                         );
                       })}
@@ -271,11 +307,11 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 
           {/* --- Pagination --- */}
           <div className="
+            hidden md:flex
             mt-4 md:mt-0
             md:sticky md:bottom-0 md:z-40
-            flex justify-between items-center 
+            justify-between items-center 
             md:p-4 md:bg-backgroundPrimary md:border-t md:border-buttonSecondaryBorder md:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]
-
           ">
             <Button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -298,7 +334,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 
           {/* --- Modals --- */}
           {selectedGrade && (
-            <GradeModal grade={selectedGrade} onClose={() => setSelectedGrade(null)} />
+            <GradeModal grade={selectedGrade} onClose={() => setSelectedGrade(null)} onMarkAsNew={handleMarkAsNew} />
           )}
           {gradeToReveal && (
             <GradeLootBoxModal

@@ -5,10 +5,12 @@ import { GradeType } from "@/lib/types";
 import GetGradeDetails from "@/actions/GetGradeDetails";
 import { Button } from "./Button";
 import GradeChart from "./GradeChart";
+import { GiftOutlined } from "@ant-design/icons";
 
 interface GradeModalProps {
     grade: GradeType;
     onClose?: () => void;
+    onMarkAsNew?: (grade: GradeType) => void;
 }
 
 type GradeDetail = {
@@ -24,7 +26,7 @@ type GradeDetail = {
     };
 }
 
-export default function GradeModal({ grade, onClose }: GradeModalProps) {
+export default function GradeModal({ grade, onClose, onMarkAsNew }: GradeModalProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<GradeDetail | null>(null);
@@ -48,16 +50,24 @@ export default function GradeModal({ grade, onClose }: GradeModalProps) {
     }, [grade.code]);
 
     return (
-        <div className="fixed inset-0 z-50 flex justify-center justify-center sm:items-center items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex justify-center sm:items-center items-start overflow-y-auto bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
             <div className="bg-backgroundPrimary p-4 sm:p-6 rounded-lg w-full max-w-lg lg:max-w-4xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4 sm:mb-6 gap-4">
                     <div className="flex flex-col min-w-0">
                         <h3 className="text-lg font-semibold text-textPrimary truncate">Détails - {grade.libelle}</h3>
                         <p className="text-sm text-textTertiary break-words">{grade.code}</p>
                     </div>
-                    <Button onClick={() => onClose && onClose()} status="secondary">✕</Button>
+                    <div className="flex gap-2 shrink-0">
+                        {onMarkAsNew && (
+                            <Button onClick={() => onMarkAsNew(grade)} status="secondary" className="!px-3">
+                                <GiftOutlined />
+                                <span className="ml-2 hidden sm:inline">Marquer comme nouvelle</span>
+                            </Button>
+                        )}
+                        <Button onClick={() => onClose && onClose()} status="secondary">✕</Button>
+                    </div>
                 </div>
-
+                
                 {loading && <div className="text-center text-textTertiary">
                     <svg className="mr-3 size-5 animate-spin inline-block" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4}></circle>

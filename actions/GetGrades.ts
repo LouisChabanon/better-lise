@@ -12,26 +12,21 @@ const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
 
 
 export async function getGradeData(reload: boolean = true): Promise<RequestState> {
-
     const grades:GradeType[] = [];
-
-    // Fetch grades from database
-    
 
     const session = (await verifySession());
     if (!session.username) {
         logger.warn("User has no active session, failed to fetch grades");
         return {errors: "No username found in session.", success: false};
     }
-    const user = await prisma.user.findUnique({ where: { username: session.username} })
 
+    const user = await prisma.user.findUnique({ where: { username: session.username} })
     if (!user) {
         logger.warn("User not found in database. Failed to fetch grades", {username: session.username});
         return {errors: "User not found in database.", success: false};
     }
 
     const jsessionid = session.sessionId
-
     if(!jsessionid){
         logger.warn("No LISE session Id found in cookies", {username: session.username});
         return {errors: "Session id not found.", success: false}
@@ -39,17 +34,26 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
 
     const db_grades = await prisma.grade.findMany({ where: { userId: user.id}})
-    //if (!reload) grades.push(...db_grades.map(g => ({code: g.code, libelle: g.name, note: g.grade, date: g.date, absence: g.absence, comment: g.comment, teachers: g.teachers})));
 
-    // Fetching data from Lise only if reload is true or if there are no grades in the database
+    const isFirstSync = db_grades.length === 0;
+
+    const mappedDbGrades: GradeType[] = db_grades.map(g => ({
+        code: g.code,
+        libelle: g.name,
+        note: g.grade,
+        date: g.date,
+        absence: g.absence,
+        comment: g.comment,
+        teachers: g.teachers,
+        isNew: !g.opened
+    }))
+
+    // Fetching data from Lise
     if (reload === true || db_grades.length === 0) {
         logger.info("Fetching user grades from Lise.", {username: user.username});
+        
         const jar = new CookieJar(); // Create a new cookie jar to set Lise's JSESSIONID cookie
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000); // Useless at the moment
-
         const fetchWithCookies = fetchCookie(fetch, jar);
-
         jar.setCookieSync(`JSESSIONID=${jsessionid}`, LISE_URI); // Set the JSESSIONID cookie in the cookie jar
 
         try {
@@ -103,23 +107,22 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
 
             const newGrades = grades.filter(g => !db_grades.some(dbGrade => dbGrade.code === g.code));
             
-            await prisma.grade.createMany({
-                 data: newGrades.map(g => ({ 
-                    name: g.libelle,
-                    code: g.code,
-                    grade: g.note,
-                    date: g.date,
-                    absence: g.absence,
-                    comment: g.comment,
-                    teachers: g.teachers,
-                    userId: user.id,
-                 }))
-            })
-            
-            // Append newGrades to the grades array with isNew flag skip if the number of new grade > 10 (looks ugly)
-            if(newGrades.length < 10 ){
-                logger.info("Found new grades for user", {username: user.username, newGrades: newGrades.length});
-                newGrades.forEach(g => g.isNew = true);
+            if(newGrades.length > 0){
+                await prisma.grade.createMany({
+                    data: newGrades.map(g => ({ 
+                        name: g.libelle,
+                        code: g.code,
+                        grade: g.note,
+                        date: g.date,
+                        absence: g.absence,
+                        comment: g.comment,
+                        teachers: g.teachers,
+                        userId: user.id,
+                        opened: isFirstSync,
+                    }))
+                })
+                logger.info(`Inserted ${newGrades.length} new grades into database.`, {username: user.username});
+                newGrades.forEach(g => { mappedDbGrades.push({...g, isNew: !isFirstSync}) });
             }
             
         }catch (error) {
@@ -130,5 +133,5 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
             return {errors: "Error fetching grades", success: false};
         }
     }
-    return { data: grades, success: true }
+    return { data: mappedDbGrades, success: true }
 }

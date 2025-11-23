@@ -15,6 +15,7 @@ import { logOut } from "@/actions/Auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { revalidatePath } from "next/cache";
 
 // Helper component for Desktop Navigation Items
 const NavItem = ({ href, label, icon, isActive, onClick }: any) => (
@@ -25,7 +26,7 @@ const NavItem = ({ href, label, icon, isActive, onClick }: any) => (
             relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
             md:flex-row flex-col md:justify-start justify-center
             ${isActive 
-                ? "bg-primary-50 text-primary-600 font-semibold" 
+                ? "bg-primary-50 text-textPrimary font-semibold" 
                 : "text-textSecondary hover:bg-backgroundSecondary hover:text-textPrimary"
             }
         `}
@@ -101,7 +102,7 @@ export default function AppSidebar({
         <div className="flex flex-col md:flex-row h-full w-full bg-backgroundSecondary overflow-hidden">
             
             {/* ================= DESKTOP SIDEBAR ================= */}
-            <aside className="hidden md:flex w-64 flex-col bg-backgroundPrimary border-r border-backgroundSecondary z-20 h-full shadow-sm">
+            <aside className="hidden md:flex w-64 flex-col bg-backgroundPrimary border-r border-backgroundSecondary z-20 h-full shadow-sm rounded-lg">
                 {/* Header / Logo Area */}
                 <div className="p-6 flex items-center gap-3">
                     <div className="relative h-8 w-8 shadow-primary/30 rounded-lg overflow-hidden shrink-0">
@@ -158,7 +159,7 @@ export default function AppSidebar({
             <main className="flex-1 h-full relative overflow-hidden flex flex-col">
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden bg-backgroundPrimary md:ml-6 p-2">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden bg-backgroundPrimary md:ml-6 p-2 md:rounded-lg">
                    <div className="mx-auto h-full">
                        {children}
                    </div>
@@ -215,6 +216,8 @@ export default function AppSidebar({
                     onSave={() => {
                         setSettingsModal(false);
                         queryClient.invalidateQueries({ queryKey: ["calendar"]});
+
+                        window.dispatchEvent(new Event("settings-changed"));
                         router.refresh();
                     }} 
                 />
