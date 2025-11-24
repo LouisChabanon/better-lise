@@ -15,7 +15,7 @@ import { logOut } from "@/actions/Auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { revalidatePath } from "next/cache";
+import LiseStatusBadge from "./ui/LiseStatusBadge";
 
 // Helper component for Desktop Navigation Items
 const NavItem = ({ href, label, icon, isActive, onClick }: any) => (
@@ -104,13 +104,18 @@ export default function AppSidebar({
             {/* ================= DESKTOP SIDEBAR ================= */}
             <aside className="hidden md:flex w-64 flex-col bg-backgroundPrimary border-r border-backgroundSecondary z-20 h-full shadow-sm rounded-lg">
                 {/* Header / Logo Area */}
-                <div className="p-6 flex items-center gap-3">
-                    <div className="relative h-8 w-8 shadow-primary/30 rounded-lg overflow-hidden shrink-0">
-                        <Image src="/apple-icon.png" alt="Logo" fill className="object-cover" priority />
+                <div className="flex flex-col items-center">
+                    <div className="p-6 flex items-center gap-3">
+                        <div className="relative h-8 w-8 shadow-primary/30 rounded-lg overflow-hidden shrink-0">
+                            <Image src="/apple-icon.png" alt="Logo" fill className="object-cover" priority />
+                        </div>
+                        <h1 className="text-xl font-bold text-textPrimary tracking-tight">Better Lise</h1>
+                        
                     </div>
-                    <h1 className="text-xl font-bold text-textPrimary tracking-tight">Better Lise</h1>
+                    <div className="mb-4">
+                        <LiseStatusBadge />
+                    </div>
                 </div>
-
                 {/* Navigation Links */}
                 <nav className="flex-1 px-4 space-y-2 mt-4">
                     <p className="px-4 text-xs font-semibold text-textTertiary uppercase tracking-wider mb-2">Menu</p>

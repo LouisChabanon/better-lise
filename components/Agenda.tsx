@@ -10,6 +10,7 @@ import { getMonthName } from '@/lib/helper';
 import LoadingPlaceholder from '@/components/ui/LoadingPlaceholder';
 import { AnimatePresence, motion, PanInfo, Variants } from "framer-motion";
 import { useCalendarData } from '@/hooks/useCalendarData';
+import LiseStatusBadge from './ui/LiseStatusBadge';
 
 const variants: Variants = {
     enter: (direction: number) => ({
@@ -118,12 +119,16 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                 <h1 className="text-xl font-semibold text-textPrimary">
                     <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
                 </h1>
+                <div className="mt-2 flex justify-center">
+                    <LiseStatusBadge discrete={true} />
+                </div>
                 <div className="flex items-center gap-2">
                     <Button status="secondary" onClick={() => {setWeekOffset(0); setSwipeDirection(0);}} disabled={isFetching || weekOffset === 0}>
                         <HomeOutlined />
                     </Button>
                     <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
                 </div>
+
             </header>
 
             <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">

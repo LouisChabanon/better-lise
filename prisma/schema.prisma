@@ -41,3 +41,13 @@ model Absence {
   user    User   @relation(fields: [userId], references: [id])
   userId  Int
 }
+
+model ScraperLog {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  duration  Int
+  status    String
+  endpoint  String
+
+  @@index([createdAt]) // for querying logs by date
+}

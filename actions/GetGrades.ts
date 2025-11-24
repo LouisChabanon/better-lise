@@ -143,6 +143,22 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
                     grade_count: newGrades.length
                 }
             });
+
+            // Log scraper performance to database for status badge
+            try {
+                await prisma.scraperLog.create({
+                    data: {
+                        duration: duration,
+                        endpoint: "grades",
+                        status: "success"
+                    }
+                });
+            } catch (error) {
+                logger.error("Failed to log scraper performance to database", {
+                    error: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined
+                });
+            }
             
         }catch (error) {
             posthog.capture({
