@@ -8,31 +8,8 @@ import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
 import { getWeekData } from '@/actions/GetWeekData';
 import { getMonthName } from '@/lib/helper';
 import LoadingPlaceholder from '@/components/ui/LoadingPlaceholder';
-import { AnimatePresence, motion, PanInfo, Variants } from "framer-motion";
+import { AnimatePresence, motion, PanInfo, Variants, useReducedMotion } from "framer-motion";
 import { useCalendarData } from '@/hooks/useCalendarData';
-
-const variants: Variants = {
-    enter: (direction: number) => ({
-        x: direction > 0 ? '100%' : '-100%',
-        opacity: 0,
-    }),
-    center: {
-        x: '0%',
-        opacity: 1,
-        transition: {
-            x: { type: "tween", duration: 0.3, ease: "easeOut" },
-            opacity: { duration: 0.2 }
-        }
-    },
-    exit: (direction: number) => ({
-        x: direction < 0 ? '100%' : '-100%',
-        opacity: 0,
-        transition: {
-            x: { type: "tween", duration: 0.3, ease: "easeOut" },
-            opacity: { duration: 0.2 }
-        },
-    })
-};
 
 // --- CONFIGURATION ---
 const START_HOUR = 7; // Start at 7:00
@@ -45,6 +22,34 @@ const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 const timeLabels = Array.from({ length: HOURS_COUNT }, (_, i) => i + START_HOUR); // Generate time labels (7:00 to 18:00)
 
 export default function Agenda({ onSettingsClick }: { onSettingsClick: () => void }) {
+
+    // -- ANIMATION VARIANTS --
+
+    const shouldReduceMotion = useReducedMotion();
+
+    const variants: Variants = {
+        enter: (direction: number) => ({
+            x: shouldReduceMotion ? 0 : (direction > 0 ? '100%' : '-100%'),
+            opacity: 0,
+        }),
+        center: {
+            x: '0%',
+            opacity: 1,
+            transition: {
+                x: { type: "tween", duration: shouldReduceMotion ? 0 : 0.3, ease: "easeOut" },
+                opacity: { duration: 0.2 }
+            }
+        },
+        exit: (direction: number) => ({
+            x: shouldReduceMotion ? 0 : (direction < 0 ? '100%' : '-100%'),
+            position: 'absolute',
+            opacity: 0,
+            transition: {
+                x: { type: "tween", duration: shouldReduceMotion ? 0 : 0.3, ease: "easeOut" },
+                opacity: { duration: 0.2 }
+            },
+        })
+    };
 
     const { data, isLoading, isFetching, isError, error, refetch } = useCalendarData();
     const calendarEvents = data?.events;

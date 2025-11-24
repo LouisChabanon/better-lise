@@ -219,5 +219,9 @@
 body {
   -webkit-tap-highlight-color: transparent;
 
-
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS */
+    will-change: scroll-position; /* Hint to browser */
+  }
 }
+

@@ -1,6 +1,6 @@
 "use client";
 import { getWeekData } from "@/actions/GetWeekData";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { createPortal } from "react-dom";
 import { tbk } from "@/lib/types";
 import posthog from "posthog-js";
@@ -40,7 +40,7 @@ const getColStartClass = (dayIso: number) => {
     return map[dayIso] || "col-start-1";
 };
 
-const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk, isAllDay }: CalendarEventProps) => {
+const CalendarEventComponent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk, isAllDay }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
 
@@ -172,7 +172,7 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     {isActive && (
                         <>
                             <motion.div
-                                className="fixed inset-0 bg-backgroundPrimary/30 backdrop-blur-sm z-40"
+                                className="fixed inset-0 bg-black/30 backdrop-blur-none z-40"
                                 onClick={handleEnd}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -226,4 +226,11 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     )
 }
 
-export { CalendarEvent };
+export const CalendarEvent = memo(CalendarEventComponent, (prev, next) => {
+    return (
+        prev.info.position === next.info.position &&
+        prev.info.columns === next.info.columns &&
+        prev.weekOffset === next.weekOffset &&
+        prev.title === next.title
+    )
+})

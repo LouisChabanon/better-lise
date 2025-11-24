@@ -78,7 +78,7 @@ const TooltipModal = ({ content, onClose }: { content: typeof TOOLTIP_CONTENT[ke
     aria-modal="true"
     role="dialog"
   >
-    <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+    <div className="absolute inset-0 bg-black/30 " />
     <div
       className="relative bg-backgroundPrimary rounded-lg shadow-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto"
       onClick={(e) => e.stopPropagation()}
@@ -170,7 +170,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
       role="dialog"
     >
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60"
         onClick={() => onClose()}
         aria-hidden="true"
       />

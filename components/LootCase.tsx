@@ -143,6 +143,7 @@ export default function LootCase({ grade, onComplete, onTick, onReveal }: { grad
 
         <motion.div
           className="flex h-full"
+          style={{ willChange: "transform" }}
           animate={controls}
           initial={{ x: 0 }}
           onUpdate={(latest) => {
