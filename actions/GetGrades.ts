@@ -138,7 +138,7 @@ export async function getGradeData(reload: boolean = true): Promise<RequestState
                 event: "scraper_performance",
                 properties: {
                     endpoint: "grades",
-                    duration_ms: duration,
+                    duration_ms: Number(duration),
                     is_new_data: newGrades.length > 0,
                     grade_count: newGrades.length
                 }
