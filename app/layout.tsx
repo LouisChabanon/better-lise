@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: "Better Lise",
     template: "%s | Better Lise",
   },
-  description: "A better lise experience",
+  description: "Lise en un peu mieux",
   formatDetection: {
     telephone: false,
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
       default: "Better Lise",
       template: "%s | Better Lise",
     },
-    description: "A better lise experience",
+    description: "Lise en un peu mieux",
   },
   manifest: "/manifest.json",
 }
