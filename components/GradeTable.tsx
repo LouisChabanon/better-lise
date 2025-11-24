@@ -290,13 +290,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                               {g.libelle}
                             </td>
                             <td className="px-4 py-3 font-semibold">
-                              {isRevealabale ? (
-                                <span className="bg-primary text-white px-2 py-1 rounded-lg font-bold shadow-sm">?</span>
-                              ) : (
-                                <>
-                                  {renderGradeBadge(g)}
-                                </>
-                              )}
+                              {renderGradeBadge(g)}
                             </td>
                             <td className="px-4 py-3 text-textTertiary">{g.date}</td>
                             <td className="px-4 py-3 text-textQuaternary text-xs font-mono">{g.code}</td>
