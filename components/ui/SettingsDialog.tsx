@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {Button} from "./Button";
 import DarkModeToggle from "./DarkModeToggle";
 import { tbk } from "@/lib/types";
+import { liseIdChecker } from "@/lib/helper";
 import posthog from "posthog-js";
 
 interface SettingsDialogProps {
@@ -119,6 +120,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
     const [isGambling, setIsGambling] = useState(false);
     const [isOptedOut, setIsOptedOut] = useState(false);
     const [tooltipKey, setTooltipKey] = useState<keyof typeof TOOLTIP_CONTENT | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
       const storedUser = localStorage.getItem("lise_id");
@@ -207,7 +209,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                 id="settings-lise-input"
                 type="text"
                 className="w-full bg-transparent focus:outline-none"
-                placeholder="Identifiant Lise"
+                placeholder="Identifiant Lise (2024-1234)"
                 defaultValue={localStorage.getItem("lise_id") || ""}
                 onChange={(e) => setUsername(e.target.value)}
               />
@@ -305,6 +307,10 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
         </a>
       </div>
 
+      {error && 
+				<div className="p-3 mt-6 bg-error-container border border-error/20 text-error rounded-lg text-sm font-medium text-center overflow-hidden">
+						{error}
+				</div>}
           {/* actions */}
           <div className="flex justify-end gap-3 mt-8">
             <Button status="secondary" onClick={() => onClose()} type="button">
@@ -316,6 +322,11 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
 
                   if (previousUsername && previousUsername !== username) {
                       posthog.reset(); 
+                  }
+
+                  if(!liseIdChecker(username)){
+                    setError("L'identifiant Lise est invalide. L'identifiant doit être au format 20xx-xxxx");
+                    return;
                   }
 
                   localStorage.setItem("lise_id", username);
