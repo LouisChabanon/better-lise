@@ -56,7 +56,7 @@ const TOOLTIP_CONTENT = {
     description: [
       "Activez cette option pour aider à améliorer l'application.",
       "Des événements d'utilisation anonymes sont envoyés (ex: 'clic sur le bouton des notes').",
-      "Aucune donnée personnelle (notes, identifiant) n'est jamais envoyée. Ce suivi est uniquement destiné à comprendre l'utilisation des fonctionnalités et à résoudre les bugs."
+      "Aucune donnée personnelle (notes, absences) n'est jamais envoyée. Ce suivi est uniquement destiné à comprendre l'utilisation des fonctionnalités et à résoudre les bugs."
     ]
   }
 };
@@ -317,6 +317,13 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
               Annuler
             </Button>
             <Button status="primary" type="submit" onClick={() => {
+              const cleanUsername = username?.trim() || "";
+              
+              if (!cleanUsername) {
+                setError("L'identifiant Lise ne peut pas être vide. Entrez votre identifiant et réessayez.");
+                return;
+              }
+
                 if (username) {
                   const previousUsername = localStorage.getItem("lise_id");
 
@@ -328,6 +335,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
                     setError("L'identifiant Lise est invalide. L'identifiant doit être au format 20xx-xxxx");
                     return;
                   }
+
 
                   localStorage.setItem("lise_id", username);
                   if (!isOptedOut) {

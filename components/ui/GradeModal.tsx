@@ -81,29 +81,29 @@ export default function GradeModal({ grade, onClose, onMarkAsNew }: GradeModalPr
                             <div className="grid grid-cols-2 gap-x-4 gap-y-2 pb-4">
                                 {grade.absence && (<>
                                     <span className="font-medium text-textSecondary">Motif Absence</span>
-                                    <span className="font-bold text-lg text-textPrimary text-right">{grade.absence}</span></>)}
+                                    <span className="font-bold text-lg text-textPrimary text-right sensitive">{grade.absence}</span></>)}
                                 {grade.comment && (<>
-                                    <span className="font-medium text-textSecondary">Appréciation :</span>
-                                    <span className="font-bold text-lg text-textPrimary text-right">{grade.comment}</span></>)}
-                                <span className="font-medium text-textSecondary ">Intervenants</span><span className="text-right">{grade.teachers}</span>
+                                    <span className="font-medium text-textSecondary sensitive">Appréciation :</span>
+                                    <span className="font-bold text-lg text-textPrimary text-right sensitive">{grade.comment}</span></>)}
+                                <span className="font-medium text-textSecondary sensitive">Intervenants</span><span className="text-right">{grade.teachers}</span>
                             </div>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-4 py-4">
-                                <span className="font-medium text-textSecondary">Ma note</span>
-                                <span className="font-semibold text-lg text-textPrimary text-right">{grade.note}</span>
+                                <span className="font-medium text-textSecondary sensitive">Ma note</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right sensitive">{grade.note}</span>
                             </div>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-4 py-4">
                                 <span className="font-medium text-textSecondary">Moyenne</span>
-                                <span className="font-semibold text-lg text-textPrimary text-right">{data.avg !== null ? data.avg.toFixed(2) : "—"}</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right sensitive">{data.avg !== null ? data.avg.toFixed(2) : "—"}</span>
                                 <span className="font-medium text-textSecondary">Medianne</span>
-                                <span className="font-semibold text-lg text-textPrimary text-right">{data.median !== null ? data.median.toFixed(2) : "—"}</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right sensitive">{data.median !== null ? data.median.toFixed(2) : "—"}</span>
                                 <span className="font-medium text-textSecondary">Ecart Type</span>
-                                <span className="font-semibold text-lg text-textPrimary text-right">{data.stdDeviation !== null ? data.stdDeviation.toFixed(2) : "—"}</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right sensitive">{data.stdDeviation !== null ? data.stdDeviation.toFixed(2) : "—"}</span>
                             </div>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-2 py-4">
                                 <span className="font-medium text-textSecondary">Minimum</span>
-                                <span className="font-semibold text-lg text-textPrimary text-right">{data.min !== null ? data.min : "—"}</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right sensitive">{data.min !== null ? data.min : "—"}</span>
                                 <span className="font-medium text-textSecondary">Maximum</span>
-                                <span className="font-semibold text-lg text-textPrimary text-right">{data.max !== null ? data.max : "—"}</span>
+                                <span className="font-semibold text-lg text-textPrimary text-right sensitive">{data.max !== null ? data.max : "—"}</span>
                                 <span className="font-medium text-textSecondary">Echantillon</span>
                                 <span className="font-semibold text-lg text-textPrimary text-right">{data.count}</span>
                             </div>

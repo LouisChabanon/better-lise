@@ -146,7 +146,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
     const noteText = isRevealabale ? "?" : g.note;
 
     return (
-      <span className={`inline-flex items-center justify-center h-10 w-14 rounded-xl text-sm font-bold shrink-0 ${noteClass}`}>
+      <span className={`inline-flex items-center justify-center h-10 w-14 rounded-xl text-sm font-bold shrink-0 sensitive ${noteClass}`}>
         {noteText}
       </span>
     );
@@ -240,19 +240,19 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                        <div className="flex-1 pr-4 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             {g.isNew && <span className="text-[10px] bg-primary text-white px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide">New</span>}
-                            <h3 className="font-semibold text-textPrimary text-sm truncate w-full" title={g.libelle}>
+                            <h3 className="font-semibold text-textPrimary text-sm truncate w-full sensitive" title={g.libelle}>
                               {g.libelle}
                             </h3>
                           </div>
                           <div className="flex items-center gap-3 text-xs text-textTertiary">
-                             <span className="flex items-center gap-1"><CalendarOutlined /> {g.date}</span>
+                             <span className="flex items-center gap-1 sensitive"><CalendarOutlined /> {g.date}</span>
                              <span className="w-px h-3 bg-border/50"></span>
-                             <span className="flex items-center gap-1 truncate text-textQuaternary"><BarcodeOutlined /> {g.code}</span>
+                             <span className="flex items-center gap-1 truncate text-textQuaternary sensitive"><BarcodeOutlined /> {g.code}</span>
                           </div>
                        </div>
 
                        {/* Right Side: Grade */}
-                       <div className="shrink-0">
+                       <div className="shrink-0 sensitive">
                           {renderGradeBadge(g)}
                        </div>
                     </div>
@@ -281,7 +281,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                             onClick={() => onRowClick(g)}
                             className={`${rowBg} transition-colors cursor-pointer`}
                           >
-                            <td className="px-4 py-3 align-middle truncate" title={g.libelle}>
+                            <td className="px-4 py-3 align-middle truncate sensitive" title={g.libelle}>
                               {g.isNew && (
                                 <span className="inline-block bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded mr-2">
                                   NEW
@@ -289,11 +289,11 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
                               )}
                               {g.libelle}
                             </td>
-                            <td className="px-4 py-3 font-semibold">
+                            <td className="px-4 py-3 font-semibold sensitive">
                               {renderGradeBadge(g)}
                             </td>
-                            <td className="px-4 py-3 text-textTertiary">{g.date}</td>
-                            <td className="px-4 py-3 text-textQuaternary text-xs font-mono">{g.code}</td>
+                            <td className="px-4 py-3 text-textTertiary sensitive">{g.date}</td>
+                            <td className="px-4 py-3 text-textQuaternary text-xs font-mono sensitive">{g.code}</td>
                           </tr>
                         );
                       })}
