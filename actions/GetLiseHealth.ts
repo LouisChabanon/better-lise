@@ -8,15 +8,15 @@ interface LiseHealth {
 }
 
 async function getAverageTime(): Promise<LiseHealth> {
-    const oneHourAgo = new Date();
-    oneHourAgo.setHours(oneHourAgo.getHours() -1);
+    const twoHourAgo = new Date();
+    twoHourAgo.setHours(twoHourAgo.getHours() -2);
 
     const aggreate = await prisma.scraperLog.aggregate({
         _avg: { duration: true },
         _count: { id: true },
         where: {
             createdAt: {
-                gte: oneHourAgo,
+                gte: twoHourAgo,
             },
             status: "success",
         },

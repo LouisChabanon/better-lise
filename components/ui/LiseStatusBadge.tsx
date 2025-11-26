@@ -60,7 +60,7 @@ export default function LiseStatusBadge({ discrete = false }: { discrete?: boole
             borderColor: "border-gray-200/50 dark:border-gray-700/50",
             bgColor: "bg-gray-100/50 dark:bg-gray-800/30",
             label: "Données insuffisantes",
-            description: "Pas assez de connexions dans l'heure pour évaluer.",
+            description: "Pas assez de connexions dans les deux derniéres heures pour évaluer.",
             icon: <InfoCircleOutlined />
         };
     } else if (avgDuration > 20000) {
@@ -125,10 +125,10 @@ export default function LiseStatusBadge({ discrete = false }: { discrete?: boole
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 p-4 bg-backgroundPrimary/95 backdrop-blur-md border border-backgroundSecondary shadow-xl rounded-2xl text-left"
+                        className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 p-4 bg-backgroundTertiary border-primary shadow-md rounded-2xl text-left"
                     >
                         {/* Arrow */}
-                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-backgroundPrimary border-t border-l border-backgroundSecondary rotate-45" />
+                        <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-backgroundTertiary border-t border-l border-backgroundSecondary rotate-45" />
 
                         {/* Header */}
                         <div className="flex items-start gap-3 mb-3">
@@ -151,7 +151,7 @@ export default function LiseStatusBadge({ discrete = false }: { discrete?: boole
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs">
-                                    <span className="text-textSecondary">Echantillon (1h)</span>
+                                    <span className="text-textSecondary">Echantillon (2h)</span>
                                     <span className="font-mono font-semibold text-textPrimary">
                                         {count} requêtes
                                     </span>
