@@ -111,7 +111,7 @@ export function AbsencesTable({ session }: { session: any }) {
                           <PieChartOutlined className="text-primary"/>
                           Proportion d'absences
                       </h2>
-                      <p className="text-textSecondary text-xs">Propotion d'absence dans une UE. Au dessus de 20% la revalidation est automatique. <strong>Ceci est une éstimation, vérifiez sur Lise</strong></p>
+                      <p className="text-textSecondary text-xs">Propotion d'absence dans une UE. Au dessus de 20% la revalidation est automatique. <strong>Ceci est une estimation, vérifiez sur Lise</strong></p>
                     </div>
                     <Button 
                         onClick={() => setIsStatsModalOpen(false)}
