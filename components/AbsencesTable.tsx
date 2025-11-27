@@ -77,7 +77,11 @@ export function AbsencesTable({ session }: { session: any }) {
             {/* STATS BUTTON */}
             <Button 
                 status="secondary" 
-                onClick={() => setIsStatsModalOpen(true)}
+                onClick={() => {
+                  if(posthog.has_opted_in_capturing()){
+                    posthog.capture("absences_stats_click");
+                  }
+                  setIsStatsModalOpen(true)}}
                 disabled={isFetching || stats.length === 0}
             >
                 <PieChartOutlined />

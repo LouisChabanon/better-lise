@@ -100,7 +100,6 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
 
                     if(matchedCode){
                         const hours = parseDurationToHours(rowData.duree)
-                        console.log("Hours: ", hours)
                             if (!hoursMap[matchedCode]){
                                 hoursMap[matchedCode] = { totalHours: 0, name: rowData.matiere};
                             }
@@ -124,12 +123,10 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
 
             logger.info("Sucessfully fetched absences", { user: session.username, nbrTotalAbs, dureeTotalAbs });
             
-            
             if (absences.length > 0 && absences[0].date === "Aucune absence.") {
                 return { success: true, data: { nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs } }
             }
 
-            console.log(stats)
             return {success: true, data: {nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs, absences, stats}}
             
         }catch(error){
