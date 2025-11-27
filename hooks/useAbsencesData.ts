@@ -15,6 +15,8 @@ export const useAbsencesData = (session: any) => {
                 throw new Error(res.errors || "Failed to fetch absences")
             }
 
+            if (!res.data.absences) return {...res.data, absences: []}
+
             const absenceItems = (res.data.absences as AbsenceType[]).filter((a: any) => typeof a?.date !== 'undefined');
             const sorted = absenceItems.sort((a: any, b: any) => {
                 const [dayA, monthA, yearA] = a.date.split('/').map(Number);

@@ -42,13 +42,21 @@ export type RequestState = {
     success: boolean;
 }
 
+export type AbsenceStatType = {
+    code: string,
+    name: string,
+    absentHours: number,
+    percentage: number,
+}
+
 export type AbsencesRequestState = {
     errors?: string;
     success: boolean;
     data?: {
         nbTotalAbsences: number;
         dureeTotaleAbsences: string;
-        absences: AbsenceType[];
+        absences?: AbsenceType[];
+        stats?: AbsenceStatType[];
     }
 }
 

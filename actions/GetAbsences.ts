@@ -7,8 +7,23 @@ import * as cheerio from "cheerio";
 import { AbsenceType, AbsencesRequestState } from "@/lib/types";
 import { getHiddenFields, navigateToLisePage } from "@/lib/helper";
 import logger from "@/lib/logger";
+import course_weights from "@/ue_data.json";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
+
+const parseDurationToHours = (durationStr: string): number => {
+    if (!durationStr) return 0;
+    
+    const str = durationStr.toLowerCase().replace(/\s/g, '');
+    
+    const [hoursStr, minutesStr] = str.split(':');
+    const hours = parseInt(hoursStr, 10) || 0;
+    const minutes = parseInt(minutesStr, 10) || 0;
+    return hours + (minutes / 60);
+};
+
+const normalize = (str: string) => 
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRequestState> {
 
@@ -20,12 +35,6 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
         return {errors: "No username found in session.", success: false};
     }
 
-    // const user = await prisma.user.findUnique({ where: { username: session.username} })
-
-    // if (!user) {
-    //     console.warn("User not found in database.");
-    //     return {errors: "User not found in database.", success: false};
-    // }
 
     const jsessionid = session.sessionId
 
@@ -35,18 +44,12 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
     }
 
 
-    //const db_absences = await prisma.absence.findMany({where: {userId: user.id}})
-    //if (!reload) absences.push(db_absences)
-
     if(reload === true){
         logger.info("Fetching absences from Lise", {username: session.username})
 
         const jar = new CookieJar();
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
 
         const fetchWithCookies = fetchCookie(fetch, jar);
-
         jar.setCookieSync(`JSESSIONID=${jsessionid}`, LISE_URI);
 
         try {
@@ -68,10 +71,11 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
             const dureeTotalAbs = $table_html('#form\\:dureeAbs').text() != "" ? $table_html('#form\\:dureeAbs').text() : "00h00"
 
             const rows = $table_html('#form\\:table_data > tr');
+            const hoursMap: Record<string, {totalHours: number, name: string }> = {};
+
             rows.each((index, element) => {
                 const cells = $table_html(element).find('td');
                 
-                // If no absences, date is set to "Aucune absence." Fine for now but it's not pretty
                 const rowData: AbsenceType = {
                     date: $table_html(cells.eq(0)).clone().text().trim(),
                     motif: $table_html(cells.eq(1)).clone().text().trim(),
@@ -82,10 +86,51 @@ export async function getAbsenceData(reload: boolean = true): Promise<AbsencesRe
                     matiere: $table_html(cells.eq(6)).clone().text().trim()
                 }
                 absences.push(rowData);
-            })
+
+                if(rowData.date !== "Aucune absence.") {
+                    const potentialMatches = course_weights.course_weights.filter(c => rowData.cours.includes(c.Semester));
+                    
+
+                    const matchedCourse = potentialMatches.find(c => {
+                        const rowNomalized = normalize(rowData.cours);
+
+                        return c.Keywords.every(keyword => rowNomalized.includes(normalize(keyword)));
+                    })
+                    const matchedCode = matchedCourse?.Code;
+
+                    if(matchedCode){
+                        const hours = parseDurationToHours(rowData.duree)
+                        console.log("Hours: ", hours)
+                            if (!hoursMap[matchedCode]){
+                                hoursMap[matchedCode] = { totalHours: 0, name: rowData.matiere};
+                            }
+                            hoursMap[matchedCode].totalHours += hours;
+                        }
+                    }
+            });
+
+            const stats = Object.keys(hoursMap).map(code => {
+                const ref = course_weights.course_weights.find(c => c.Code === code);
+                if(!ref) return null;
+                const accumulated = hoursMap[code];
+
+                return {
+                    code: code,
+                    name: accumulated.name,
+                    absentHours: accumulated.totalHours,
+                    percentage: (accumulated.totalHours / ref.FFP) * 100
+                };
+            }).filter(item => item !== null).sort((a, b) => (b?.percentage || 0) - (a?.percentage || 0));
+
+            logger.info("Sucessfully fetched absences", { user: session.username, nbrTotalAbs, dureeTotalAbs });
             
-            logger.info("Sucessfully fetched absences", {user: session.username, nbrTotalAbs, dureeTotalAbs});
-            return {success: true, data: {nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs, absences}}
+            
+            if (absences.length > 0 && absences[0].date === "Aucune absence.") {
+                return { success: true, data: { nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs } }
+            }
+
+            console.log(stats)
+            return {success: true, data: {nbTotalAbsences: nbrTotalAbs, dureeTotaleAbsences: dureeTotalAbs, absences, stats}}
             
         }catch(error){
             logger.error("Error fetching absences: ", {
