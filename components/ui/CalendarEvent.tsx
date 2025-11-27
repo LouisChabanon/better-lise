@@ -1,6 +1,6 @@
 "use client";
 import { getWeekData } from "@/actions/GetWeekData";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { createPortal } from "react-dom";
 import { tbk } from "@/lib/types";
 import posthog from "posthog-js";
@@ -40,7 +40,7 @@ const getColStartClass = (dayIso: number) => {
     return map[dayIso] || "col-start-1";
 };
 
-const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk, isAllDay }: CalendarEventProps) => {
+const CalendarEventComponent = ({ title, summary, startDate, endDate, room, teacher, group, type="CM", weekOffset=0, info, tbk, isAllDay }: CalendarEventProps) => {
 
     const [isActive, setIsActive] = useState(false);
 
@@ -50,7 +50,6 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const eventDay = startDate.getDay();
     const eventDayISO = eventDay === 0 ? 7 : eventDay;
 
-    // FIXED: Changed from 7 to 8 to match the Agenda grid start time
     const calendarStartTime = 7;
 
     const getMinutesFromStart = (date: Date) => {
@@ -68,7 +67,6 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     const startOffset = getMinutesFromStart(startDate);
     const endOffset = getMinutesFromStart(endDate);
 
-    // Grid rows are calculated in 5-minute increments
     const startRow = Math.floor(startOffset / 5) + 1;
     const span = Math.max(1, Math.ceil((endOffset - startOffset) / 5));
 
@@ -125,25 +123,24 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     let left = `${(info.position / info.columns) * 100}%`;
     let zIndex = info.columns > 1 ? 10 + info.position : 1;
 
-    const inactiveAClasses = type === "RU" ? "text-5xl" : "text-[10px] sm:text-sm";
+    const inactiveAClasses = ""; 
     
     return (
         <>
             <li
-                className={`relative flex ml-1 mr-1 ${getColStartClass(eventDayISO)} pointer-events-none`}
+                className={`relative ml-0.5 mr-0.5 flex  ${getColStartClass(eventDayISO)} pointer-events-none`}
                 style={{
                     gridRow: `${startRow} / span ${span}`,
-                    marginTop: "2px", 
-                    marginBottom: "2px"
+                    marginTop: "1px", 
+                    marginBottom: "1px"
                 }}
             >
-                {/* Inner container for positioning overlaps */}
                 <a
                     className={`
-                        ${eventClass} group items-center justify-center text-center whitespace-normal overflow-hidden break-words
-                        absolute flex flex-col rounded-lg p-1 transition-all duration-200 gap-2 
+                        ${eventClass} group items-center justify-center text-center whitespace-normal overflow-hidden 
+                        absolute flex flex-col rounded-lg p-0.5 transition-all duration-200 gap-2
                         cursor-pointer pointer-events-auto border border-white/10 shadow-sm
-                        ${inactiveAClasses}
+                        ${inactiveAClasses} @container
                     `}
                     style={{
                         top: 0,
@@ -155,13 +152,27 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
                     onMouseDown={handleStart}
                 >
                     {type === "RU" ? (
-                        <p className="order-1 font-semibold drop-shadow-md line-clamp-3 text-center self-center">{title}</p>
+                        <p className="order-1 font-semibold drop-shadow-md line-clamp-3 text-center self-center text-[clamp(12px,50cqi,64px)] leading-tight">
+                            {title}
+                        </p>
                     ) : (
                         <>
-                            <p className="order-1 font-semibold line-clamp-3 leading-tight">{title.replace(/_/g, " ")}</p>
-                            <p className={`order-2 ${eventText} text-[9px] sm:text-xs opacity-90`}>
-                                {type.replace(/_/g, " ")} {room ? ` - ${room.replace(/_/g, " ")}` : ""}
+                            {/* TITLE */}
+                            <p className="order-1 font-semibold break-words leading-[1.1] line-clamp-3 text-[clamp(9px,10cqi,15px)]">
+                                {title.replace(/_/g, " ")}
                             </p>
+                            
+                            {/* DETAILS */}
+                            <div className={`order-2 ${eventText} flex-col gap-1 items-center leading-none hidden @[35px]:flex`}>
+                                {room && (
+                                    <span className="font-medium opacity-100 line-clamp-1 break-all text-[clamp(8px,9cqi,13px)]">
+                                        {room.replace(/_/g, " ")}
+                                    </span>
+                                )}
+                                <span className="opacity-75 line-clamp-1 text-[clamp(7px,8cqi,11px)]">
+                                    {type.replace(/_/g, " ")}
+                                </span>
+                            </div>
                         </>
                     )}
                 </a>
@@ -226,4 +237,9 @@ const CalendarEvent = ({ title, summary, startDate, endDate, room, teacher, grou
     )
 }
 
-export { CalendarEvent };
+export const CalendarEvent = memo(CalendarEventComponent, (prev, next) => {
+    return prev.title === next.title &&
+            prev.startDate.getTime() === next.startDate.getTime() &&
+            prev.weekOffset === next.weekOffset &&
+            prev.room === next.room;
+})
