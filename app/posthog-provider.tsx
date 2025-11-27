@@ -10,9 +10,9 @@ if (typeof window !== 'undefined') {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     person_profiles: 'identified_only', 
     capture_pageview: false,
-    session_recording: {
-      maskTextSelector: ".sensitive"
-    }
+    autocapture: false,
+    disable_session_recording: true,
+    persistence: 'memory'
   })
 }
 
