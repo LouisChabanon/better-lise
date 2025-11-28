@@ -1,6 +1,6 @@
 "use client";
 
-import { getRarity, randomGaussianGrade } from "@/lib/helper";
+import { getRarity, randomGaussianGrade, randomGrade } from "@/lib/helper";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect, useState, useCallback, useRef } from "react";
 import confetti from "canvas-confetti";
@@ -12,7 +12,7 @@ const WINNING_INDEX = 47;
 
 // Helper function to generate a single random item
 const createRandomItem = () => {
-  const g = randomGaussianGrade();
+  const g = randomGrade();
   const { color } = getRarity(g);
   return { grade: g, color };
 };

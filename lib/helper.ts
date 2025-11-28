@@ -311,6 +311,10 @@ export async function navigateToLisePage(initialHiddenFields: any, navigationPar
         return cheerio.load(html_third_req);
     }
 
+export function randomGrade(): number {
+    return Math.random() * 20
+}
+
 export function randomGaussianGrade(): number {
     const u = 1 - Math.random();
     const v = Math.random();
