@@ -172,7 +172,7 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                         </div>
                         
                         {/* --- AGENDA GRID & EVENTS --- */}
-                        <div className="flex-1 min-h-0 flex overflow-y-auto h-full">
+                        <div className="flex-1 min-h-0 flex overflow-y-auto h-full overflow-x-hidden">
                             <div className="sticky left-0 z-10 w-8 bg-backgroundPrimary ring-1 ring-calendarGridBorder flex-none" />
                             <div className="grid flex-1 min-h-0 grid-cols-1 grid-rows-1">
                                 {/* --- Horizontal Lines (Hour markers) ---*/}
@@ -207,7 +207,9 @@ export default function Agenda({ onSettingsClick }: { onSettingsClick: () => voi
                                         className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 sm:bg-none h-full"
                                         style={{ 
                                             // Dynamic rows based on hours count (12 slots per hour)
-                                            gridTemplateRows: `repeat(${HOURS_COUNT * 12}, ${FIVE_MIN_HEIGHT})`
+                                            gridTemplateRows: `repeat(${HOURS_COUNT * 12}, ${FIVE_MIN_HEIGHT})`,
+                                            gridArea: "1 / 1 / -1 / -1",
+                                            transform: "translateZ(0)"
                                         }}
                                         variants={variants}
                                         initial="enter"

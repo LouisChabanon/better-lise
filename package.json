@@ -48,6 +48,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint-config-next": "16.0.5",
     "prisma": "^6.11.1",
     "tailwindcss": "^4.1.11",
     "typescript": "^5"

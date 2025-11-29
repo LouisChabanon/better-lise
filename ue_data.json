@@ -1,256 +1,256 @@
 {
-    "course_weights" : [
-        {
-            "Code": "MDSA",
-            "Keywords": ["mecanique", "solide"],
-            "Semester": "GIM2",
-            "FFP": 50
-        },
-        {
-            "Code": "MATA",
-            "Keywords": ["materiau"],
-            "Semester": "GIM2",
-            "FFP": 40
-        },
-        {
-            "Code": "SGEA",
-            "Keywords": ["gestion"],
-            "Semester": "GIM2",
-            "FFP": 30
-        },
-        {
-            "Code": "EEAA",
-            "Keywords": ["eea"],
-            "Semester": "GIE2",
-            "FFP": 50
-        },
-        {
-            "Code": "ENGA",
-            "Keywords": ["energetique"],
-            "Semester": "GIE2",
-            "FFP": 40
-        },
-        {
-            "Code": "MINA",
-            "Keywords": ["math", "info"],
-            "Semester": "GIE2",
-            "FFP": 30
-        },
-        {
-            "Code": "COPA",
-            "Keywords": ["concevoir", "produit"],
-            "Semester": "GIM2",
-            "FFP": 80
-        },
-        {
-            "Code": "REPA",
-            "Keywords": ["realiser", "produit"],
-            "Semester": "GIM2",
-            "FFP": 70
-        },
-        {
-            "Code": "ORIA",
-            "Keywords": ["organiser", "industrialisation"],
-            "Semester": "GIM2",
-            "FFP": 30
-        },
-        {
-            "Code": "COSA",
-            "Keywords": ["concevoir", "systeme"],
-            "Semester": "GIE2",
-            "FFP": 70
-        },
-        {
-            "Code": "RESA",
-            "Keywords": ["realiser", "systeme"],
-            "Semester": "GIE2",
-            "FFP": 70
-        },
-        {
-            "Code": "OREXA",
-            "Keywords": ["organiser"],
-            "Semester": "GIE2",
-            "FFP": 40
-        },
-        {
-            "Code": "PJ7",
-            "Keywords": ["projet"],
-            "Semester": "S7",
-            "FFP": 40
-        },
-        {
-            "Code": "PJ8",
-            "Keywords": ["projet"],
-            "Semester": "S8",
-            "FFP": 40
-        },
-        {
-            "Code": "ANS7",
-            "Keywords": ["anglais"],
-            "Semester": "S7",
-            "FFP": 20
-        },
-        {
-            "Code": "ANS8",
-            "Keywords": ["anglais"],
-            "Semester": "S8",
-            "FFP": 20
-        },
-        {
-            "Code": "LVS7",
-            "Keywords": ["langue", "vivante"],
-            "Semester": "S7",
-            "FFP": 20
-        },
-        {
-            "Code": "LVS8",
-            "Keywords": ["langue", "vivante"],
-            "Semester": "S8",
-            "FFP": 20
-        },
-        {
-            "Code": "APES7",
-            "Keywords": ["accompagnement"],
-            "Semester": "S7",
-            "FFP": 13
-        },
-        {
-            "Code": "APES8",
-            "Keywords": ["accompagnement"],
-            "Semester": "S8",
-            "FFP": 9
-        },
-        {
-            "Code": "MDSI",
-            "Keywords": ["mecanique", "solide"],
-            "Semester": "GIM1",
-            "FFP": 80
-        },
-        {
-            "Code": "MATI",
-            "Keywords": ["materiau"],
-            "Semester": "GIM1",
-            "FFP": 40
-        },
-        {
-            "Code": "SGEI",
-            "Keywords": ["gestion"],
-            "Semester": "GIM1",
-            "FFP": 60
-        },
-        {
-            "Code": "EEAI",
-            "Keywords": ["eea"],
-            "Semester": "GIE1",
-            "FFP": 75
-        },
-        {
-            "Code": "ENGI",
-            "Keywords": ["energetique"],
-            "Semester": "GIE1",
-            "FFP": 65
-        },
-        {
-            "Code": "MINI",
-            "Keywords": ["math", "info"],
-            "Semester": "GIE1",
-            "FFP": 40
-        },
-        {
-            "Code": "COPI",
-            "Keywords": ["concevoir", "produit"],
-            "Semester": "GIM1",
-            "FFP": 60
-        },
-        {
-            "Code": "REPI",
-            "Keywords": ["realiser", "produit"],
-            "Semester": "GIM1",
-            "FFP": 50
-        },
-        {
-            "Code": "OREI",
-            "Keywords": ["organiser", "entreprise"],
-            "Semester": "GIM1",
-            "FFP": 20
-        },
-        {
-            "Code": "COSI",
-            "Keywords": ["concevoir", "systeme"],
-            "Semester": "GIE1",
-            "FFP": 60
-        },
-        {
-            "Code": "RESI",
-            "Keywords": ["realiser", "systeme"],
-            "Semester": "GIE1",
-            "FFP": 50
-        },
-        {
-            "Code": "ORHI",
-            "Keywords": ["organiser", "homme"],
-            "Semester": "GIE1",
-            "FFP": 20
-        },
-        {
-            "Code": "PJ5",
-            "Keywords": ["projet"],
-            "Semester": "GIM1",
-            "FFP": 30
-        },
-        {
-            "Code": "PJ6",
-            "Keywords": ["projet"],
-            "Semester": "GIE1",
-            "FFP": 30
-        },
-        {
-            "Code": "ANS5",
-            "Keywords": ["anglais"],
-            "Semester": "S5",
-            "FFP": 20
-        },
-        {
-            "Code": "ANS6",
-            "Keywords": ["anglais"],
-            "Semester": "S6",
-            "FFP": 20
-        },
-        {
-            "Code": "LVS5",
-            "Keywords": ["langue", "vivante"],
-            "Semester": "S5",
-            "FFP": 20
-        },
-        {
-            "Code": "LVS6",
-            "Keywords": ["langue", "vivante"],
-            "Semester": "S6",
-            "FFP": 20
-        },
-        {
-            "Code": "APES5",
-            "Keywords": ["accompagnement"],
-            "Semester": "S5",
-            "FFP": 13
-        },
-        {
-            "Code": "APES6",
-            "Keywords": ["accompagnement"],
-            "Semester": "S6",
-            "FFP": 13
-        },
-        {
-            "Code": "PEITS5",
-            "Keywords": ["sensibilisation", "eit"],
-            "Semester": "S5",
-            "FFP": 10
-        },
-        {
-            "Code": "PEITS6",
-            "Keywords": ["sensibilisation", "eit"],
-            "Semester": "S6",
-            "FFP": 10
-        }
-]
+	"course_weights": [
+		{
+			"Code": "MDSA",
+			"Keywords": ["mecanique", "solide"],
+			"Semester": "GIM2",
+			"FFP": 50
+		},
+		{
+			"Code": "MATA",
+			"Keywords": ["materiau"],
+			"Semester": "GIM2",
+			"FFP": 40
+		},
+		{
+			"Code": "SGEA",
+			"Keywords": ["gestion"],
+			"Semester": "GIM2",
+			"FFP": 30
+		},
+		{
+			"Code": "EEAA",
+			"Keywords": ["eea"],
+			"Semester": "GIE2",
+			"FFP": 50
+		},
+		{
+			"Code": "ENGA",
+			"Keywords": ["energetique"],
+			"Semester": "GIE2",
+			"FFP": 40
+		},
+		{
+			"Code": "MINA",
+			"Keywords": ["math", "info"],
+			"Semester": "GIE2",
+			"FFP": 30
+		},
+		{
+			"Code": "COPA",
+			"Keywords": ["concevoir", "produit"],
+			"Semester": "GIM2",
+			"FFP": 80
+		},
+		{
+			"Code": "REPA",
+			"Keywords": ["realiser", "produit"],
+			"Semester": "GIM2",
+			"FFP": 70
+		},
+		{
+			"Code": "ORIA",
+			"Keywords": ["organiser", "industrialisation"],
+			"Semester": "GIM2",
+			"FFP": 30
+		},
+		{
+			"Code": "COSA",
+			"Keywords": ["concevoir", "systeme"],
+			"Semester": "GIE2",
+			"FFP": 70
+		},
+		{
+			"Code": "RESA",
+			"Keywords": ["realiser", "systeme"],
+			"Semester": "GIE2",
+			"FFP": 70
+		},
+		{
+			"Code": "OREXA",
+			"Keywords": ["organiser"],
+			"Semester": "GIE2",
+			"FFP": 40
+		},
+		{
+			"Code": "PJ7",
+			"Keywords": ["projet"],
+			"Semester": "S7",
+			"FFP": 40
+		},
+		{
+			"Code": "PJ8",
+			"Keywords": ["projet"],
+			"Semester": "S8",
+			"FFP": 40
+		},
+		{
+			"Code": "ANS7",
+			"Keywords": ["anglais"],
+			"Semester": "S7",
+			"FFP": 20
+		},
+		{
+			"Code": "ANS8",
+			"Keywords": ["anglais"],
+			"Semester": "S8",
+			"FFP": 20
+		},
+		{
+			"Code": "LVS7",
+			"Keywords": ["langue", "vivante"],
+			"Semester": "S7",
+			"FFP": 20
+		},
+		{
+			"Code": "LVS8",
+			"Keywords": ["langue", "vivante"],
+			"Semester": "S8",
+			"FFP": 20
+		},
+		{
+			"Code": "APES7",
+			"Keywords": ["accompagnement"],
+			"Semester": "S7",
+			"FFP": 13
+		},
+		{
+			"Code": "APES8",
+			"Keywords": ["accompagnement"],
+			"Semester": "S8",
+			"FFP": 9
+		},
+		{
+			"Code": "MDSI",
+			"Keywords": ["mecanique", "solide"],
+			"Semester": "GIM1",
+			"FFP": 80
+		},
+		{
+			"Code": "MATI",
+			"Keywords": ["materiau"],
+			"Semester": "GIM1",
+			"FFP": 40
+		},
+		{
+			"Code": "SGEI",
+			"Keywords": ["gestion"],
+			"Semester": "GIM1",
+			"FFP": 60
+		},
+		{
+			"Code": "EEAI",
+			"Keywords": ["eea"],
+			"Semester": "GIE1",
+			"FFP": 75
+		},
+		{
+			"Code": "ENGI",
+			"Keywords": ["energetique"],
+			"Semester": "GIE1",
+			"FFP": 65
+		},
+		{
+			"Code": "MINI",
+			"Keywords": ["math", "info"],
+			"Semester": "GIE1",
+			"FFP": 40
+		},
+		{
+			"Code": "COPI",
+			"Keywords": ["concevoir", "produit"],
+			"Semester": "GIM1",
+			"FFP": 60
+		},
+		{
+			"Code": "REPI",
+			"Keywords": ["realiser", "produit"],
+			"Semester": "GIM1",
+			"FFP": 50
+		},
+		{
+			"Code": "OREI",
+			"Keywords": ["organiser", "entreprise"],
+			"Semester": "GIM1",
+			"FFP": 20
+		},
+		{
+			"Code": "COSI",
+			"Keywords": ["concevoir", "systeme"],
+			"Semester": "GIE1",
+			"FFP": 60
+		},
+		{
+			"Code": "RESI",
+			"Keywords": ["realiser", "systeme"],
+			"Semester": "GIE1",
+			"FFP": 50
+		},
+		{
+			"Code": "ORHI",
+			"Keywords": ["organiser", "homme"],
+			"Semester": "GIE1",
+			"FFP": 20
+		},
+		{
+			"Code": "PJ5",
+			"Keywords": ["projet"],
+			"Semester": "GIM1",
+			"FFP": 30
+		},
+		{
+			"Code": "PJ6",
+			"Keywords": ["projet"],
+			"Semester": "GIE1",
+			"FFP": 30
+		},
+		{
+			"Code": "ANS5",
+			"Keywords": ["anglais"],
+			"Semester": "S5",
+			"FFP": 20
+		},
+		{
+			"Code": "ANS6",
+			"Keywords": ["anglais"],
+			"Semester": "S6",
+			"FFP": 20
+		},
+		{
+			"Code": "LVS5",
+			"Keywords": ["langue", "vivante"],
+			"Semester": "S5",
+			"FFP": 20
+		},
+		{
+			"Code": "LVS6",
+			"Keywords": ["langue", "vivante"],
+			"Semester": "S6",
+			"FFP": 20
+		},
+		{
+			"Code": "APES5",
+			"Keywords": ["accompagnement"],
+			"Semester": "S5",
+			"FFP": 13
+		},
+		{
+			"Code": "APES6",
+			"Keywords": ["accompagnement"],
+			"Semester": "S6",
+			"FFP": 13
+		},
+		{
+			"Code": "PEITS5",
+			"Keywords": ["sensibilisation", "eit"],
+			"Semester": "S5",
+			"FFP": 10
+		},
+		{
+			"Code": "PEITS6",
+			"Keywords": ["sensibilisation", "eit"],
+			"Semester": "S6",
+			"FFP": 10
+		}
+	]
 }

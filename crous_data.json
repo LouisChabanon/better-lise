@@ -1,28 +1,28 @@
 {
-    "CrousData" : [
-        {
-            "tbk": "Sibers",
-            "url": "https://www.crous-lorraine.fr/restaurant/resto-u-metzin-2/"
-        },
-        {
-            "tbk": "Chalons",
-            "url": "https://www.crous-reims.fr/restaurant/resto-u-ensam/"
-        },
-        {
-            "tbk": "Bordels",
-            "url": "https://www.crous-bordeaux.fr/restaurant/resto-u-n2-3/"
-        },
-        {
-            "tbk": "KIN",
-            "url": "https://www.crous-aix-marseille.fr/restaurant/ru-les-arts-et-metiers-2/"
-        },
-        {
-            "tbk": "Boquette",
-            "url": "https://www.crous-nantes.fr/restaurant/resto-u-la-gabare/"
-        },
-        {
-            "tbk": "Birse",
-            "url": "https://www.crous-lille.fr/restaurant/r-u-chatillon-lille-centre/"
-        }
-    ]
+	"CrousData": [
+		{
+			"tbk": "Sibers",
+			"url": "https://www.crous-lorraine.fr/restaurant/resto-u-metzin-2/"
+		},
+		{
+			"tbk": "Chalons",
+			"url": "https://www.crous-reims.fr/restaurant/resto-u-ensam/"
+		},
+		{
+			"tbk": "Bordels",
+			"url": "https://www.crous-bordeaux.fr/restaurant/resto-u-n2-3/"
+		},
+		{
+			"tbk": "KIN",
+			"url": "https://www.crous-aix-marseille.fr/restaurant/ru-les-arts-et-metiers-2/"
+		},
+		{
+			"tbk": "Boquette",
+			"url": "https://www.crous-nantes.fr/restaurant/resto-u-la-gabare/"
+		},
+		{
+			"tbk": "Birse",
+			"url": "https://www.crous-lille.fr/restaurant/r-u-chatillon-lille-centre/"
+		}
+	]
 }

@@ -58,7 +58,7 @@ export default function GradeLootBoxModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex justify-center justify-center items-start sm:items-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4`}
+      className={`fixed inset-0 z-50 flex justify-center items-start sm:items-center overflow-y-auto bg-black/40 backdrop-blur-sm p-4`}
       onClick={onClose}
     >
       <div

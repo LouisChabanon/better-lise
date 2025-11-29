@@ -137,7 +137,6 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
 
       if(isOpen && posthog){
         setIsOptedOut(posthog.has_opted_out_capturing());
-        console.log("User opted out ?", isOptedOut)
       }
     }, [isOpen])
 
@@ -145,7 +144,7 @@ export default function SettingsDialog({ isOpen, onClose, onSave }: SettingsDial
 
     const handleToggle = () => {
       setIsOptedOut(!isOptedOut)
-      console.log("User opted out of statistics :", isOptedOut)
+
     }
 
     const handleGamblingToggle = () => {
