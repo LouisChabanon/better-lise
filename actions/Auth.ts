@@ -88,6 +88,21 @@ async function authenticateWithLise(
 	return { success: res.status === 302, status: res.status };
 }
 
+async function logoutWithLise(
+	jSessionId: string
+): Promise<{ success: boolean; status: number }> {
+	const jar = new CookieJar();
+	jar.setCookieSync(`JSESSIONID=${jSessionId}`, LISE_URI!);
+	jar.setCookieSync("isConnCookie=false", LISE_URI!);
+	const fetchWithCookies = fetchCookie(fetch, jar);
+
+	const res = await fetchWithCookies(`${LISE_URI}/saiku/rest/saiku/session/`, {
+		method: "DELETE",
+	});
+
+	return { success: res.status === 200, status: res.status };
+}
+
 export async function signIn(
 	state: FormState,
 	formData: FormData
@@ -171,7 +186,10 @@ export async function signIn(
 	}
 }
 
-// TODO: Delete session on lise for safety
-export async function logOut(): Promise<void> {
+export async function logOut(sessionId: string): Promise<void> {
+	const liseLogout = await logoutWithLise(sessionId);
+	if (!liseLogout.success) {
+		logger.warn("Failed to delete session on Lise");
+	}
 	await deleteSession();
 }

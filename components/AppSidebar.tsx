@@ -84,7 +84,7 @@ export default function AppSidebar({
     const [settingsModal, setSettingsModal] = useState<boolean>(false);
 
     const logoutMutation = useMutation({
-        mutationFn: logOut,
+        mutationFn: () => logOut(session.sessionId),
         onSuccess: () => {
             queryClient.clear();
             router.refresh();
