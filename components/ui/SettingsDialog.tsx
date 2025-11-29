@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {Button} from "./Button";
 import DarkModeToggle from "./DarkModeToggle";
 import { tbk } from "@/lib/types";
-import { liseIdChecker } from "@/lib/helper";
+import { liseIdChecker } from "@/lib/validators";
 import posthog from "posthog-js";
 
 interface SettingsDialogProps {

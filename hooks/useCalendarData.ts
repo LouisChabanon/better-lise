@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import GetCalendar from "@/actions/GetCalendar";
 import getCrousData from "@/actions/GetCrousData";
-import { CalculateOverlaps } from "@/lib/helper";
+import { CalculateOverlaps } from "@/lib/utils/calendar-utils";
 import { CalendarEventProps, tbk } from "@/lib/types";
 
 const getSettings = () => {

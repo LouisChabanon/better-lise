@@ -4,7 +4,7 @@ import { CookieJar } from "tough-cookie";
 import prisma from "@/lib/db";
 import { verifySession, deleteSession } from "@/lib/sessions";
 import * as cheerio from "cheerio";
-import { getHiddenFields, navigateToLisePage } from "@/lib/helper";
+import { getHiddenFields, navigateToLisePage } from "@/lib/utils/scraper-utils";
 import { GradeType, RequestState } from "@/lib/types";
 import logger from "@/lib/logger";
 import PostHogClient from "@/lib/posthog-server";

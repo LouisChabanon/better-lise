@@ -5,7 +5,7 @@ import { EyeInvisibleOutlined, EyeOutlined, LockOutlined, UserOutlined } from "@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/actions/Auth";
-import { liseIdChecker } from "@/lib/helper";
+import { liseIdChecker } from "@/lib/validators";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import posthog from "posthog-js";
 

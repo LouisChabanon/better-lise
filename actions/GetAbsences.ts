@@ -4,7 +4,7 @@ import { CookieJar } from "tough-cookie";
 import { verifySession, deleteSession } from "@/lib/sessions";
 import * as cheerio from "cheerio";
 import { AbsenceType, AbsencesRequestState } from "@/lib/types";
-import { getHiddenFields, navigateToLisePage } from "@/lib/helper";
+import { getHiddenFields, navigateToLisePage } from "@/lib/utils/scraper-utils";
 import logger from "@/lib/logger";
 import course_weights from "@/ue_data.json";
 

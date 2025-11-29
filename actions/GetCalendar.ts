@@ -3,7 +3,7 @@ const ical = require("node-ical");
 import { CalendarEventProps } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz";
 import logger from "@/lib/logger";
-import { liseIdChecker } from "@/lib/helper";
+import { liseIdChecker } from "@/lib/validators";
 
 const tz = "Europe/Paris";
 

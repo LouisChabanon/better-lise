@@ -6,7 +6,7 @@ import { Button } from './ui/Button';
 import { CalendarEvent } from '@/components/ui/CalendarEvent';
 import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
 import { getWeekData } from '@/actions/GetWeekData';
-import { getMonthName } from '@/lib/helper';
+import { getMonthName } from '@/lib/utils/calendar-utils';
 import LoadingPlaceholder from '@/components/ui/LoadingPlaceholder';
 import { AnimatePresence, motion, PanInfo, Variants } from "framer-motion";
 import { useCalendarData } from '@/hooks/useCalendarData';

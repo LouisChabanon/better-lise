@@ -1,6 +1,6 @@
 "use client";
 
-import { getRarity, randomGaussianGrade, randomGrade } from "@/lib/helper";
+import { getRarity, randomGaussianGrade, randomGrade } from "@/lib/utils/game-utils";
 import { motion, useAnimation } from "framer-motion";
 import { useEffect, useState, useCallback, useRef } from "react";
 import confetti from "canvas-confetti";

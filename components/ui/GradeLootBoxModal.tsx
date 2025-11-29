@@ -5,7 +5,7 @@ import { GradeType } from "@/lib/types";
 import { Button } from "./Button";
 import useSound from "use-sound";
 import LootCase from "../LootCase";
-import { getRarity } from "@/lib/helper";
+import { getRarity } from "@/lib/utils/game-utils";
 
 interface GradeModalProps {
   grade: GradeType;
