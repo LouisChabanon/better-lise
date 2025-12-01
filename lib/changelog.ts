@@ -6,9 +6,20 @@ export interface Release {
 	fixes?: string[];
 }
 
-export const CURRENT_VERSION = "1.1.0";
+export const CURRENT_VERSION = "1.2.0";
 
 export const CHANGELOG: Release[] = [
+	{
+		version: "1.2.0",
+		date: "01 Dec 2025",
+		title: "Moyennes et Simulations",
+		features: [
+			"Ajout d'une page 'Mes Moyennes' permetant de voir ses moyennes par UE",
+			"Système de simulation pour connaitre sa moyenne par UE après l'ajout d'une note",
+			"Modification du thème clair pour une meilleure lisibilité",
+		],
+		fixes: ["Résolution d'un bug d'interface pour la page des absences"],
+	},
 	{
 		version: "1.1.0",
 		date: "27 Nov 2025",
