@@ -17,7 +17,7 @@ export default async function MoyennePage() {
 		gradesRequest.success && gradesRequest.data ? gradesRequest.data : [];
 
 	return (
-		<ProtectedView session={session} title="Simulateur">
+		<ProtectedView session={session} title="Mes Moyennes">
 			<div className="flex flex-col h-full max-w-4xl mx-auto">
 				<div className="flex flex-col gap-2 mb-8">
 					<h2 className="text-2xl font-bold text-textPrimary flex items-center gap-3">
