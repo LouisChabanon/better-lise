@@ -157,9 +157,9 @@ export default function RealGradeRow({
 						<div className="flex items-center relative">
 							<input
 								type="number"
-								min="0.1"
+								min="0.01"
 								step="0.1"
-								className={`w-14 px-2 py-1.5 text-right text-sm font-bold rounded-lg border outline-none transition-all
+								className={`w-16 px-2 py-1.5 text-right text-sm font-bold rounded-lg border outline-none transition-all
                     ${
 											grade.isCommunity
 												? "text-primary border-primary/30 bg-primary/5 ring-1 ring-primary/10"

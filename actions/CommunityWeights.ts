@@ -22,8 +22,7 @@ export async function getCommunityWeights(): Promise<WeightMap> {
 
 	groups.forEach((g) => {
 		if (g._avg.weight) {
-			// Round to 1 decimal place for cleanliness
-			weightMap[g.code] = Math.round(g._avg.weight * 10) / 10;
+			weightMap[g.code] = g._avg.weight;
 		}
 	});
 
