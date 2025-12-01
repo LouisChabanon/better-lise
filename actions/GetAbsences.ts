@@ -149,7 +149,6 @@ export async function getAbsenceData(
 					);
 
 					if (bestMatch) {
-						console.log(`Matched ${rowData.cours} with ${bestMatch.Code}.`);
 						const matchedCode = bestMatch.Code;
 						// Check for unjustified absences
 						if (!rowData.motif) {
@@ -162,8 +161,6 @@ export async function getAbsenceData(
 							}
 							hoursMap[matchedCode].totalHours += hours;
 						}
-					} else {
-						console.log("No match for", rowData.cours);
 					}
 				}
 			});
