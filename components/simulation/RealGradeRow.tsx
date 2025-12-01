@@ -32,7 +32,6 @@ export default function RealGradeRow({
 	const [tempClassName, setTempClassName] = useState("");
 	const [submitting, setSubmitting] = useState(false);
 
-	// Initialize temp class name from utils
 	const currentClass = parseClassCode(grade.code).classCode;
 	const hasChanged = effectiveCoeff !== grade.coeff;
 
@@ -51,120 +50,140 @@ export default function RealGradeRow({
 	};
 
 	return (
-		<div className="p-3 pl-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-backgroundSecondary/30 transition-colors gap-3 group">
-			<div className="flex-1 min-w-0">
-				<div className="flex items-center gap-2">
-					<span className="font-medium text-sm truncate text-textPrimary">
+		<div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-backgroundSecondary/30 transition-colors gap-3 group border-b border-backgroundTertiary last:border-0">
+			{/* Left Section: Name & Class Edit */}
+			<div className="flex-1 min-w-0 flex flex-col justify-center">
+				<div className="flex items-start gap-2 mb-1">
+					{grade.isNew && (
+						<span className="mt-1.5 w-2 h-2 rounded-full bg-primary shrink-0 ring-2 ring-primary/20" />
+					)}
+					<span className="font-semibold text-sm text-textPrimary leading-tight break-words">
 						{grade.libelle}
 					</span>
-					{grade.isNew && (
-						<span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-					)}
 				</div>
 
-				{/* --- Class Editing Section --- */}
-				<div className="flex items-center gap-3 text-xs text-textTertiary mt-0.5">
+				{/* Mobile-Friendly Edit Area */}
+				<div className="flex items-center gap-3 text-xs text-textTertiary h-6">
 					{isEditingClass ? (
-						<div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2">
+						<div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 w-full max-w-[200px]">
 							<input
 								autoFocus
 								type="text"
 								value={tempClassName}
 								onChange={(e) => setTempClassName(e.target.value)}
-								className="bg-backgroundSecondary border border-primary rounded px-1.5 py-0.5 text-textPrimary w-24 outline-none"
+								className="flex-1 bg-backgroundSecondary border border-primary rounded px-2 py-1 text-textPrimary text-xs outline-none shadow-sm"
 							/>
 							<button
 								onClick={handleSaveClass}
-								className="text-green-600 hover:bg-green-100 p-1 rounded"
+								className="bg-badgeSuccessBg text-badgeSuccessText hover:opacity-80 p-1 rounded-md transition-all"
 							>
 								<CheckOutlined />
 							</button>
 							<button
 								onClick={() => setIsEditingClass(false)}
-								className="text-red-500 hover:bg-red-100 p-1 rounded"
+								className="bg-badgeDangerBg text-badgeDangerText hover:opacity-80 p-1 rounded-md transition-all"
 							>
 								<CloseOutlined />
 							</button>
 						</div>
 					) : (
 						<div
-							className="flex items-center gap-2 group/edit cursor-pointer"
+							className="flex items-center gap-1.5 group/edit cursor-pointer hover:bg-backgroundSecondary/50 px-1.5 py-0.5 -ml-1.5 rounded transition-colors"
 							onClick={() => {
 								setTempClassName(currentClass);
 								setIsEditingClass(true);
 							}}
 						>
 							<span
-								className={`font-mono ${
+								className={`font-mono text-[10px] sm:text-xs uppercase tracking-wide ${
 									currentClass === "Autre"
-										? "text-orange-500 font-bold"
-										: "opacity-50"
+										? "text-badgeWarningText font-bold flex items-center gap-1"
+										: "opacity-60"
 								}`}
 							>
 								{currentClass === "Autre" ? (
 									<>
-										<WarningOutlined /> Non classé
+										<WarningOutlined /> Assigner une UE
 									</>
 								) : (
 									grade.code
 								)}
 							</span>
-							<EditOutlined className="opacity-0 group-hover/edit:opacity-100 text-primary transition-opacity" />
-							{currentClass === "Autre" && (
-								<span className="text-[10px] text-orange-400">
-									(Cliquez pour assigner)
-								</span>
-							)}
+							<EditOutlined className="text-[10px] opacity-40 group-hover/edit:opacity-100 text-primary transition-opacity" />
 						</div>
 					)}
 				</div>
 			</div>
 
-			<div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-				<span className="text-base font-bold text-textPrimary bg-backgroundSecondary px-2 py-1 rounded-lg border border-backgroundTertiary min-w-[3rem] text-center">
-					{grade.note}
-				</span>
-
-				<div className="flex flex-col items-end w-28 relative">
-					<label className="text-[8px] text-textQuaternary uppercase font-bold mb-0.5 flex gap-1 items-center">
-						Coeff
-						{/* Tooltip for Community Weights */}
-						{!grade.isCommunity && (
-							<span className="group/info relative cursor-help">
-								<InfoCircleOutlined className="text-primary" />
-								<div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-textPrimary text-backgroundPrimary text-[10px] rounded shadow-lg hidden group-hover/info:block z-10 font-normal normal-case">
-									Ce coefficient n'est pas encore vérifié par la communauté.
-									Modifiez-le et envoyez-le !
-								</div>
-							</span>
-						)}
+			{/* Right Section: Grade & Coeff Controls */}
+			<div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0 bg-backgroundSecondary/20 sm:bg-transparent p-2 sm:p-0 rounded-lg">
+				{/* Grade Badge */}
+				<div className="flex flex-col items-end">
+					{/* Label visible on desktop to match Coeff label height */}
+					<label className="text-[9px] text-textQuaternary uppercase font-bold mb-0.5 hidden sm:block">
+						Note
 					</label>
-					<div className="flex items-center justify-end">
-						<input
-							type="number"
-							min="0.1"
-							step="0.1"
-							className={`w-12 px-1 py-0.5 text-right text-sm font-bold rounded border outline-none transition-all
+					<div className="flex items-center gap-2">
+						<span className="text-xs font-bold text-textQuaternary uppercase sm:hidden">
+							Note:
+						</span>
+						<span
+							className={`text-base font-bold px-3 py-1 rounded-lg border min-w-[3.5rem] text-center shadow-sm
                 ${
-									grade.isCommunity
-										? "text-primary border-primary/30 bg-primary/5"
-										: "text-textSecondary border-backgroundTertiary bg-backgroundSecondary"
+									Number(grade.note) >= 10
+										? "bg-badgeSuccessBg text-badgeSuccessText border-badgeSuccessText/20"
+										: "bg-badgeDangerBg text-badgeDangerText border-badgeDangerText/20"
 								}
-                focus:ring-2 focus:ring-primary/20 focus:border-primary`}
-							value={effectiveCoeff}
-							onChange={(e) => onCoeffChange(parseFloat(e.target.value))}
-						/>
+            `}
+						>
+							{grade.note}
+						</span>
+					</div>
+				</div>
 
+				<div className="h-6 w-px bg-backgroundTertiary mx-2 hidden sm:block mt-3"></div>
+
+				{/* Coeff Control */}
+				<div className="flex items-center gap-2">
+					<div className="flex flex-col items-end">
+						<label className="text-[9px] text-textQuaternary uppercase font-bold mb-0.5 flex gap-1 items-center">
+							Coeff
+							{!grade.isCommunity && (
+								<span className="hidden sm:inline group/info relative cursor-help">
+									<InfoCircleOutlined className="text-primary/70" />
+								</span>
+							)}
+						</label>
+						<div className="flex items-center relative">
+							<input
+								type="number"
+								min="0.1"
+								step="0.1"
+								className={`w-14 px-2 py-1.5 text-right text-sm font-bold rounded-lg border outline-none transition-all
+                    ${
+											grade.isCommunity
+												? "text-primary border-primary/30 bg-primary/5 ring-1 ring-primary/10"
+												: "text-textSecondary border-backgroundTertiary bg-backgroundSecondary"
+										}
+                    focus:ring-2 focus:ring-primary/30 focus:border-primary`}
+								value={effectiveCoeff}
+								onChange={(e) => onCoeffChange(parseFloat(e.target.value))}
+							/>
+						</div>
+					</div>
+
+					{/* Upload Button */}
+					<div className="w-8 h-8 flex items-center justify-center">
 						<AnimatePresence>
 							{(hasChanged || submitting) && (
 								<motion.button
-									initial={{ scale: 0, opacity: 0 }}
+									initial={{ scale: 0.5, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0, opacity: 0 }}
+									exit={{ scale: 0.5, opacity: 0 }}
 									onClick={handleVote}
 									disabled={submitting}
-									className="ml-2 h-6 w-6 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-600 shadow-md text-xs shrink-0"
-									title="Partager ce coefficient avec la communauté"
+									className="h-8 w-8 mt-4 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-600 shadow-lg shadow-primary/30 text-sm active:scale-95 transition-transform"
+									title="Partager"
 								>
 									{submitting ? <LoadingOutlined /> : <CloudUploadOutlined />}
 								</motion.button>
