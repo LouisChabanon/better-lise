@@ -60,6 +60,7 @@ export type AbsenceStatType = {
 	code: string;
 	name: string;
 	absentHours: number;
+	totalUE: number;
 	percentage: number;
 };
 
@@ -88,4 +89,24 @@ export type GradeDetailType = {
 			counts: number[];
 		};
 	};
+};
+
+export type SimulatedGrade = {
+	id: string;
+	name: string;
+	grade: number;
+	coeff: number;
+	classCode: string;
+};
+
+export type RealGradeWithCoeff = GradeType & {
+	coeff: number;
+	isCommunity: boolean;
+};
+
+export type ClassGroup = {
+	semester: string;
+	classCode: string;
+	real: RealGradeWithCoeff[];
+	sim: SimulatedGrade[];
 };

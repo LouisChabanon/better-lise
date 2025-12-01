@@ -9,25 +9,27 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  lastLogin DateTime
-  grades    Grade[]
-  absences  Absence[]
+  id               Int               @id @default(autoincrement())
+  username         String            @unique
+  lastLogin        DateTime
+  grades           Grade[]
+  absences         Absence[]
+  achievements     Achievement[]
+  gradeWeightVotes GradeWeightVote[]
 }
 
 model Grade {
-  id         Int    @id @default(autoincrement())
-  code       String
-  name       String
-  grade      Float
-  date       String
-  absence    String
-  comment    String
-  teachers   String
-  opened     Boolean @default(false)
-  user       User   @relation(fields: [userId], references: [id])
-  userId     Int
+  id       Int     @id @default(autoincrement())
+  code     String
+  name     String
+  grade    Float
+  date     String
+  absence  String
+  comment  String
+  teachers String
+  opened   Boolean @default(false)
+  user     User    @relation(fields: [userId], references: [id])
+  userId   Int
 }
 
 model Absence {
@@ -50,4 +52,26 @@ model ScraperLog {
   endpoint  String
 
   @@index([createdAt]) // for querying logs by date
+}
+
+model Achievement {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  code       String
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, code])
+}
+
+model GradeWeightVote {
+  id        Int      @id @default(autoincrement())
+  code      String // The module code (e.g. "UE123")
+  weight    Float // The user's suggested coefficient
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, code]) // One vote per user per code
+  @@index([code])
 }

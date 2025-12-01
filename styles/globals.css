@@ -3,16 +3,16 @@
 
 :root {
   --background-primary: #FFFFFF;
-  --background-secondary: #f9f9fc;
-  --background-tertiary: #f3f4f6;
-  --text-primary: #6750A4;
-  --text-secondary: #6b7280;
-  --text-tertiary: #6b7280;
-  --text-quaternary: #9ca3af;
-  --calendar-grid-border: #e5e7eb;
+  --background-secondary: #F1F5F9;
+  --background-tertiary: #E2E8F0;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --text-quaternary: #cbd5e1;
+  --calendar-grid-border: #e2e8f0;
   --primary-400: #7551CC;
-  --primary-50: #f3e8ff;
-  --primary-100: #D7CCF3;
+  --primary-50: #f5f3ff;
+  --primary-100: #ddd6fe;
 
   --button-text-primary: #FFFFFF;     
   --button-primary-background: #6750A4; 
@@ -218,6 +218,5 @@
 
 body {
   -webkit-tap-highlight-color: transparent;
-
-
 }
+
