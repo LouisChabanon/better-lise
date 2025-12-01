@@ -138,6 +138,7 @@ export async function getAbsenceData(
 						code: code,
 						name: accumulated.name,
 						absentHours: accumulated.totalHours,
+						totalUE: ref.FFP,
 						percentage: (accumulated.totalHours / ref.FFP) * 100,
 					};
 				})
