@@ -8,6 +8,7 @@ import {
 	parseClassCode,
 	getSemesterNumber,
 } from "@/lib/utils/simulation-utils";
+import posthog from "posthog-js";
 
 const STORAGE_KEY = "grade-simulator-v1-storage";
 
@@ -146,10 +147,22 @@ export function useGradeSimulation(initialGrades: GradeType[]) {
 
 	const addSimulation = (sim: SimulatedGrade) => {
 		setSimulatedGrades((prev) => [...prev, sim]);
+		if (posthog.has_opted_in_capturing()) {
+			posthog.capture("simulation_created", {
+				UE: sim.classCode,
+				grade: sim.grade,
+				coeff: sim.coeff,
+			});
+		}
 	};
 
 	const removeSimulation = (id: string) => {
 		setSimulatedGrades((prev) => prev.filter((s) => s.id !== id));
+		if (posthog.has_opted_in_capturing()) {
+			posthog.capture("simulation_removed", {
+				simulation_id: id,
+			});
+		}
 	};
 
 	const updateSimulation = (id: string, val: number) => {
@@ -164,6 +177,12 @@ export function useGradeSimulation(initialGrades: GradeType[]) {
 
 	const handleClassOverride = (code: string, newClass: string) => {
 		setClassOverrides((prev) => ({ ...prev, [code]: newClass }));
+		if (posthog.has_opted_in_capturing()) {
+			posthog.capture("UE_overridden", {
+				code: code,
+				new_UE: newClass,
+			});
+		}
 	};
 
 	const onWeightSubmitSuccess = (code: string, weight: number) => {
@@ -171,6 +190,13 @@ export function useGradeSimulation(initialGrades: GradeType[]) {
 		const newLocal = { ...localCoeffs };
 		delete newLocal[code];
 		setLocalCoeffs(newLocal);
+
+		if (posthog.has_opted_in_capturing()) {
+			posthog.capture("weight_voted", {
+				code,
+				weight,
+			});
+		}
 	};
 
 	return {
