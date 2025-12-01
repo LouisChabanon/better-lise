@@ -120,8 +120,8 @@ export function AbsencesTable({ session }: { session: any }) {
 									Proportion d'absences
 								</h2>
 								<p className="text-textSecondary text-xs">
-									Propotion d'absence dans une UE. Au dessus de 20% la
-									revalidation est automatique.{" "}
+									Propotion d'absences non justifiées dans une UE. Au dessus de
+									20% la revalidation est automatique.{" "}
 									<strong>Ceci est une estimation, vérifiez sur Lise</strong>
 								</p>
 							</div>

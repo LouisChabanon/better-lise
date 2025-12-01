@@ -10,6 +10,8 @@ import course_weights from "@/ue_data.json";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
 
+type CourseWeight = (typeof course_weights.course_weights)[number];
+
 const parseDurationToHours = (durationStr: string): number => {
 	if (!durationStr) return 0;
 
@@ -103,25 +105,62 @@ export async function getAbsenceData(
 				absences.push(rowData);
 
 				if (rowData.date !== "Aucune absence.") {
+					// This matching function is a nightmare and has many edge cases
+					// So I implemented a scoring mechanism to reward lenght of keyword and number of keywords
+					const rowNormalized = normalize(rowData.cours);
 					const potentialMatches = course_weights.course_weights.filter((c) =>
 						rowData.cours.includes(c.Semester)
 					);
 
-					const matchedCourse = potentialMatches.find((c) => {
-						const rowNomalized = normalize(rowData.cours);
+					const bestMatch = potentialMatches.reduce<CourseWeight | null>(
+						(best, current) => {
+							let currentScore = 0;
+							let matchCount = 0;
 
-						return c.Keywords.every((keyword) =>
-							rowNomalized.includes(normalize(keyword))
-						);
-					});
-					const matchedCode = matchedCourse?.Code;
+							current.Keywords.forEach((k) => {
+								if (rowNormalized.includes(normalize(k))) {
+									// Keyword match = reward
+									currentScore += 10; // +10pt for matched keywords
+									currentScore += k.length; // +1p for keyword lenght (I'll try this for now but I'm not sure)
+									matchCount++;
+								} else {
+									// Keyword miss = malus
+									currentScore -= 5;
+								}
+							});
 
-					if (matchedCode) {
-						const hours = parseDurationToHours(rowData.duree);
-						if (!hoursMap[matchedCode]) {
-							hoursMap[matchedCode] = { totalHours: 0, name: rowData.matiere };
+							if (matchCount === 0) return best;
+
+							let bestScore = -Infinity;
+							if (best) {
+								bestScore = 0;
+								best.Keywords.forEach((k) => {
+									if (rowNormalized.includes(normalize(k))) {
+										bestScore += 10;
+										bestScore += k.length;
+									} else {
+										bestScore -= 5;
+									}
+								});
+							}
+							return currentScore > bestScore ? current : best;
+						},
+						null
+					);
+
+					if (bestMatch) {
+						const matchedCode = bestMatch.Code;
+						// Check for unjustified absences
+						if (!rowData.motif) {
+							const hours = parseDurationToHours(rowData.duree);
+							if (!hoursMap[matchedCode]) {
+								hoursMap[matchedCode] = {
+									totalHours: 0,
+									name: rowData.matiere,
+								};
+							}
+							hoursMap[matchedCode].totalHours += hours;
 						}
-						hoursMap[matchedCode].totalHours += hours;
 					}
 				}
 			});
@@ -160,7 +199,6 @@ export async function getAbsenceData(
 					},
 				};
 			}
-
 			return {
 				success: true,
 				data: {
