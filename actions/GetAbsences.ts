@@ -114,24 +114,33 @@ export async function getAbsenceData(
 
 					const bestMatch = potentialMatches.reduce<CourseWeight | null>(
 						(best, current) => {
-							// Is a match if every keyword of an UE is in the absence name
-							const isMatch = current.Keywords.every((k) =>
-								rowNormalized.includes(normalize(k))
-							);
-
-							if (!isMatch) return best;
-
 							let currentScore = 0;
+							let matchCount = 0;
+
 							current.Keywords.forEach((k) => {
-								currentScore += 10; // +10pt for matched keywords
-								currentScore += k.length; // +1p for keyword lenght (I'll try this for now but I'm not sure)
+								if (rowNormalized.includes(normalize(k))) {
+									// Keyword match = reward
+									currentScore += 10; // +10pt for matched keywords
+									currentScore += k.length; // +1p for keyword lenght (I'll try this for now but I'm not sure)
+									matchCount++;
+								} else {
+									// Keyword miss = malus
+									currentScore -= 5;
+								}
 							});
 
-							let bestScore = 0;
+							if (matchCount === 0) return best;
+
+							let bestScore = -Infinity;
 							if (best) {
+								bestScore = 0;
 								best.Keywords.forEach((k) => {
-									bestScore += 10;
-									bestScore += k.length;
+									if (rowNormalized.includes(normalize(k))) {
+										bestScore += 10;
+										bestScore += k.length;
+									} else {
+										bestScore -= 5;
+									}
 								});
 							}
 							return currentScore > bestScore ? current : best;
@@ -140,6 +149,7 @@ export async function getAbsenceData(
 					);
 
 					if (bestMatch) {
+						console.log(`Matched ${rowData.cours} with ${bestMatch.Code}.`);
 						const matchedCode = bestMatch.Code;
 						// Check for unjustified absences
 						if (!rowData.motif) {
@@ -152,6 +162,8 @@ export async function getAbsenceData(
 							}
 							hoursMap[matchedCode].totalHours += hours;
 						}
+					} else {
+						console.log("No match for", rowData.cours);
 					}
 				}
 			});
