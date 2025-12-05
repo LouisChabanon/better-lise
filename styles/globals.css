@@ -3,13 +3,13 @@
 
 :root {
   --background-primary: #FFFFFF;
-  --background-secondary: #F1F5F9;
-  --background-tertiary: #E2E8F0;
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-tertiary: #94a3b8;
-  --text-quaternary: #cbd5e1;
-  --calendar-grid-border: #e2e8f0;
+  --background-secondary: #F3F4F6;
+  --background-tertiary: #E5E7EB;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #6B7280;
+  --text-quaternary: #9CA3AF;
+  --calendar-grid-border: #D1D5DB;
   --primary-400: #7551CC;
   --primary-50: #f5f3ff;
   --primary-100: #ddd6fe;
@@ -27,35 +27,32 @@
   --button-text-disabled: #FFFFFF;
   --button-disabled-background: oklch(87.2% 0.01 258.338);
 
-  --event-cm-bg: oklch(92.4% 0.12 95.746);
-  --event-cm-text: oklch(55.5% 0.163 48.998);
+  --event-cm-bg: oklch(92.4% 0.12 95.746);     
+  --event-cm-text: #854D0E;
 
-  --event-exam-bg: oklch(93.6% 0.032 17.717);
-  --event-exam-text: oklch(50.5% 0.213 27.518);
+  --event-exam-bg: #FCA5A5;
+  --event-exam-text: #991B1B;
 
-  --event-auto-bg: oklch(94.8% 0.028 342.258);
-  --event-auto-text: oklch(52.5% 0.223 3.958);
+  --event-auto-bg: #CBD5E1;
+  --event-auto-text: #1E293B;
 
-  --event-tp-bg: oklch(88.2% 0.059 254.128);
-  --event-tp-text: oklch(48.8% 0.243 264.376);
+  --event-tp-bg: #93C5FD;
+  --event-tp-text: #1E40AF;
 
   --event-ru-bg: oklch(90.1% 0.058 230.902);
   --event-ru-text: oklch(50% 0.134 242.749);
 
-  --event-default-bg: #E9DDFF;
-  --event-default-text: #6750A4;
+  --event-default-bg: #C4B5FD;
+  --event-default-text: #5B21B6;
 
-  --badge-success-bg: #ecfdf5; 
-  --badge-success-text: #047857;
-  
-  --badge-warning-bg: #fffbeb; 
-  --badge-warning-text: #b45309;
-  
-  --badge-danger-bg: oklch(93.6% 0.032 17.717);
-  --badge-danger-text: oklch(39.6% 0.141 25.723);
-  
-  --badge-neutral-bg: oklch(96.7% 0.003 264.542);
-  --badge-neutral-text: oklch(27.8% 0.033 256.848);
+  --badge-success-bg: #DCFCE7; 
+  --badge-success-text: #14532D;
+  --badge-warning-bg: #FEF9C3; 
+  --badge-warning-text: #A16207;
+  --badge-danger-bg: #FEE2E2; 
+  --badge-danger-text: #991B1B;
+  --badge-neutral-bg: #F3F4F6; 
+  --badge-neutral-text: #374151;
 }
 
 .dark {
