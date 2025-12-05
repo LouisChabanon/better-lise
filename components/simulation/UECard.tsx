@@ -41,77 +41,75 @@ export default function UECard({
 	return (
 		<div className="bg-backgroundPrimary border border-backgroundTertiary rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
 			{/* Header */}
-			<div className="p-4 bg-backgroundSecondary border-b border-backgroundTertiary transition-colors duration-300">
-				<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-					{/* Title Section */}
-					<div className="flex items-center gap-3">
-						<div className="h-10 w-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary text-lg shadow-inner transition-colors duration-300">
-							<BookOutlined />
-						</div>
-						<div>
-							<h3 className="font-bold text-textPrimary text-lg leading-tight">
-								{group.classCode}
-							</h3>
-							<span className="text-xs text-textTertiary font-mono bg-backgroundTertiary/50 px-1.5 py-0.5 rounded transition-colors duration-300">
-								{group.semester}
-							</span>
+			<div className="p-4 bg-backgroundSecondary border-b border-backgroundTertiary">
+				<div className="flex flex-col gap-3">
+					{/* Top Row: Icon + Title + Semester */}
+					<div className="flex items-start justify-between">
+						<div className="flex items-center gap-3 overflow-hidden">
+							<div className="h-10 w-10 shrink-0 rounded-xl bg-primary-50 flex items-center justify-center text-primary text-lg shadow-inner">
+								<BookOutlined />
+							</div>
+							<div className="min-w-0">
+								<h3 className="font-bold text-textPrimary text-lg leading-tight truncate">
+									{group.classCode}
+								</h3>
+								<span className="text-xs text-textTertiary font-mono bg-backgroundTertiary/50 px-1.5 py-0.5 rounded">
+									{group.semester}
+								</span>
+							</div>
 						</div>
 					</div>
 
-					{/* Averages Section */}
-					<div className="flex items-center gap-2 sm:gap-4 bg-backgroundPrimary/50 p-2 rounded-xl border border-backgroundTertiary/50 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end transition-colors duration-300">
-						{/* Current Avg */}
-						<div className="flex items-center gap-3 px-2">
-							<div className="text-right">
-								<p className="text-[9px] uppercase font-bold text-textQuaternary tracking-wider">
-									Moyenne
-								</p>
-								<p className="text-lg font-bold text-textPrimary">
-									{currentClassAvg.toFixed(2)}
-								</p>
-							</div>
+					{/* Stats Row */}
+					<div className="flex items-center justify-between bg-backgroundPrimary/60 p-3 rounded-xl border border-backgroundTertiary/50">
+						{/* Current Average */}
+						<div className="flex flex-col">
+							<span className="text-[10px] uppercase font-bold text-textQuaternary tracking-wider">
+								Moyenne
+							</span>
+							<span className="text-xl font-bold text-textPrimary">
+								{currentClassAvg.toFixed(2)}
+							</span>
 						</div>
 
-						{/* Projected Avg (Only if Sim) */}
+						{/* Projected (if any) */}
 						{hasSimulations && (
-							<>
-								<div className="w-px h-8 bg-backgroundTertiary transition-colors duration-300"></div>
-								<div className="flex items-center gap-3 px-2">
-									<div className="text-right">
-										<p className="text-[9px] uppercase font-bold text-textQuaternary tracking-wider flex items-center justify-end gap-1">
-											<CalculatorOutlined className="text-[10px]" /> Projetée
-										</p>
-										<div className="flex items-center justify-end gap-1.5">
-											<p
-												className={`text-lg font-bold transition-colors duration-300 ${
-													classDiff >= 0
-														? "text-badgeSuccessText"
-														: "text-badgeDangerText"
-												}`}
-											>
-												{projectedClassAvg.toFixed(2)}
-											</p>
-											<span
-												className={`text-[10px] font-bold px-1 rounded transition-colors duration-300 ${
-													classDiff >= 0
-														? "bg-badgeSuccessBg text-badgeSuccessText"
-														: "bg-badgeDangerBg text-badgeDangerText"
-												}`}
-											>
-												{classDiff > 0 ? "+" : ""}
-												{classDiff.toFixed(2)}
-											</span>
-										</div>
+							<div className="flex items-center gap-3">
+								<div className="w-px h-8 bg-backgroundTertiary"></div>
+								<div className="flex flex-col items-end">
+									<span className="text-[10px] uppercase font-bold text-textQuaternary tracking-wider flex items-center gap-1">
+										<CalculatorOutlined /> Projeté
+									</span>
+									<div className="flex items-center gap-2">
+										<span
+											className={`text-xl font-bold ${
+												classDiff >= 0
+													? "text-badgeSuccessText"
+													: "text-badgeDangerText"
+											}`}
+										>
+											{projectedClassAvg.toFixed(2)}
+										</span>
+										<span
+											className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+												classDiff >= 0
+													? "bg-badgeSuccessBg text-badgeSuccessText"
+													: "bg-badgeDangerBg text-badgeDangerText"
+											}`}
+										>
+											{classDiff > 0 ? "+" : ""}
+											{classDiff.toFixed(2)}
+										</span>
 									</div>
 								</div>
-							</>
+							</div>
 						)}
 					</div>
 				</div>
 			</div>
 
-			{/* Content */}
-			<div className="bg-backgroundPrimary transition-colors duration-300">
+			{/* Content List */}
+			<div className="bg-backgroundPrimary">
 				{group.real.map((g) => (
 					<RealGradeRow
 						key={g.code}
@@ -123,7 +121,7 @@ export default function UECard({
 					/>
 				))}
 
-				{/* Simulations Section */}
+				{/* Simulated Rows */}
 				<AnimatePresence>
 					{group.sim.map((sim) => (
 						<SimulatedGradeRow
