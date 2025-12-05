@@ -3,11 +3,24 @@ import { RealGradeWithCoeff, SimulatedGrade } from "@/lib/types";
 export const parseClassCode = (fullCode: string) => {
 	// Format: FITE_[semester]_[class]_[subclass]_...
 	const parts = fullCode.split("_");
+	const exclude_sem = ["GIE2", "GIE1", "GIM2", "GIM1"]; // Remove GIM2 GIM1 GIE2 GIE1 from parsing
+
 	if (parts.length >= 3) {
+		const semester = parts[1]; // e.g. S7
+		let classCode = parts[2]; // e.g. EEAA
+
+		if (exclude_sem.includes(parts[2])) {
+			if (parts[3]) {
+				classCode = parts[3]; // If it exist get the next field as name
+				if (parts[3].startsWith("ED")) classCode = parts[4];
+			} else {
+				return { semester: "Autre", classCode: "Autre", fullName: "Autre" };
+			}
+		}
 		return {
-			semester: parts[1], // e.g. S7
-			classCode: parts[2], // e.g. EEAA
-			fullName: `${parts[1]} - ${parts[2]}`,
+			semester: semester,
+			classCode: classCode,
+			fullName: `${semester} - ${classCode}`,
 		};
 	}
 	return { semester: "Autre", classCode: "Autre", fullName: "Autre" };
