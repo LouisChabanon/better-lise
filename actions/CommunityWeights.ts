@@ -61,7 +61,7 @@ export async function submitWeightVote(code: string, weight: number) {
 			},
 		});
 
-		revalidatePath("/simulator");
+		revalidatePath("/moyenne");
 		return { success: true };
 	} catch (error) {
 		console.error("Failed to submit vote:", error);
