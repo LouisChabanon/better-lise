@@ -1,6 +1,6 @@
 "use server";
 
-import { createSession, deleteSession } from "@/lib/sessions";
+import { createSession, deleteSession, verifySession } from "@/lib/sessions";
 import prisma from "@/lib/db";
 import { CookieJar } from "tough-cookie";
 import fetchCookie from "fetch-cookie";
@@ -31,16 +31,16 @@ function validateCredentials(formData: FormData): {
 	const password = formData.get("password")?.toString();
 
 	if (!username || !password) {
-		logger.warn("Sign-in failed: Missing credentials.", {
-			username: username ? "provided" : "missing",
-			password: password ? "provided" : "missing",
-		});
+		logger.warn("Sign-in validation failed", { reason: "missing_credentials" });
 		return { error: "Un identifiant et un mot de passe sont requis" };
 	}
 
 	// Regex for ****-**** format
 	if (!/^\d{4}-\d{4}$/.test(username)) {
-		logger.warn("Sign-In failed: Format error", { username });
+		logger.warn("Sign-in validation failed", {
+			reason: "invalid_format",
+			username,
+		});
 		return { error: "L'identifiant doit être au format 20xx-xxxx" };
 	}
 
@@ -112,7 +112,7 @@ export async function signIn(
 	const ip = forwaredFor ? forwaredFor.split(",")[0].trim() : "127.0.0.1";
 
 	if (isRateLimited(ip)) {
-		logger.warn("Sign-In blocked: Rate limit exceeded", { ip });
+		logger.warn("Sign-in blocked: Rate limit exceeded", { ip });
 		return {
 			success: false,
 			errors:
@@ -137,10 +137,10 @@ export async function signIn(
 		);
 
 		if (!authResult.success) {
-			logger.warn(
-				"Sign-In failed Invalid credentials or user does not exist on LISE",
-				{ username, liseStatus: authResult.status }
-			);
+			logger.warn("Sign-in failed: Lise authentication rejected", {
+				username,
+				liseStatus: authResult.status,
+			});
 			return {
 				success: false,
 				errors:
@@ -151,8 +151,9 @@ export async function signIn(
 		const jsessionid = jar
 			.getCookiesSync(`${LISE_URI}`)
 			.find((cookie) => cookie.key === "JSESSIONID");
+
 		if (!jsessionid) {
-			logger.error("Sign-In error: Failed to retreive JESSIONID cookie.", {
+			logger.error("Sign-in error: JSESSIONID missing after successful login", {
 				username,
 			});
 			return { errors: "Erreur interne: cookie de session introuvable." };
@@ -164,9 +165,7 @@ export async function signIn(
 			create: { username: username!, lastLogin: new Date() },
 		});
 		if (!user) {
-			logger.error("Sign-In error: Failed to upsert user into database", {
-				username,
-			});
+			logger.error("Sign-in error: Database upsert failed", { username });
 			return { errors: "Erreur: connexion à la base de données impossible" };
 		}
 		await createSession(user.username, jsessionid.value);
@@ -177,10 +176,9 @@ export async function signIn(
 
 		return { success: true, message: "Connexion réussie !" };
 	} catch (error) {
-		logger.error("Unhandled error during sign-in process.", {
+		logger.error("Unhandled error during sign-in", {
 			username,
 			error: error instanceof Error ? error.message : String(error),
-			stack: error instanceof Error ? error.stack : undefined,
 		});
 		return { errors: "Erreur interne. Veuillez réessayer plus tard." };
 	}
@@ -189,7 +187,9 @@ export async function signIn(
 export async function logOut(sessionId: string): Promise<void> {
 	const liseLogout = await logoutWithLise(sessionId);
 	if (!liseLogout.success) {
-		logger.warn("Failed to delete session on Lise");
+		logger.warn("Lise logout endpoint returned non-200", {
+			status: liseLogout.status,
+		});
 	}
 	await deleteSession();
 }

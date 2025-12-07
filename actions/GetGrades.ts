@@ -22,7 +22,7 @@ export async function getGradeData(
 
 	const session = await verifySession();
 	if (!session.username) {
-		logger.warn("User has no active session, failed to fetch grades");
+		logger.warn("GetGrades blocked: No active session");
 		return { errors: "No username found in session.", success: false };
 	}
 
@@ -30,7 +30,7 @@ export async function getGradeData(
 		where: { username: session.username },
 	});
 	if (!user) {
-		logger.warn("User not found in database. Failed to fetch grades", {
+		logger.error("GetGrades error: User missing in DB", {
 			username: session.username,
 		});
 		return { errors: "User not found in database.", success: false };
@@ -61,7 +61,10 @@ export async function getGradeData(
 
 	// Fetching data from Lise
 	if (reload === true || db_grades.length === 0) {
-		logger.info("Fetching user grades from Lise.", { username: user.username });
+		logger.info("Scraping grades started", {
+			username: user.username,
+			isFirstSync: db_grades.length === 0,
+		});
 
 		const jar = new CookieJar(); // Create a new cookie jar to set Lise's JSESSIONID cookie
 		const fetchWithCookies = fetchCookie(fetch, jar);
@@ -180,6 +183,20 @@ export async function getGradeData(
 				(g) => !db_grades.some((dbGrade) => dbGrade.code === g.code)
 			);
 
+			// Measure performance of scraper
+			const end = Date.now();
+			const duration = end - start;
+			posthog.capture({
+				distinctId: user.username,
+				event: "scraper_performance",
+				properties: {
+					endpoint: "grades",
+					duration_ms: Number(duration),
+					is_new_data: newGrades.length > 0,
+					grade_count: newGrades.length,
+				},
+			});
+
 			if (newGrades.length > 0) {
 				await prisma.grade.createMany({
 					data: newGrades.map((g) => ({
@@ -194,27 +211,16 @@ export async function getGradeData(
 						opened: isFirstSync,
 					})),
 				});
-				logger.info(`Inserted ${newGrades.length} new grades into database.`, {
+				logger.info("Scraping grades finished", {
 					username: user.username,
+					duration_ms: duration,
+					grades_found: grades.length,
+					new_grades: newGrades.length,
 				});
 				newGrades.forEach((g) => {
 					mappedDbGrades.push({ ...g, isNew: !isFirstSync });
 				});
 			}
-
-			// Measure performance of scraper
-			const end = Date.now();
-			const duration = end - start;
-			posthog.capture({
-				distinctId: user.username,
-				event: "scraper_performance",
-				properties: {
-					endpoint: "grades",
-					duration_ms: Number(duration),
-					is_new_data: newGrades.length > 0,
-					grade_count: newGrades.length,
-				},
-			});
 
 			// Log scraper performance to database for status badge
 			try {

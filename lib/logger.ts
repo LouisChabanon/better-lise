@@ -1,32 +1,54 @@
-import winston from "winston";
+import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 
-const { combine, timestamp, json, printf } = winston.format;
+const loggerProvider = logs.getLogger("better-lise-logger");
 
-const level = process.env.LOG_LEVEL || "info";
+const emitLog = (
+	level: SeverityNumber,
+	severityText: string,
+	message: string,
+	attributes: Record<string, any> = {}
+) => {
+	// Emit to OpenTelemetry (PostHog)
+	loggerProvider.emit({
+		body: message,
+		severityNumber: level,
+		severityText: severityText,
+		attributes: attributes,
+	});
 
-const logFormat = combine(timestamp(), json());
+	// Keep console output for local development visibility
+	if (process.env.NODE_ENV === "development") {
+		const timestamp = new Date().toLocaleTimeString();
+		const metaString = Object.keys(attributes).length
+			? JSON.stringify(attributes)
+			: "";
 
-const devFormat = printf(({ level, message, timestamp, ...metadata }) => {
-	let msg = `${timestamp} [${level}]: ${message} `;
-	if (Object.keys(metadata).length > 0) {
-		msg += JSON.stringify(metadata);
+		switch (level) {
+			case SeverityNumber.ERROR:
+				console.error(`${timestamp} [ERROR]: ${message}`, metaString);
+				break;
+			case SeverityNumber.WARN:
+				console.warn(`${timestamp} [WARN]: ${message}`, metaString);
+				break;
+			default:
+				console.log(`${timestamp} [INFO]: ${message}`, metaString);
+		}
 	}
-	return msg;
-});
+};
 
-const logger = winston.createLogger({
-	level: level,
-
-	format:
-		process.env.NODE_ENV === "development"
-			? combine(timestamp({ format: "HH:mm:ss" }), devFormat)
-			: logFormat,
-
-	transports: [
-		new winston.transports.Console({
-			stderrLevels: ["error"],
-		}),
-	],
-});
+const logger = {
+	info: (message: string, attributes?: Record<string, any>) => {
+		emitLog(SeverityNumber.INFO, "INFO", message, attributes);
+	},
+	warn: (message: string, attributes?: Record<string, any>) => {
+		emitLog(SeverityNumber.WARN, "WARN", message, attributes);
+	},
+	error: (message: string, attributes?: Record<string, any>) => {
+		emitLog(SeverityNumber.ERROR, "ERROR", message, attributes);
+	},
+	debug: (message: string, attributes?: Record<string, any>) => {
+		emitLog(SeverityNumber.DEBUG, "DEBUG", message, attributes);
+	},
+};
 
 export default logger;
