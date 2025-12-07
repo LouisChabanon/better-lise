@@ -7,6 +7,7 @@ import { tbk } from "@/lib/types";
 import { liseIdChecker } from "@/lib/validators";
 import posthog from "posthog-js";
 import { CURRENT_VERSION } from "@/lib/changelog";
+import { useRouter } from "next/navigation";
 
 interface SettingsDialogProps {
 	isOpen: boolean;
@@ -71,12 +72,11 @@ const TooltipIcon = ({ onClick }: { onClick: () => void }) => (
 		?
 	</button>
 );
-
 const TooltipModal = ({
 	content,
 	onClose,
 }: {
-	content: (typeof TOOLTIP_CONTENT)[keyof typeof TOOLTIP_CONTENT];
+	content: any;
 	onClose: () => void;
 }) => (
 	<div
@@ -93,7 +93,7 @@ const TooltipModal = ({
 			<h3 className="text-xl font-semibold text-textPrimary mb-4">
 				{content.title}
 			</h3>
-			{content.description.map((paragraph, index) => (
+			{content.description.map((paragraph: string, index: number) => (
 				<p key={index} className="text-textSecondary mb-2 last:mb-0">
 					{paragraph}
 				</p>
@@ -130,9 +130,7 @@ export default function SettingsDialog({
 	const [displayRUMenu, setDisplayRUMenu] = useState<boolean>(true);
 	const [isGambling, setIsGambling] = useState(false);
 	const [isOptedOut, setIsOptedOut] = useState(false);
-	const [tooltipKey, setTooltipKey] = useState<
-		keyof typeof TOOLTIP_CONTENT | null
-	>(null);
+	const [tooltipKey, setTooltipKey] = useState<any>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -153,11 +151,13 @@ export default function SettingsDialog({
 		}
 	}, [isOpen]);
 
+	const handleVersionClick = (e: React.MouseEvent) => {
+		window.dispatchEvent(new Event("open-changelog"));
+	};
+
 	if (!isOpen) return null;
 
-	const handleToggle = () => {
-		setIsOptedOut(!isOptedOut);
-	};
+	const handleToggle = () => setIsOptedOut(!isOptedOut);
 
 	const handleGamblingToggle = () => {
 		const newState = !isGambling;
@@ -170,7 +170,6 @@ export default function SettingsDialog({
 	const handleRuMenugToggle = () => {
 		const newState = !displayRUMenu;
 		setDisplayRUMenu(newState);
-
 		if (posthog.has_opted_in_capturing()) {
 			posthog.capture("settings_toggle_ru_menu", { enabled: newState });
 		}
@@ -188,9 +187,7 @@ export default function SettingsDialog({
 				aria-hidden="true"
 			/>
 
-			{/* modal panel */}
 			<div className="relative bg-backgroundPrimary rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
-				{/* header */}
 				<div className="flex items-center justify-between mb-6">
 					<h2 className="text-lg text-textPrimary font-semibold">Paramètres</h2>
 					<Button
@@ -205,39 +202,28 @@ export default function SettingsDialog({
 				{/* body */}
 				<div className="space-y-6">
 					<div className="space-y-2">
-						<div className="flex items-center">
-							<label
-								htmlFor="settings-lise-input"
-								className="font-medium text-textSecondary"
-							>
-								Identifiant :
-							</label>
+						<label className="font-medium text-textSecondary flex items-center">
+							Identifiant :{" "}
 							<TooltipIcon onClick={() => setTooltipKey("liseId")} />
-						</div>
-						<div className="flex items-center px-3 py-2 bg-backgroundSecondary rounded-lg focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400">
+						</label>
+						<div className="flex items-center px-3 py-2 bg-backgroundSecondary rounded-lg focus-within:ring-1 focus-within:ring-primary-400">
 							<input
 								id="settings-lise-input"
 								type="text"
 								className="w-full bg-transparent focus:outline-none"
-								placeholder="Identifiant Lise (2024-1234)"
-								defaultValue={localStorage.getItem("lise_id") || ""}
+								placeholder="20xx-xxxx"
+								defaultValue={username || ""}
 								onChange={(e) => setUsername(e.target.value)}
 							/>
 						</div>
 					</div>
 
 					<div className="space-y-2">
-						<div className="flex items-center">
-							<label
-								htmlFor="settings-tbk-input"
-								className="font-medium text-textSecondary"
-							>
-								Tabagn'ss :
-							</label>
-							<TooltipIcon onClick={() => setTooltipKey("tbk")} />
-						</div>
+						<label className="font-medium text-textSecondary flex items-center">
+							Tabagn'ss : <TooltipIcon onClick={() => setTooltipKey("tbk")} />
+						</label>
 						<select
-							className="w-full rounded-lg border bg-backgroundSecondary px-3 py-2 border-primary-400 focus-within:ring-1 focus-within:ring-primary-400 hover:ring-1 hover:ring-primary-400"
+							className="w-full rounded-lg border bg-backgroundSecondary px-3 py-2 border-primary-400"
 							value={tbkValue}
 							onChange={(e) => setTbkValue(e.target.value as tbk)}
 						>
@@ -248,68 +234,49 @@ export default function SettingsDialog({
 							))}
 						</select>
 					</div>
-					<div className="space-y-2">
-						<div className="flex items-center justify-between gap-4">
-							<div className="flex items-center">
-								<label
-									htmlFor="stats-toggle"
-									className="font-medium text-textSecondary cursor-pointer"
-								>
-									Afficher le menu du Crous dans l'emploi du temps :
-								</label>
-							</div>
-							<input
-								id="stats-toggle"
-								type="checkbox"
-								checked={displayRUMenu}
-								onChange={handleRuMenugToggle}
-								className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
-							/>
-						</div>
-					</div>
 
 					<div className="space-y-4 pt-4 border-t border-primary">
 						<div className="flex items-center justify-between gap-4">
 							<span className="font-medium text-textSecondary">Thème :</span>
 							<DarkModeToggle />
 						</div>
-
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center">
-								<label
-									htmlFor="stats-toggle"
-									className="font-medium text-textSecondary cursor-pointer"
-								>
+								<label className="font-medium text-textSecondary cursor-pointer">
 									Mode Casino :
 								</label>
 								<TooltipIcon onClick={() => setTooltipKey("casino")} />
 							</div>
 							<input
-								id="stats-toggle"
 								type="checkbox"
 								checked={isGambling}
 								onChange={handleGamblingToggle}
-								className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
+								className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground"
 							/>
 						</div>
-
 						<div className="flex items-center justify-between gap-4">
 							<div className="flex items-center">
-								<label
-									htmlFor="stats-toggle"
-									className="font-medium text-textSecondary cursor-pointer"
-								>
-									Envoyer des statistiques anonymes :
+								<label className="font-medium text-textSecondary cursor-pointer">
+									Statistiques Anonymes :
 								</label>
 								<TooltipIcon onClick={() => setTooltipKey("stats")} />
 							</div>
 							<input
-								id="stats-toggle"
 								type="checkbox"
-								// The checkbox is checked if the user is *NOT* opted out
 								checked={!isOptedOut}
 								onChange={handleToggle}
-								className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground bg-primary-400 border-primary-400 focus:ring-primary-400"
+								className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground"
+							/>
+						</div>
+						<div className="flex items-center justify-between gap-4">
+							<label className="font-medium text-textSecondary cursor-pointer">
+								Menu RU :
+							</label>
+							<input
+								type="checkbox"
+								checked={displayRUMenu}
+								onChange={handleRuMenugToggle}
+								className="h-5 w-5 rounded text-primary-400 accent-buttonPrimaryBackground"
 							/>
 						</div>
 					</div>
@@ -317,8 +284,8 @@ export default function SettingsDialog({
 
 				<div className="mt-6 text-center text-sm flex flex-col gap-2">
 					<button
-						onClick={() => window.dispatchEvent(new Event("open-changelog"))}
-						className="text-primary hover:text-primary-400 font-medium"
+						onClick={handleVersionClick}
+						className="text-primary hover:text-primary-400 font-medium select-none active:scale-95 transition-transform"
 					>
 						Version (v{CURRENT_VERSION})
 					</button>
@@ -336,7 +303,7 @@ export default function SettingsDialog({
 						{error}
 					</div>
 				)}
-				{/* actions */}
+
 				<div className="flex justify-end gap-3 mt-8">
 					<Button status="secondary" onClick={() => onClose()} type="button">
 						Annuler
@@ -346,73 +313,31 @@ export default function SettingsDialog({
 						type="submit"
 						onClick={() => {
 							const cleanUsername = username?.trim() || "";
-
 							if (!cleanUsername) {
-								setError(
-									"L'identifiant Lise ne peut pas être vide. Entrez votre identifiant et réessayez."
-								);
+								setError("Identifiant requis.");
+								return;
+							}
+							if (username && !liseIdChecker(username)) {
+								setError("Identifiant invalide (20xx-xxxx).");
 								return;
 							}
 
-							if (username) {
-								const previousUsername = localStorage.getItem("lise_id");
+							localStorage.setItem("lise_id", cleanUsername);
+							localStorage.setItem("tbk", tbkValue);
+							localStorage.setItem("gambling", isGambling.toString());
+							localStorage.setItem("display_ru_menu", displayRUMenu.toString());
 
-								if (previousUsername && previousUsername !== username) {
-									posthog.reset();
-								}
-
-								if (!liseIdChecker(username)) {
-									setError(
-										"L'identifiant Lise est invalide. L'identifiant doit être au format 20xx-xxxx"
-									);
-									return;
-								}
-
-								localStorage.setItem("lise_id", username);
-								if (!isOptedOut) {
-									posthog.identify(username);
-
-									posthog.people.set({
-										tbk: tbkValue,
-										gambling_enabled: isGambling,
-										ru_menu_enabled: displayRUMenu,
-									});
-								}
+							if (!isOptedOut) {
+								posthog.identify(cleanUsername);
+								posthog.people.set({
+									tbk: tbkValue,
+									gambling_enabled: isGambling,
+									ru_menu_enabled: displayRUMenu,
+								});
 							}
-
-							if (
-								tbkValue !== localStorage.getItem("tbk") ||
-								localStorage.getItem("tbk") == null
-							) {
-								if (posthog.has_opted_in_capturing()) {
-									posthog.capture("select_tbk_event", {
-										tbk: tbkValue,
-										username: username,
-									});
-								}
-								localStorage.setItem("tbk", tbkValue);
-							}
-
-							if (
-								displayRUMenu !==
-									(localStorage.getItem("display_ru_menu") === "true") ||
-								localStorage.getItem("display_ru_menu") == null
-							)
-								localStorage.setItem(
-									"display_ru_menu",
-									displayRUMenu.toString()
-								);
-
-							if (
-								isGambling !== (localStorage.getItem("gambling") === "true") ||
-								localStorage.getItem("gambling") == null
-							)
-								localStorage.setItem("gambling", isGambling.toString());
-
 							isOptedOut
 								? posthog.opt_out_capturing()
 								: posthog.opt_in_capturing();
-
 							onSave();
 						}}
 					>
@@ -422,7 +347,7 @@ export default function SettingsDialog({
 			</div>
 			{tooltipKey && (
 				<TooltipModal
-					content={TOOLTIP_CONTENT[tooltipKey]}
+					content={TOOLTIP_CONTENT[tooltipKey as keyof typeof TOOLTIP_CONTENT]}
 					onClose={() => setTooltipKey(null)}
 				/>
 			)}

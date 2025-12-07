@@ -105,17 +105,9 @@ export const ACHIEVEMENTS_LIST: AchievementDef[] = [
 		rarity: "Legendary",
 	},
 	{
-		code: "SERIEUX",
-		title: "Étudiant sérieux",
-		description: "Finir un semestre sans aucune heure d'absence injustifiée",
-		snark: "Même les CMs de Farid ?",
-		icon: <TableOutlined />,
-		rarity: "Rare",
-	},
-	{
 		code: "DIEU_MATA",
 		title: "Dieu des matériaux",
-		description: "Obtenir la meilleure note à un DS de MATA",
+		description: "Obtenir plus de 18/20 à un DS de MATA",
 		snark: "Même l'archi Morel n'est pas autant un maxeur",
 		icon: <ExperimentOutlined />,
 		rarity: "Legendary",

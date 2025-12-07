@@ -66,12 +66,8 @@ export default function AchievementsClientPage() {
 		<div className="flex flex-col h-full max-w-6xl mx-auto p-4 sm:p-6 pb-24">
 			{/* Header */}
 			<div className="flex flex-col gap-2 mb-8">
-				<h2 className="text-2xl font-bold text-textPrimary">
-					Tableau de Chasse
-				</h2>
-				<p className="text-textTertiary text-sm">
-					Collectionnez les badges et découvrez les secrets de Better Lise.
-				</p>
+				<h2 className="text-2xl font-bold text-textPrimary">Mes succès</h2>
+				<p className="text-textTertiary text-sm">Visualiser vos succès.</p>
 			</div>
 
 			{/* Stats Dashboard */}

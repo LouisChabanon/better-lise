@@ -219,8 +219,6 @@ export default function AppSidebar({
 						icon={<CalculatorOutlined />}
 						isActive={isActive("/moyenne")}
 					/>
-					<div className="w-px h-8 bg-backgroundSecondary mx-1" />{" "}
-					{/* Divider */}
 					<MobileNavButton
 						onClick={() => setSettingsModal(true)}
 						label="Réglages"
