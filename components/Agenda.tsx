@@ -1,257 +1,351 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from 'react'
-import { RightOutlined, LeftOutlined, HomeOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Button } from './ui/Button';
-import { CalendarEvent } from '@/components/ui/CalendarEvent';
-import { CurrentTimeLine } from '@/components/ui/CurrentTimeLine';
-import { getWeekData } from '@/actions/GetWeekData';
-import { getMonthName } from '@/lib/utils/calendar-utils';
-import LoadingPlaceholder from '@/components/ui/LoadingPlaceholder';
+import { useEffect, useState, useRef, useMemo } from "react";
+import {
+	RightOutlined,
+	LeftOutlined,
+	HomeOutlined,
+	ReloadOutlined,
+} from "@ant-design/icons";
+import { Button } from "./ui/Button";
+import { CalendarEvent } from "@/components/ui/CalendarEvent";
+import { CurrentTimeLine } from "@/components/ui/CurrentTimeLine";
+import { getWeekData } from "@/actions/GetWeekData";
+import { getMonthName } from "@/lib/utils/calendar-utils";
+import LoadingPlaceholder from "@/components/ui/LoadingPlaceholder";
 import { AnimatePresence, motion, PanInfo, Variants } from "framer-motion";
-import { useCalendarData } from '@/hooks/useCalendarData';
-import LiseStatusBadge from './ui/LiseStatusBadge';
+import { useCalendarData } from "@/hooks/useCalendarData";
+import LiseStatusBadge from "./ui/LiseStatusBadge";
 
 const variants: Variants = {
-    enter: (direction: number) => ({
-        x: direction > 0 ? '100%' : '-100%',
-        opacity: 0,
-        willChange: "transform, opacity"
-    }),
-    center: {
-        x: '0%',
-        opacity: 1,
-        transition: {
-            x: { type: "tween", duration: 0.3, ease: "easeOut" },
-            opacity: { duration: 0.2 }
-        },
-        willChange: "auto"
-    },
-    exit: (direction: number) => ({
-        x: direction < 0 ? '100%' : '-100%',
-        opacity: 0,
-        transition: {
-            x: { type: "tween", duration: 0.3, ease: "easeOut" },
-            opacity: { duration: 0.2 }
-        },
-        willChange: "transform, opacity"
-    })
+	enter: (direction: number) => ({
+		x: direction > 0 ? "100%" : "-100%",
+		opacity: 0,
+		willChange: "transform, opacity",
+	}),
+	center: {
+		x: "0%",
+		opacity: 1,
+		transition: {
+			x: { type: "tween", duration: 0.3, ease: "easeOut" },
+			opacity: { duration: 0.2 },
+		},
+		willChange: "auto",
+	},
+	exit: (direction: number) => ({
+		x: direction < 0 ? "100%" : "-100%",
+		opacity: 0,
+		transition: {
+			x: { type: "tween", duration: 0.3, ease: "easeOut" },
+			opacity: { duration: 0.2 },
+		},
+		willChange: "transform, opacity",
+	}),
 };
 
 // --- CONFIGURATION ---
 const START_HOUR = 7; // Start at 7:00
-const END_HOUR = 19;  // End at 19:00
+const END_HOUR = 19; // End at 19:00
 const HOURS_COUNT = END_HOUR - START_HOUR; // 12 hours
-const HOUR_HEIGHT = "1fr"; 
+const HOUR_HEIGHT = "1fr";
 const FIVE_MIN_HEIGHT = "1fr";
 
-const shortLabels = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
-const timeLabels = Array.from({ length: HOURS_COUNT }, (_, i) => i + START_HOUR); // Generate time labels (7:00 to 18:00)
+const shortLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
+const timeLabels = Array.from(
+	{ length: HOURS_COUNT },
+	(_, i) => i + START_HOUR
+); // Generate time labels (7:00 to 18:00)
 
-export default function Agenda({ onSettingsClick }: { onSettingsClick: () => void }) {
+export default function Agenda({
+	onSettingsClick,
+}: {
+	onSettingsClick: () => void;
+}) {
+	const { data, isLoading, isFetching, isError, error, refetch } =
+		useCalendarData();
+	const calendarEvents = data?.events;
 
-    const { data, isLoading, isFetching, isError, error, refetch } = useCalendarData();
-    const calendarEvents = data?.events;
+	const [weekOffset, setWeekOffset] = useState<number>(0);
+	const [swipeDirection, setSwipeDirection] = useState<number>(0);
 
-    const [weekOffset, setWeekOffset] = useState<number>(0);
-    const [swipeDirection, setSwipeDirection] = useState<number>(0);
+	const agendaRef = useRef<HTMLDivElement>(null);
 
-    const agendaRef = useRef<HTMLDivElement>(null);
+	const { weekDates, currentDayIndex } = useMemo(
+		() => getWeekData(weekOffset),
+		[weekOffset]
+	);
 
-    const { weekDates, currentDayIndex } = useMemo(() => getWeekData(weekOffset), [weekOffset]); 
+	// -- EFFECTS --
+	useEffect(() => {
+		if (data?.status === "no user") {
+			onSettingsClick();
+		}
+	}, [data?.status, onSettingsClick]);
 
-    // -- EFFECTS --
-    useEffect(() =>{
-        if(data?.status === "no user"){
-            onSettingsClick();
-        }
-    }, [data?.status, onSettingsClick])
+	useEffect(() => {
+		if (
+			currentDayIndex === null ||
+			currentDayIndex >= 5 ||
+			currentDayIndex < 0
+		) {
+			setWeekOffset(1);
+		}
+	}, []);
 
-    useEffect(() => {
-        if (currentDayIndex === null || currentDayIndex >= 5 || currentDayIndex < 0) {
-            setWeekOffset(1);
-        }
-    }, [])
+	// -- HANDLERS --
+	const handleDragEnd = (
+		event: MouseEvent | TouchEvent | PointerEvent,
+		info: PanInfo
+	) => {
+		const swipeThreshold = 50;
+		const offset = info.offset.x;
+		if (Math.abs(offset) > swipeThreshold) {
+			if (offset > 0) {
+				setSwipeDirection(-1);
+				setWeekOffset((prev) => prev - 1);
+			} else {
+				setSwipeDirection(1);
+				setWeekOffset((prev) => prev + 1);
+			}
+		}
+	};
 
-    
-    // -- HANDLERS --
-    const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        const swipeThreshold = 50;
-        const offset = info.offset.x;
-        if(Math.abs(offset) > swipeThreshold){
-            if(offset > 0){
-                setSwipeDirection(-1);
-                setWeekOffset(prev => prev - 1);
-            } else {
-                setSwipeDirection(1);
-                setWeekOffset(prev => prev + 1);
-            }
-        }
-    }
+	const handleWeekChange = (directon: -1 | 1) => {
+		setSwipeDirection(directon);
+		setWeekOffset((prev) => prev + directon);
+	};
 
-    const handleWeekChange = (directon: -1 | 1) => {
-        setSwipeDirection(directon);
-        setWeekOffset(prev => prev + directon);
-    }
+	return (
+		<div className="flex flex-col select-none overflow-hidden rounded-xl h-full">
+			{/* ================= DESKTOP HEADER =================  */}
+			<header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
+				<h1 className="text-xl font-semibold text-textPrimary">
+					<time dateTime="">
+						{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}
+					</time>
+				</h1>
+				<div className="flex items-center">
+					<div className="text-sm sm:flex justify-center items-center hidden">
+						<Button
+							status="secondary"
+							className="mr-2"
+							onClick={() => handleWeekChange(-1)}
+							disabled={isFetching}
+						>
+							<LeftOutlined className="font-semibold" />
+						</Button>
+						<Button
+							status="secondary"
+							onClick={() => {
+								setWeekOffset(0);
+								setSwipeDirection(0);
+							}}
+							disabled={isFetching || weekOffset === 0}
+						>
+							Aujourd'hui
+						</Button>
+						<Button
+							status="secondary"
+							className="ml-2 mr-2"
+							onClick={() => handleWeekChange(1)}
+							disabled={isFetching}
+						>
+							<RightOutlined />
+						</Button>
+						<Button
+							status="primary"
+							onClick={() => refetch()}
+							disabled={isFetching}
+						>
+							<ReloadOutlined />
+						</Button>
+					</div>
+				</div>
+			</header>
 
-    return (
-        <div className="flex flex-col select-none overflow-hidden rounded-xl h-full">
-            
-            {/* ================= DESKTOP HEADER =================  */}
-            <header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
-                <h1 className="text-xl font-semibold text-textPrimary">
-                    <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
-                </h1>
-                <div className="flex items-center">
-                    <div className="text-sm sm:flex justify-center items-center hidden">
-                        <Button status="secondary" className='mr-2' onClick={() => handleWeekChange(-1)} disabled={isFetching}>
-                            <LeftOutlined className='font-semibold'/>
-                        </Button>
-                        <Button status="secondary" onClick={() => {setWeekOffset(0); setSwipeDirection(0);}} disabled={isFetching || weekOffset === 0 }>
-                            Aujourd'hui
-                        </Button>
-                        <Button status="secondary" className='ml-2 mr-2' onClick={() => handleWeekChange(1)} disabled={isFetching}>
-                            <RightOutlined />
-                        </Button>
-                        <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
-                    </div>        
-                </div>
-            </header>
+			{/* ================= MOBILE HEADER =================  */}
+			<header className="flex sm:hidden flex-none items-center justify-between py-2 px-6">
+				<h1 className="text-xl font-semibold text-textPrimary">
+					<time dateTime="">
+						{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}
+					</time>
+				</h1>
+				<div className="mt-2 flex justify-center">
+					<LiseStatusBadge discrete={true} />
+				</div>
+				<div className="flex items-center gap-2">
+					<Button
+						status="secondary"
+						onClick={() => {
+							setWeekOffset(0);
+							setSwipeDirection(0);
+						}}
+						disabled={isFetching || weekOffset === 0}
+					>
+						<HomeOutlined />
+					</Button>
+					<Button
+						status="primary"
+						onClick={() => refetch()}
+						disabled={isFetching}
+					>
+						<ReloadOutlined />
+					</Button>
+				</div>
+			</header>
 
-            {/* ================= MOBILE HEADER =================  */}
-            <header className="flex sm:hidden flex-none items-center justify-between py-2 px-6">
-                <h1 className="text-xl font-semibold text-textPrimary">
-                    <time dateTime="">{getMonthName(weekDates[0].getMonth())} {weekDates[0].getFullYear()}</time>
-                </h1>
-                <div className="mt-2 flex justify-center">
-                    <LiseStatusBadge discrete={true} />
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button status="secondary" onClick={() => {setWeekOffset(0); setSwipeDirection(0);}} disabled={isFetching || weekOffset === 0}>
-                        <HomeOutlined />
-                    </Button>
-                    <Button status="primary" onClick={() => refetch()} disabled={isFetching}><ReloadOutlined /></Button>
-                </div>
+			<div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">
+				{/* --- Loading / Error States --- */}
+				{isFetching ? (
+					<LoadingPlaceholder />
+				) : isError ? (
+					<div className="text-center text-error p-8">
+						Erreur lors du chargement de l'agenda: {(error as Error).message}
+					</div>
+				) : (
+					<div
+						ref={agendaRef}
+						className="flex-1 min-h-0 flex flex-col md:overflow-hidden"
+					>
+						{/* --- SUBHEADERS --- */}
+						<div className="sticky top-0 z-30 flex-none bg-backgroundPrimary shadow ring-opacity-5 border-b border-calendarGridBorder">
+							{/* ======== MOBILE DAY HEADER ========= */}
+							<div className="grid grid-cols-5 text-sm text-textPrimary sm:hidden">
+								<div className="col-end-1 w-8" />
+								{weekDates.map((date, i) => (
+									<button
+										key={i}
+										type="button"
+										className="flex flex-col items-center pt-1 pb-1"
+									>
+										{shortLabels[i]}{" "}
+										<span
+											className={`mt-1 flex h-8 w-8 items-center text-textPrimary justify-center font-semibold ${
+												i === currentDayIndex
+													? "rounded-full bg-primary-container text-white"
+													: "text-gray-900"
+											}`}
+										>
+											{date.getDate()}
+										</span>
+									</button>
+								))}
+							</div>
 
-            </header>
+							{/* ======== DESKTOP DAY HEADER ========= */}
+							<div className="-mr-px hidden grid-cols-5 divide-x divide-calendarGridBorder border-r border-calendarGridBorder text-sm leading-6 text-gray-500 sm:grid">
+								<div className="col-end-1 w-8" />
+								{weekDates.map((date, i) => (
+									<div
+										key={i}
+										className="flex items-center justify-center py-3"
+									>
+										<span className="flex items-baseline text-textPrimary">
+											{shortLabels[i]}{" "}
+											<span
+												className={`flex text-textPrimary items-center justify-center font-semibold ml-1.5 ${
+													i === currentDayIndex
+														? "rounded-full h-8 w-8 bg-primary-container text-white"
+														: "text-gray-900"
+												}`}
+											>
+												{" "}
+												{date.getDate()}
+											</span>
+										</span>
+									</div>
+								))}
+							</div>
+						</div>
 
-            <div className="flex-1 min-h-0 flex flex-col overflow-auto md:overflow-hidden bg-backgroundPrimary relative">
-                {/* --- Loading / Error States --- */}
-                {isFetching ? (
-                    <LoadingPlaceholder />
-                ) : isError ? (
-                    <div className="text-center text-error p-8">
-                        Erreur lors du chargement de l'agenda: {(error as Error).message}
-                    </div>
-                ) : (
-                    <div ref={agendaRef} className="flex-1 min-h-0 flex flex-col md:overflow-hidden">
-                        {/* --- SUBHEADERS --- */}
-                        <div className="sticky top-0 z-30 flex-none bg-backgroundPrimary shadow ring-opacity-5 border-b border-calendarGridBorder">
-                            {/* ======== MOBILE DAY HEADER ========= */}
-                            <div className="grid grid-cols-5 text-sm text-textPrimary sm:hidden">
-                                <div className="col-end-1 w-8" />
-                                {weekDates.map((date, i) => (
-                                    <button key={i} type="button" className="flex flex-col items-center pt-1 pb-1">
-                                        {shortLabels[i]} {' '}
-                                        <span className={`mt-1 flex h-8 w-8 items-center text-textPrimary justify-center font-semibold ${i === currentDayIndex ? 'rounded-full bg-primary-container text-white' : "text-gray-900" }`}>{date.getDate()}</span>
-                                    </button>
-                                ))}
-                            </div>
+						{/* --- AGENDA GRID & EVENTS --- */}
+						<div className="flex-1 min-h-0 flex overflow-y-auto h-full overflow-x-hidden">
+							<div className="sticky left-0 z-10 w-8 bg-backgroundPrimary ring-1 ring-calendarGridBorder flex-none" />
 
-                            {/* ======== DESKTOP DAY HEADER ========= */}
-                            <div className="-mr-px hidden grid-cols-5 divide-x divide-calendarGridBorder border-r border-calendarGridBorder text-sm leading-6 text-gray-500 sm:grid">
-                                <div className="col-end-1 w-8" />
-                                {weekDates.map((date, i) => (
-                                    <div key={i} className="flex items-center justify-center py-3">
-                                        <span className="flex items-baseline text-textPrimary">
-                                            {shortLabels[i]} <span className={`flex text-textPrimary items-center justify-center font-semibold ml-1.5 ${i === currentDayIndex ? 'rounded-full h-8 w-8 bg-primary-container text-white' : "text-gray-900" }`}>{" "}{date.getDate()}</span>
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        
-                        {/* --- AGENDA GRID & EVENTS --- */}
-                        <div className="flex-1 min-h-0 flex overflow-y-auto h-full overflow-x-hidden">
-                            <div className="sticky left-0 z-10 w-8 bg-backgroundPrimary ring-1 ring-calendarGridBorder flex-none" />
-                            <div className="grid flex-1 min-h-0 grid-cols-1 grid-rows-1">
-                                {/* --- Horizontal Lines (Hour markers) ---*/}
-                                <div
-                                    className="col-start-1 col-end-2 row-start-1 grid divide-y divide-calendarGridBorder h-full"
-                                    style={{ 
-                                        gridTemplateRows: `repeat(${HOURS_COUNT}, ${HOUR_HEIGHT})` 
-                                    }}
-                                >
-                                    {timeLabels.map((hour, index) => (
-                                        <div key={hour}>
-                                            <div className="sticky left-0 z-50 -mt-2.5 -ml-8 w-8 pr-2 text-right text-xs leading-5 text-textQuaternary">
-                                                {index > 0 ? `${hour}:00` : ""}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+							<div className="grid flex-1 min-h-[640px] grid-cols-1 grid-rows-1">
+								{/* --- Horizontal Lines (Hour markers) ---*/}
+								<div
+									className="col-start-1 col-end-2 row-start-1 grid divide-y divide-calendarGridBorder h-full"
+									style={{
+										gridTemplateRows: `repeat(${HOURS_COUNT}, ${HOUR_HEIGHT})`,
+									}}
+								>
+									{timeLabels.map((hour, index) => (
+										<div key={hour}>
+											<div className="sticky left-0 z-20 -mt-2.5 -ml-8 w-8 pr-2 text-right text-xs leading-5 text-textQuaternary">
+												{index > 0 ? `${hour}:00` : ""}
+											</div>
+										</div>
+									))}
+								</div>
 
-                                {/* --- Vertical Lines --- */}
-                                <div className="col-start-1 col-end-2 row-start-1 grid-rows-1 divide-x divide-calendarGridBorder grid grid-cols-5 pointer-events-none">
-                                    <div className="col-start-1 row-span-full" />
-                                    <div className="col-start-2 row-span-full" />
-                                    <div className="col-start-3 row-span-full" />
-                                    <div className="col-start-4 row-span-full" />
-                                    <div className="col-start-5 row-span-full" />
-                                </div>
+								{/* --- Vertical Lines --- */}
+								<div className="col-start-1 col-end-2 row-start-1 grid-rows-1 divide-x divide-calendarGridBorder grid grid-cols-5 pointer-events-none">
+									<div className="col-start-1 row-span-full" />
+									<div className="col-start-2 row-span-full" />
+									<div className="col-start-3 row-span-full" />
+									<div className="col-start-4 row-span-full" />
+									<div className="col-start-5 row-span-full" />
+								</div>
 
-                                {/* ============= EVENTS CONTAINER ============= */}
-                                <AnimatePresence initial={false} custom={swipeDirection}>
-                                    <motion.ol
-                                        key={weekOffset}
-                                        className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 sm:bg-none h-full"
-                                        style={{ 
-                                            // Dynamic rows based on hours count (12 slots per hour)
-                                            gridTemplateRows: `repeat(${HOURS_COUNT * 12}, ${FIVE_MIN_HEIGHT})`,
-                                            gridArea: "1 / 1 / -1 / -1",
-                                            transform: "translateZ(0)"
-                                        }}
-                                        variants={variants}
-                                        initial="enter"
-                                        animate="center"
-                                        exit="exit"
-                                        custom={swipeDirection}
-                                        dragConstraints={{ left: 0, right: 0 }}
-                                        drag="x"
-                                        onDragEnd={handleDragEnd}
-                                    >
-                                        {weekOffset == 0 && (
-                                            <CurrentTimeLine currentDay={currentDayIndex} />
-                                        )}
-                                        {calendarEvents && calendarEvents.map((event, i) => {
-                                            const key = event.title + i;
-                                            const info = data.mapping[key] || { position: 0, columns: 1 };
-                                            
-                                            return (
-                                                <CalendarEvent
-                                                    key={i}
-                                                    title={event.title}
-                                                    summary={event.summary}
-                                                    room={event.room}
-                                                    teacher={event.teacher}
-                                                    group={event.group}
-                                                    startDate={event.startDate}
-                                                    endDate={event.endDate}
-                                                    type={event.type}
-                                                    weekOffset={weekOffset}
-                                                    info={info}
-                                                    tbk={data.tbk}
-                                                    isAllDay={event.isAllDay}
-                                                />
-                                            )
-                                        })}
-                                    </motion.ol>
-                                </AnimatePresence>
-                            </div>
-                        </div>
-                    </div> 
-                )}
-            </div>
-        </div>
-    )
+								{/* ============= EVENTS CONTAINER ============= */}
+								<AnimatePresence initial={false} custom={swipeDirection}>
+									<motion.ol
+										key={weekOffset}
+										className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 sm:bg-none h-full"
+										style={{
+											// Dynamic rows based on hours count (12 slots per hour)
+											gridTemplateRows: `repeat(${
+												HOURS_COUNT * 12
+											}, ${FIVE_MIN_HEIGHT})`,
+											gridArea: "1 / 1 / -1 / -1",
+											transform: "translateZ(0)",
+										}}
+										variants={variants}
+										initial="enter"
+										animate="center"
+										exit="exit"
+										custom={swipeDirection}
+										dragConstraints={{ left: 0, right: 0 }}
+										drag="x"
+										onDragEnd={handleDragEnd}
+									>
+										{weekOffset == 0 && (
+											<CurrentTimeLine currentDay={currentDayIndex} />
+										)}
+										{calendarEvents &&
+											calendarEvents.map((event, i) => {
+												const key = event.title + i;
+												const info = data.mapping[key] || {
+													position: 0,
+													columns: 1,
+												};
+
+												return (
+													<CalendarEvent
+														key={i}
+														title={event.title}
+														summary={event.summary}
+														room={event.room}
+														teacher={event.teacher}
+														group={event.group}
+														startDate={event.startDate}
+														endDate={event.endDate}
+														type={event.type}
+														weekOffset={weekOffset}
+														info={info}
+														tbk={data.tbk}
+														isAllDay={event.isAllDay}
+													/>
+												);
+											})}
+									</motion.ol>
+								</AnimatePresence>
+							</div>
+						</div>
+					</div>
+				)}
+			</div>
+		</div>
+	);
 }
