@@ -455,19 +455,18 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 								</select>
 							</div>
 						</div>
-
-						{/* Mark Read Button (Mobile Panel Location) */}
-						{hasNewGrades && (
-							<div className="mt-4 pt-3 border-t border-border/50 flex justify-end">
-								<Button
-									status="secondary"
-									onClick={handleMarkAllRead}
-									className="w-full sm:w-auto"
-								>
-									<CheckOutlined /> Tout marquer comme vu
-								</Button>
-							</div>
-						)}
+					</div>
+				)}
+				{/* Mark Read Button (Mobile Panel Location) */}
+				{hasNewGrades && (
+					<div className="flex justify-end">
+						<Button
+							status="secondary"
+							onClick={handleMarkAllRead}
+							className="w-full sm:w-auto"
+						>
+							<CheckOutlined /> Tout marquer comme vu
+						</Button>
 					</div>
 				)}
 			</div>
