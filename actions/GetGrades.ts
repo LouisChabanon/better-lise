@@ -15,6 +15,8 @@ const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
 export async function getGradeData(
 	reload: boolean = true
 ): Promise<RequestState> {
+	const isMock = process.env.MOCK_DATA === "true";
+
 	const start = Date.now();
 
 	const posthog = PostHogClient();
@@ -216,7 +218,7 @@ export async function getGradeData(
 				const userClass = user.class as PromoCode;
 				const userTBK = user.tbk as tbk;
 
-				if (!isFirstSync && user.class && user.tbk) {
+				if (!isFirstSync && user.class && user.tbk && user.class !== "Autre") {
 					const gradeToNotifify = newGrades[0];
 
 					const gradeAlreadyExists = await prisma.grade.findFirst({
