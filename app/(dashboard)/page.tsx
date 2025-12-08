@@ -1,11 +1,8 @@
-import Agenda from '@/components/Agenda';
-import { verifySession } from '@/lib/sessions';
+import AgendaWrapper from "@/components/AgendaWrapper";
+import { verifySession } from "@/lib/sessions";
 
 export default async function AgendaPage() {
-  return (
-      <AgendaWrapper />
-  );
+	const session = await verifySession();
+
+	return <AgendaWrapper session={session} />;
 }
-
-
-import AgendaWrapper from '@/components/AgendaWrapper';

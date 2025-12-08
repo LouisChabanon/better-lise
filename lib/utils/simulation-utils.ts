@@ -3,7 +3,7 @@ import { RealGradeWithCoeff, SimulatedGrade } from "@/lib/types";
 export const parseClassCode = (fullCode: string) => {
 	// Format: FITE_[semester]_[class]_[subclass]_...
 	const parts = fullCode.split("_");
-	const exclude_sem = ["GIE2", "GIE1", "GIM2", "GIM1"]; // Remove GIM2 GIM1 GIE2 GIE1 from parsing
+	const exclude_sem = ["GIE2", "GIE1", "GIM2", "GIM1", "EXP"]; // Remove GIM2 GIM1 GIE2 GIE1 from parsing
 
 	if (parts.length >= 3) {
 		const semester = parts[1]; // e.g. S7

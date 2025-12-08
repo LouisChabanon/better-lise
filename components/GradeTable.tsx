@@ -171,6 +171,10 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 
 		// 5. Sorting
 		result.sort((a, b) => {
+			// New grades are always on top
+			if (a.isNew && !b.isNew) return -1;
+			if (!a.isNew && b.isNew) return 1;
+
 			let aValue: any = a[sortConfig.key];
 			let bValue: any = b[sortConfig.key];
 

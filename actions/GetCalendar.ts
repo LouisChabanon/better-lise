@@ -1,5 +1,5 @@
 "use server";
-const ical = require("node-ical");
+
 import { CalendarEventProps } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz";
 import logger from "@/lib/logger";
@@ -14,7 +14,7 @@ type CalendarDataResponse = {
 
 const GetCalendar = async (username: string | null) => {
 	const URI = "http://lise.ensam.eu/ical_apprenant/";
-	const DEV_URI = process.env.DEV_URI || URI;
+	const ical = require("node-ical");
 
 	if (!username) {
 		return { events: [], status: "no user" } as CalendarDataResponse;

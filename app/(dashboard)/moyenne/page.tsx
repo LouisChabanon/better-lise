@@ -2,7 +2,6 @@ import { getGradeData } from "@/actions/GetGrades";
 import GradeSimulator from "@/components/simulation/GradeSimulator";
 import ProtectedView from "@/components/ProtectedView";
 import { verifySession } from "@/lib/sessions";
-import { CalculatorOutlined } from "@ant-design/icons";
 
 export const metadata = {
 	title: "Mes Moyennes",
