@@ -74,6 +74,14 @@ const TOOLTIP_CONTENT = {
 			"Aucune donnée personnelle (notes, absences) n'est jamais envoyée. Ce suivi est uniquement destiné à comprendre l'utilisation des fonctionnalités et à résoudre les bugs.",
 		],
 	},
+	notifications: {
+		title: "Notifications",
+		description: [
+			"Recevez une notification lorsque un autre utilisateur de la même demi-promo et du même TBK reçoit une nouvelle note",
+			"L'envoie de la notification ne s'effectue que si un utilisateur se connecte et télécharge une nouvelle note depuis Lise",
+			"Il est possible de recevoir des notifications pour des notes qui ne vous concerne pas (ex: LV1, LV2, note de TP etc...)",
+		],
+	},
 };
 
 const CLASSES = ["GIM1", "GIM2", "GIE1", "GIE2", "EXP", "Autre"] as PromoCode[];
@@ -282,8 +290,9 @@ export default function SettingsDialog({
 
 					{/* --- SOCIAL SECTION (Gated by Session) --- */}
 					<div className="pt-4 border-t border-primary/10">
-						<h3 className="text-xs font-bold text-textTertiary uppercase mb-3">
-							Notifications
+						<h3 className="text-xs font-bold text-textTertiary uppercase mb-3 flex">
+							Notifications{" "}
+							<TooltipIcon onClick={() => setTooltipKey("notifications")} />
 						</h3>
 
 						{!isUserLoggedIn ? (
@@ -347,7 +356,7 @@ export default function SettingsDialog({
 									<div
 										className={`flex items-center justify-between gap-4 p-3 rounded-xl border transition-colors ${
 											isSubscribed
-												? "bg-primary-50 border-primary/30"
+												? "bg-BackgroundPrimary border-primary/30"
 												: "bg-backgroundSecondary border-backgroundTertiary"
 										}`}
 									>
@@ -366,9 +375,7 @@ export default function SettingsDialog({
 													Alertes Notes
 												</span>
 												<span className="text-[10px] text-textTertiary">
-													{isSubscribed
-														? "Vous êtes abonné"
-														: "Soyez le premier au courant"}
+													{isSubscribed ? "Vous êtes abonné" : "BETA"}
 												</span>
 											</div>
 										</div>
