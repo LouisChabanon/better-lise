@@ -217,16 +217,31 @@ export async function getGradeData(
 				const userTBK = user.tbk as tbk;
 
 				if (!isFirstSync && user.class && user.tbk) {
-					notifyClassmates(
-						userClass,
-						userTBK,
-						user.id,
-						newGrades[0].code,
-						newGrades[0].libelle
-					).catch((error) =>
-						logger.error("Failed to send notification", { error: error })
-					);
+					const gradeToNotifify = newGrades[0];
+
+					const gradeAlreadyExists = await prisma.grade.findFirst({
+						where: {
+							code: gradeToNotifify.code,
+							user: {
+								id: { not: user.id },
+							},
+						},
+						select: { id: true },
+					});
+
+					if (!gradeAlreadyExists) {
+						notifyClassmates(
+							userClass,
+							userTBK,
+							user.id,
+							newGrades[0].code,
+							newGrades[0].libelle
+						).catch((error) =>
+							logger.error("Failed to send notification", { error: error })
+						);
+					}
 				}
+
 				logger.info("Scraping grades finished", {
 					username: user.username,
 					duration_ms: duration,
