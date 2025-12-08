@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button } from "./ui/Button";
 import { AbsenceType } from "@/lib/types";
 import {
@@ -12,6 +12,7 @@ import {
 	InfoCircleOutlined,
 	PieChartOutlined,
 	CloseOutlined,
+	LoadingOutlined,
 } from "@ant-design/icons";
 import { useAbsencesData } from "@/hooks/useAbsencesData";
 import { useScraperLoading } from "@/hooks/useScraperLoading";
@@ -30,8 +31,10 @@ export function AbsencesTable({ session }: { session: any }) {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filteredAbsences, setFilteredAbsences] = useState<AbsenceType[]>([]);
-
 	const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+
+	// Reference for the bottom of the mobile list
+	const bottomSentinelRef = useRef<HTMLDivElement>(null);
 
 	// --- Effects ---
 	useEffect(() => {
@@ -56,14 +59,41 @@ export function AbsencesTable({ session }: { session: any }) {
 		setCurrentPage(1);
 	}, [searchTerm, localAbsences]);
 
-	// --- Pagination Calculation ---
+	// --- Pagination & Slicing ---
 	const pageSize = 15;
 	const totalPages = Math.max(1, Math.ceil(filteredAbsences.length / pageSize));
+
+	// Desktop: Standard Pagination (Show 15 at a time)
 	const startIndex = (currentPage - 1) * pageSize;
-	const currentAbsences = filteredAbsences.slice(
+	const desktopAbsences = filteredAbsences.slice(
 		startIndex,
 		startIndex + pageSize
 	);
+
+	// Mobile: Infinite Scroll (Show everything from 0 up to current page limit)
+	const mobileAbsences = filteredAbsences.slice(0, currentPage * pageSize);
+
+	// --- Infinite Scroll Observer ---
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const first = entries[0];
+				if (first.isIntersecting && currentPage < totalPages) {
+					setCurrentPage((prev) => prev + 1);
+				}
+			},
+			{ threshold: 0.5 }
+		);
+
+		const currentSentinel = bottomSentinelRef.current;
+		if (currentSentinel) {
+			observer.observe(currentSentinel);
+		}
+
+		return () => {
+			if (currentSentinel) observer.unobserve(currentSentinel);
+		};
+	}, [bottomSentinelRef, totalPages, currentPage]);
 
 	return (
 		<div className="flex flex-col w-full relative h-full overflow-hidden">
@@ -238,52 +268,68 @@ export function AbsencesTable({ session }: { session: any }) {
 			) : (
 				<>
 					{/* Content Area */}
-					<div className="min-h-0 flex flex-col pb-24 md:pb-0 md:flex-1 md:overflow-y-auto">
+					<div className="min-h-0 flex flex-col pb-0 md:flex-1 md:overflow-y-auto">
 						{filteredAbsences.length === 0 ? (
 							<div className="text-center text-textTertiary py-12 bg-backgroundPrimary rounded-xl border border-backgroundSecondary">
 								Aucune absence trouvée.
 							</div>
 						) : (
 							<>
-								{/* Mobile View */}
-								<div className="md:hidden space-y-3 pb-2">
-									{filteredAbsences.map((a, index) => (
+								{/* Mobile View (Infinite Scroll) */}
+								<div className="md:hidden pb-2 overflow-y-auto h-full pr-1">
+									<div className="space-y-3">
+										{/* Map over mobileAbsences (Accumulated) */}
+										{mobileAbsences.map((a, index) => (
+											<div
+												key={index}
+												className="flex flex-col p-4 rounded-2xl border border-backgroundSecondary bg-backgroundPrimary shadow-sm"
+											>
+												<div className="flex justify-between items-start mb-2 gap-2">
+													<h3 className="font-semibold text-textPrimary text-sm leading-tight">
+														{a.cours}
+													</h3>
+													<span className="shrink-0 text-xs font-medium bg-backgroundSecondary text-textSecondary px-2 py-1 rounded-lg whitespace-nowrap">
+														{a.date}
+													</span>
+												</div>
+												<div className="flex items-center gap-4 text-xs text-textTertiary mb-2">
+													<div className="flex items-center gap-1">
+														<ClockCircleOutlined />
+														<span>{a.horaire}</span>
+													</div>
+													<div className="flex items-center gap-1 font-semibold text-textSecondary">
+														<span>{a.duree}</span>
+													</div>
+												</div>
+												<div className="flex items-center gap-2 text-xs text-textTertiary mb-2">
+													<UserOutlined />
+													<span className="truncate">{a.intervenants}</span>
+												</div>
+												{a.motif && (
+													<div className="mt-2 pt-2 border-t border-backgroundSecondary flex items-start gap-2 text-xs text-textSecondary">
+														<InfoCircleOutlined className="mt-0.5 text-primary/60" />
+														<span>{a.motif}</span>
+													</div>
+												)}
+											</div>
+										))}
+
+										{/* Sentinel Element for Intersection Observer */}
 										<div
-											key={index}
-											className="flex flex-col p-4 rounded-2xl border border-backgroundSecondary bg-backgroundPrimary shadow-sm"
+											ref={bottomSentinelRef}
+											className="h-10 w-full flex items-center justify-center"
 										>
-											<div className="flex justify-between items-start mb-2 gap-2">
-												<h3 className="font-semibold text-textPrimary text-sm leading-tight">
-													{a.cours}
-												</h3>
-												<span className="shrink-0 text-xs font-medium bg-backgroundSecondary text-textSecondary px-2 py-1 rounded-lg whitespace-nowrap">
-													{a.date}
-												</span>
-											</div>
-											<div className="flex items-center gap-4 text-xs text-textTertiary mb-2">
-												<div className="flex items-center gap-1">
-													<ClockCircleOutlined />
-													<span>{a.horaire}</span>
-												</div>
-												<div className="flex items-center gap-1 font-semibold text-textSecondary">
-													<span>{a.duree}</span>
-												</div>
-											</div>
-											<div className="flex items-center gap-2 text-xs text-textTertiary mb-2">
-												<UserOutlined />
-												<span className="truncate">{a.intervenants}</span>
-											</div>
-											{a.motif && (
-												<div className="mt-2 pt-2 border-t border-backgroundSecondary flex items-start gap-2 text-xs text-textSecondary">
-													<InfoCircleOutlined className="mt-0.5 text-primary/60" />
-													<span>{a.motif}</span>
-												</div>
+											{currentPage < totalPages && (
+												<LoadingOutlined
+													className="text-primary text-xl"
+													spin
+												/>
 											)}
 										</div>
-									))}
+									</div>
 								</div>
 
-								{/* Desktop View */}
+								{/* Desktop View (Table Pagination) */}
 								<div className="hidden md:block flex-1 overflow-auto rounded-t-lg bg-backgroundPrimary border border-backgroundSecondary">
 									<table className="table-fixed min-w-full text-sm divide-y divide-gray-200">
 										<thead className="bg-backgroundTertiary uppercase text-xs font-semibold z-10 sticky top-0">
@@ -299,7 +345,8 @@ export function AbsencesTable({ session }: { session: any }) {
 											</tr>
 										</thead>
 										<tbody className="text-textSecondary divide-y divide-calendarGridBorder">
-											{currentAbsences.map((a, index) => (
+											{/* Map over desktopAbsences (Sliced) */}
+											{desktopAbsences.map((a, index) => (
 												<tr
 													key={index}
 													className="hover:bg-backgroundSecondary transition-colors"
@@ -345,7 +392,7 @@ export function AbsencesTable({ session }: { session: any }) {
 						)}
 					</div>
 
-					{/* Pagination */}
+					{/* Desktop Pagination Controls */}
 					<div className="hidden md:flex mt-4 md:mt-0 md:sticky md:bottom-0 md:z-40 justify-between items-center md:p-4 md:bg-backgroundPrimary md:border-t md:border-buttonSecondaryBorder md:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
 						<Button
 							onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
