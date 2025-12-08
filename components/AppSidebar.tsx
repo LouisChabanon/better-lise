@@ -247,6 +247,7 @@ export default function AppSidebar({
 						window.dispatchEvent(new Event("settings-changed"));
 						router.refresh();
 					}}
+					session={session}
 				/>
 			)}
 		</div>

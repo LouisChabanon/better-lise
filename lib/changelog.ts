@@ -6,9 +6,22 @@ export interface Release {
 	fixes?: string[];
 }
 
-export const CURRENT_VERSION = "1.2.0";
+export const CURRENT_VERSION = "1.3.0";
 
 export const CHANGELOG: Release[] = [
+	{
+		version: "1.3.0",
+		date: "07 Dec 2025",
+		title: "Notifications",
+		features: [
+			"Il est maintenant possible de recevoir une notification lorsque une nouvelle note est disponible",
+			"Lorsque un membre de la demi promo charge une nouvelle note depuis Lise, les autres utilisateurs dans la même demi promo reçoivent une notif",
+		],
+		fixes: [
+			"Amélioration de la détection des UE pour les moyennes",
+			"Amélioration du contraste en mode clair",
+		],
+	},
 	{
 		version: "1.2.0",
 		date: "01 Dec 2025",

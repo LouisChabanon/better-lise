@@ -7,7 +7,8 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"postinstall": "prisma generate --no-engine"
+		"postinstall": "prisma generate --no-engine",
+		"check:cycles": "node ./.analysis/detect-cycles.js"
 	},
 	"dependencies": {
 		"@ant-design/nextjs-registry": "^1.0.2",
@@ -48,6 +49,7 @@
 		"tailwind-animate": "^0.2.10",
 		"tough-cookie": "^5.1.2",
 		"use-sound": "^5.0.0",
+		"web-push": "^3.6.7",
 		"winston": "^3.18.3"
 	},
 	"devDependencies": {
@@ -56,6 +58,7 @@
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"@types/web-push": "^3.6.4",
 		"eslint-config-next": "16.0.5",
 		"prisma": "^6.11.1",
 		"tailwindcss": "^4.1.11",

@@ -50,6 +50,8 @@ export type tbk =
 	| "Bordels"
 	| "Sibers";
 
+export type PromoCode = "GIM1" | "GIM2" | "GIE1" | "GIE2" | "EXP" | "Autre";
+
 export type RequestState = {
 	errors?: string;
 	data?: GradeType[];

@@ -9,13 +9,26 @@ datasource db {
 }
 
 model User {
-  id               Int               @id @default(autoincrement())
-  username         String            @unique
-  lastLogin        DateTime
-  grades           Grade[]
-  absences         Absence[]
-  achievements     Achievement[]
-  gradeWeightVotes GradeWeightVote[]
+  id                Int                @id @default(autoincrement())
+  username          String             @unique
+  lastLogin         DateTime
+  class             String? //GIM1 GIM2 etc...
+  tbk               String?
+  grades            Grade[]
+  absences          Absence[]
+  achievements      Achievement[]
+  gradeWeightVotes  GradeWeightVote[]
+  pushSubscriptions PushSubscription[]
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Grade {

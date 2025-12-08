@@ -5,9 +5,10 @@ import prisma from "@/lib/db";
 import { verifySession, deleteSession } from "@/lib/sessions";
 import * as cheerio from "cheerio";
 import { getHiddenFields, navigateToLisePage } from "@/lib/utils/scraper-utils";
-import { GradeType, RequestState } from "@/lib/types";
+import { GradeType, PromoCode, RequestState, tbk } from "@/lib/types";
 import logger from "@/lib/logger";
 import PostHogClient from "@/lib/posthog-server";
+import { notifyClassmates } from "./PushNotification";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
 
@@ -211,6 +212,21 @@ export async function getGradeData(
 						opened: isFirstSync,
 					})),
 				});
+
+				const userClass = user.class as PromoCode;
+				const userTBK = user.tbk as tbk;
+
+				if (!isFirstSync && user.class && user.tbk) {
+					notifyClassmates(
+						userClass,
+						userTBK,
+						user.id,
+						newGrades[0].code,
+						newGrades[0].libelle
+					).catch((error) =>
+						logger.error("Failed to send notification", { error: error })
+					);
+				}
 				logger.info("Scraping grades finished", {
 					username: user.username,
 					duration_ms: duration,
