@@ -45,7 +45,7 @@ const variants: Variants = {
 
 // --- CONFIGURATION ---
 const START_HOUR = 7; // Start at 7:00
-const END_HOUR = 19; // End at 19:00
+const END_HOUR = 20; // End at 19:00
 const HOURS_COUNT = END_HOUR - START_HOUR; // 12 hours
 const HOUR_HEIGHT = "1fr";
 const FIVE_MIN_HEIGHT = "1fr";
@@ -54,7 +54,7 @@ const shortLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
 const timeLabels = Array.from(
 	{ length: HOURS_COUNT },
 	(_, i) => i + START_HOUR
-); // Generate time labels (7:00 to 18:00)
+); // Generate time labels (7:00 to 19:00)
 
 export default function Agenda({
 	onSettingsClick,
