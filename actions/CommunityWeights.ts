@@ -12,17 +12,22 @@ export type WeightMap = Record<string, number>;
 export async function getCommunityWeights(): Promise<WeightMap> {
 	// Aggregate average weight per code
 	const groups = await prisma.gradeWeightVote.groupBy({
-		by: ["code"],
-		_avg: {
-			weight: true,
+		by: ["code", "weight"],
+		_count: {
+			_all: true,
 		},
 	});
 
 	const weightMap: WeightMap = {};
+	const maxCounts: Record<string, number> = {};
 
 	groups.forEach((g) => {
-		if (g._avg.weight) {
-			weightMap[g.code] = g._avg.weight;
+		const currentCount = g._count._all;
+		const currentCode = g.code;
+
+		if (!maxCounts[currentCode] || currentCount > maxCounts[currentCode]) {
+			weightMap[currentCode] = currentCount;
+			maxCounts[currentCode] = currentCount;
 		}
 	});
 
