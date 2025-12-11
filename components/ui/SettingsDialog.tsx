@@ -21,6 +21,7 @@ import {
 	UserOutlined,
 	SettingOutlined,
 	GlobalOutlined,
+	ReadOutlined,
 } from "@ant-design/icons";
 
 interface SettingsDialogProps {
@@ -484,7 +485,7 @@ export default function SettingsDialog({
 						<div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
 							<GlobalOutlined /> Support
 						</div>
-						<div className="grid grid-cols-2 gap-3">
+						<div className="grid grid-cols-3 gap-3">
 							<a
 								href="https://github.com/LouisChabanon/better-lise"
 								target="_blank"
@@ -497,6 +498,19 @@ export default function SettingsDialog({
 							>
 								<GithubOutlined className="text-xl mb-1" />
 								<span className="text-xs font-medium">Code Source</span>
+							</a>
+							<a
+								href="https://github.com/LouisChabanon/better-lise/wiki"
+								target="_blank"
+								className="flex flex-col items-center justify-center p-3 bg-backgroundSecondary rounded-xl hover:bg-backgroundTertiary transition-colors text-textSecondary"
+								onClick={() =>
+									posthog.has_opted_in_capturing()
+										? posthog.capture("wiki_click_event")
+										: ""
+								}
+							>
+								<ReadOutlined className="text-xl mb-1" />
+								<span className="text-xs font-medium">Wiki</span>
 							</a>
 							<a
 								href="mailto:louis.chabanon@gadz.org"
@@ -522,7 +536,7 @@ export default function SettingsDialog({
 									Better Lise v{CURRENT_VERSION}
 								</button>
 								<a
-									href="https://github.com/LouisChabanon/better-lise/blob/main/confidentialite.md"
+									href="https://github.com/LouisChabanon/better-lise/wiki/Privacy-Policy"
 									target="_blank"
 									className="text-xs text-primary hover:underline"
 								>
