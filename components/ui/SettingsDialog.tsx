@@ -21,6 +21,11 @@ import {
 	UserOutlined,
 	SettingOutlined,
 	GlobalOutlined,
+	InfoCircleOutlined,
+	CheckCircleFilled,
+	WarningFilled,
+	IdcardOutlined,
+	AppstoreOutlined,
 	ReadOutlined,
 } from "@ant-design/icons";
 
@@ -44,6 +49,7 @@ const TBK_OPTIONS: tbk[] = [
 
 const CLASSES = ["GIM1", "GIM2", "GIE1", "GIE2", "Autre"];
 
+// --- TEXTES ORIGINAUX (INCHANGÉS) ---
 const TOOLTIP_CONTENT = {
 	liseId: {
 		title: "Identifiant Lise",
@@ -88,6 +94,20 @@ const TOOLTIP_CONTENT = {
 	},
 };
 
+// --- COMPOSANTS UI ---
+
+const SectionHeader = ({
+	icon,
+	title,
+}: {
+	icon: React.ReactNode;
+	title: string;
+}) => (
+	<div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-3 mt-1">
+		{icon} {title}
+	</div>
+);
+
 const TooltipIcon = ({ onClick }: { onClick: () => void }) => (
 	<button
 		type="button"
@@ -95,11 +115,68 @@ const TooltipIcon = ({ onClick }: { onClick: () => void }) => (
 			e.stopPropagation();
 			onClick();
 		}}
-		className="ml-2 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-buttonSecondaryHover text-buttonTextSecondary text-xs font-semibold hover:bg-primary hover:text-white transition-colors"
-		aria-label="Afficher l'aide"
+		className="ml-2 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-backgroundTertiary text-textTertiary hover:bg-primary hover:text-white transition-colors"
 	>
-		?
+		<InfoCircleOutlined className="text-[10px]" />
 	</button>
+);
+
+const Switch = ({
+	checked,
+	onChange,
+	disabled = false,
+}: {
+	checked: boolean;
+	onChange: (v: boolean) => void;
+	disabled?: boolean;
+}) => (
+	<button
+		type="button"
+		role="switch"
+		aria-checked={checked}
+		onClick={() => !disabled && onChange(!checked)}
+		className={`
+            relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-opacity-75
+            ${checked ? "bg-primary" : "bg-backgroundTertiary"}
+            ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+        `}
+	>
+		<span
+			aria-hidden="true"
+			className={`
+                pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out
+                ${checked ? "translate-x-5" : "translate-x-0"}
+            `}
+		/>
+	</button>
+);
+
+const SettingRow = ({
+	label,
+	subLabel,
+	action,
+	tooltipKey,
+	onTooltip,
+	className = "",
+}: any) => (
+	<div
+		className={`flex items-center justify-between p-3 bg-backgroundSecondary hover:bg-backgroundSecondary/80 transition-colors ${className}`}
+	>
+		<div className="flex items-center gap-2 overflow-hidden">
+			<div className="flex flex-col">
+				<div className="flex items-center">
+					<span className="text-sm font-medium text-textPrimary">{label}</span>
+					{tooltipKey && <TooltipIcon onClick={() => onTooltip(tooltipKey)} />}
+				</div>
+				{subLabel && (
+					<span className="text-[10px] text-textTertiary leading-tight">
+						{subLabel}
+					</span>
+				)}
+			</div>
+		</div>
+		<div className="shrink-0 ml-4">{action}</div>
+	</div>
 );
 
 const TooltipModal = ({
@@ -112,15 +189,14 @@ const TooltipModal = ({
 	<div
 		className="fixed inset-0 z-[60] flex items-center justify-center p-4"
 		onClick={onClose}
-		aria-modal="true"
-		role="dialog"
 	>
-		<div className="absolute inset-0 bg-black/40" />
+		<div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
 		<div
-			className="relative bg-backgroundPrimary rounded-lg shadow-2xl p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto border border-primary/20 animate-in zoom-in-95 duration-200"
+			className="relative bg-backgroundPrimary rounded-2xl shadow-2xl p-6 w-full max-w-sm border border-primary/10 animate-in zoom-in-95 duration-200"
 			onClick={(e) => e.stopPropagation()}
 		>
-			<h3 className="text-xl font-semibold text-textPrimary mb-4">
+			<h3 className="text-xl font-bold text-textPrimary mb-4 flex items-center gap-2">
+				<InfoCircleOutlined className="text-primary" />
 				{content.title}
 			</h3>
 			{content.description.map((paragraph: string, index: number) => (
@@ -132,7 +208,7 @@ const TooltipModal = ({
 				</p>
 			))}
 			{"videoSrc" in content && content.videoSrc && (
-				<div className="mt-4 mb-4 aspect-video w-full rounded-lg overflow-hidden border border-backgroundTertiary">
+				<div className="mt-4 mb-4 aspect-video w-full rounded-lg overflow-hidden border border-backgroundTertiary shadow-sm">
 					<video
 						width="100%"
 						height="100%"
@@ -146,12 +222,14 @@ const TooltipModal = ({
 					</video>
 				</div>
 			)}
-			<Button status="primary" onClick={onClose} className="w-full mt-4">
-				J'ai compris
+			<Button status="secondary" onClick={onClose} className="w-full mt-4">
+				Fermer
 			</Button>
 		</div>
 	</div>
 );
+
+// --- MAIN COMPONENT ---
 
 export default function SettingsDialog({
 	isOpen,
@@ -159,25 +237,23 @@ export default function SettingsDialog({
 	onSave,
 	session,
 }: SettingsDialogProps) {
-	// --- STATE MANAGEMENT ---
 	const [username, setUsername] = useState<string | null>("");
 	const [tbkValue, setTbkValue] = useState<tbk>("Sibers");
 	const [displayRUMenu, setDisplayRUMenu] = useState<boolean>(true);
 	const [isGambling, setIsGambling] = useState(false);
 	const [isOptedOut, setIsOptedOut] = useState(false);
 	const [userClass, setUserClass] = useState("Autre");
+
 	const [tooltipKey, setTooltipKey] = useState<
 		keyof typeof TOOLTIP_CONTENT | null
 	>(null);
-
-	const { isSupported, isSubscribed, subscribe, unsubscribe } =
-		usePushNotification();
 	const [pushLoading, setPushLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	const { isSupported, isSubscribed, subscribe, unsubscribe } =
+		usePushNotification();
 	const isUserLoggedIn = session?.isAuth && session?.username;
 
-	// --- INITIALIZATION ---
 	useEffect(() => {
 		if (!isOpen) return;
 
@@ -193,9 +269,10 @@ export default function SettingsDialog({
 		const storedDisplayRUMenu = localStorage.getItem("display_ru_menu");
 		if (storedDisplayRUMenu) setDisplayRUMenu(storedDisplayRUMenu === "true");
 
-		if (posthog) {
-			setIsOptedOut(posthog.has_opted_out_capturing());
-		}
+		const storedClass = localStorage.getItem("user_class");
+		if (storedClass) setUserClass(storedClass);
+
+		if (posthog) setIsOptedOut(posthog.has_opted_out_capturing());
 
 		if (isUserLoggedIn) {
 			getUserClassAndTbkFromDB().then((dbData) => {
@@ -212,11 +289,10 @@ export default function SettingsDialog({
 
 	if (!isOpen) return null;
 
-	// --- HANDLERS ---
-	const handlePushToggle = async () => {
+	const handlePushToggle = async (checked: boolean) => {
 		setPushLoading(true);
 		try {
-			if (isSubscribed) {
+			if (!checked) {
 				await unsubscribe();
 			} else {
 				const success = await subscribe();
@@ -231,16 +307,6 @@ export default function SettingsDialog({
 		}
 	};
 
-	const handleClose = () => {
-		const cleanUsername = username?.trim() || "";
-		if (!cleanUsername || !liseIdChecker(cleanUsername)) {
-			setError("Identifiant Lise invalide (format 20xx-xxxx).");
-			return;
-		}
-		setError(null);
-		onClose();
-	};
-
 	const handleSaveWrapper = () => {
 		const cleanUsername = username?.trim() || "";
 		if (!cleanUsername || !liseIdChecker(cleanUsername)) {
@@ -251,11 +317,11 @@ export default function SettingsDialog({
 		setError(null);
 		localStorage.setItem("lise_id", cleanUsername);
 		localStorage.setItem("tbk", tbkValue);
+		localStorage.setItem("user_class", userClass);
 		localStorage.setItem("gambling", isGambling.toString());
 		localStorage.setItem("display_ru_menu", displayRUMenu.toString());
 
 		if (isUserLoggedIn) {
-			localStorage.setItem("user_class", userClass);
 			updateUserClass(userClass as PromoCode);
 			updateTbkDB(tbkValue);
 		}
@@ -275,216 +341,226 @@ export default function SettingsDialog({
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center isolate">
-			{/* Backdrop */}
 			<div
 				className="absolute inset-0 bg-black/60 transition-opacity"
-				onClick={handleClose}
+				onClick={() => onClose()}
 			/>
 
-			{/* CONTAINER
-			 */}
 			<div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[85vh] sm:max-w-lg bg-backgroundPrimary sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 sm:fade-in duration-200">
-				{/* --- 1. HEADER (Fixed) --- */}
+				{/* HEADER */}
 				<div className="flex items-center justify-between px-6 py-4 border-b border-primary/10 shrink-0 bg-backgroundPrimary z-10">
 					<h2 className="text-xl font-bold text-textPrimary">Paramètres</h2>
 					<Button
 						status="secondary"
-						onClick={handleClose}
+						onClick={onClose}
 						className="!p-2 h-8 w-8 flex items-center justify-center rounded-full"
 					>
 						✕
 					</Button>
 				</div>
 
-				{/* --- 2. SCROLLABLE BODY --- */}
-				<div className="flex-1 overflow-y-auto p-6 space-y-8">
-					{/* Section: Compte */}
-					<section className="space-y-4">
-						<div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-							<UserOutlined /> Compte
-						</div>
-
-						<div className="space-y-1">
-							<div className="flex items-center">
-								<label className="text-sm font-medium text-textSecondary">
-									Identifiant Lise
-								</label>
-								<TooltipIcon onClick={() => setTooltipKey("liseId")} />
-							</div>
-
-							<input
-								type="text"
-								className="w-full px-4 py-3 bg-backgroundSecondary rounded-xl border border-transparent focus:border-primary focus:bg-backgroundPrimary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-								placeholder="20xx-xxxx"
-								value={username || ""}
-								onChange={(e) => setUsername(e.target.value)}
-							/>
-							{isUserLoggedIn && username !== session.username && (
-								<p className="text-[10px] text-amber-600 mt-1">
-									⚠️ Connecté en tant que {session.username}
-								</p>
-							)}
-						</div>
-
-						<div className="grid grid-cols-2 gap-4">
+				{/* BODY */}
+				<div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
+					{/* 1. COMPTE */}
+					<section>
+						<SectionHeader icon={<UserOutlined />} title="Compte" />
+						<div className="space-y-4">
+							{/* Identifiant */}
 							<div>
-								<label className="text-sm font-medium text-textSecondary block mb-1">
-									Votre Demi-Promo
-								</label>
-
-								<select
-									className="w-full px-3 py-3 bg-backgroundSecondary rounded-xl border border-transparent outline-none disabled:opacity-50"
-									value={userClass}
-									onChange={(e) => setUserClass(e.target.value)}
-									disabled={!isUserLoggedIn || isSubscribed}
-								>
-									{CLASSES.map((c) => (
-										<option key={c} value={c}>
-											{c}
-										</option>
-									))}
-								</select>
-								{!isUserLoggedIn && (
-									<p className="text-[10px] p-1 text-textTertiary">
-										<LockOutlined /> Connectez-vous pour changer de demi-promo
-									</p>
-								)}
-								{isSubscribed && isUserLoggedIn && (
-									<p className="text-[10px] p-1 text-textTertiary">
-										<LockOutlined /> Désactivez les notifications pour changer
-										de demi-promo
-									</p>
-								)}
-							</div>
-							<div>
-								<div className="flex items-center">
-									<label className="text-sm font-medium text-textSecondary block mb-1">
-										Tabagn'ss
+								<div className="flex items-center mb-1">
+									<label className="text-sm font-medium text-textSecondary">
+										Identifiant Lise
 									</label>
-									<TooltipIcon onClick={() => setTooltipKey("tbk")} />
+									<TooltipIcon onClick={() => setTooltipKey("liseId")} />
 								</div>
+								<input
+									type="text"
+									className="w-full px-4 py-3 bg-backgroundSecondary rounded-xl border border-transparent focus:border-primary focus:bg-backgroundPrimary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+									placeholder="20xx-xxxx"
+									value={username || ""}
+									onChange={(e) => setUsername(e.target.value)}
+								/>
+								{isUserLoggedIn && username !== session.username && (
+									<p className="text-[10px] text-amber-500 mt-1 font-medium flex items-center gap-1">
+										<WarningFilled /> Connecté en tant que {session.username}
+									</p>
+								)}
+							</div>
 
-								<select
-									className="w-full px-3 py-3 bg-backgroundSecondary rounded-xl border border-transparent outline-none"
-									value={tbkValue}
-									onChange={(e) => setTbkValue(e.target.value as tbk)}
-								>
-									{TBK_OPTIONS.map((c) => (
-										<option key={c} value={c}>
-											{c}
-										</option>
-									))}
-								</select>
+							{/* Profil Académique */}
+							<div>
+								<SectionHeader
+									icon={<IdcardOutlined />}
+									title="Profil Académique"
+								/>
+
+								<div className="grid grid-cols-2 gap-4">
+									{/* Demi-Promo */}
+									<div>
+										<label className="text-sm font-medium text-textSecondary block mb-1">
+											Demi-Promo
+										</label>
+										<select
+											value={userClass}
+											onChange={(e) => setUserClass(e.target.value)}
+											disabled={isSubscribed || pushLoading}
+											className="w-full px-3 py-3 bg-backgroundSecondary rounded-xl border border-transparent outline-none disabled:opacity-50"
+										>
+											{CLASSES.map((c) => (
+												<option key={c} value={c}>
+													{c}
+												</option>
+											))}
+										</select>
+									</div>
+
+									{/* Tabagn'ss */}
+									<div>
+										<div className="flex items-center mb-1">
+											<label className="text-sm font-medium text-textSecondary block">
+												Tabagn'ss
+											</label>
+											<div
+												onClick={(e) => {
+													e.stopPropagation();
+													setTooltipKey("tbk");
+												}}
+												className="ml-1 text-textTertiary cursor-pointer hover:text-primary"
+											>
+												<InfoCircleOutlined style={{ fontSize: 10 }} />
+											</div>
+										</div>
+										<select
+											value={tbkValue}
+											onChange={(e) => setTbkValue(e.target.value as tbk)}
+											disabled={isSubscribed || pushLoading}
+											className="w-full px-3 py-3 bg-backgroundSecondary rounded-xl border border-transparent outline-none disabled:opacity-50"
+										>
+											{TBK_OPTIONS.map((c) => (
+												<option key={c} value={c}>
+													{c}
+												</option>
+											))}
+										</select>
+									</div>
+								</div>
+								{isSubscribed && (
+									<p className="text-[10px] text-textTertiary mt-2 leading-tight">
+										<LockOutlined /> Désactivez les notifs pour changer.
+									</p>
+								)}
 							</div>
 						</div>
 					</section>
 
-					{/* Section: App & Notifications */}
-					<section className="space-y-4">
-						<div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-							<SettingOutlined /> Application
-						</div>
-
-						{/* Notification Card */}
+					{/* 2. APPLICATION - Notifications */}
+					<section>
+						<SectionHeader icon={<BellFilled />} title="Notifications" />
 						<div
-							className={`p-4 rounded-xl border transition-all ${
-								isSubscribed
-									? "bg-primary/5 border-primary/30"
-									: "bg-backgroundSecondary border-transparent"
-							}`}
+							className={`
+                            relative overflow-hidden rounded-xl border transition-all duration-300
+                            ${
+															!isUserLoggedIn
+																? "bg-backgroundSecondary border-transparent opacity-90"
+																: isSubscribed
+																? "bg-primary/5 border-primary/40"
+																: "bg-backgroundSecondary border-transparent"
+														}
+                        `}
 						>
-							<div className="flex justify-between items-center mb-2">
-								<div className="flex items-center gap-2 font-semibold text-textPrimary">
-									<BellFilled
-										className={
-											isSubscribed ? "text-primary" : "text-textQuaternary"
-										}
-									/>
-									<div className="flex items-center">
-										Notifications
+							{/* LOCKED OVERLAY */}
+							{!isUserLoggedIn && (
+								<div className="absolute inset-0 bg-backgroundSecondary/60 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-center p-4">
+									<LockOutlined className="text-xl text-textTertiary mb-2" />
+									<p className="text-xs font-medium text-textSecondary">
+										Connectez-vous pour activer les alertes.
+									</p>
+								</div>
+							)}
+
+							<div className="p-4">
+								<div className="flex justify-between items-start mb-2">
+									<div className="flex items-center gap-2">
+										<h4 className="font-semibold text-textPrimary">
+											Alertes de notes
+										</h4>
 										<TooltipIcon
 											onClick={() => setTooltipKey("notifications")}
 										/>
 									</div>
+									<Switch
+										checked={isSubscribed}
+										onChange={handlePushToggle}
+										disabled={!isUserLoggedIn || pushLoading || !isSupported}
+									/>
 								</div>
-								{isUserLoggedIn && isSupported && (
-									<div
-										onClick={handlePushToggle}
-										className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${
-											isSubscribed ? "bg-primary" : "bg-gray-300"
-										}`}
-									>
-										<div
-											className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${
-												isSubscribed ? "translate-x-4" : ""
-											}`}
-										/>
+
+								<p className="text-xs text-textTertiary leading-relaxed pr-8">
+									[BETA] Recevez une notif quand better-lise pense qu'une
+									nouvelle note existe pour{" "}
+									<span className="font-bold">{userClass}</span> à{" "}
+									<span className="font-bold">{tbkValue}</span>.
+								</p>
+
+								{isSubscribed && isUserLoggedIn && (
+									<div className="mt-3 flex items-center gap-2 text-[10px] text-primary bg-primary/10 px-3 py-2 rounded-lg">
+										<CheckCircleFilled />
+										<span>
+											Active pour {userClass} à {tbkValue}.
+										</span>
 									</div>
 								)}
-							</div>
-							<p className="text-xs text-textTertiary leading-relaxed">
-								{!isUserLoggedIn
-									? "Connectez-vous pour activer les alertes de notes."
-									: "[BETA] Recevez une notif quand better-lise pense qu'une nouvelle note existe."}
-							</p>
-						</div>
-
-						{/* Toggles List */}
-						<div className="bg-backgroundSecondary rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-gray-700">
-							<div className="flex items-center justify-between p-4">
-								<span className="text-sm font-medium text-textSecondary">
-									Mode Sombre
-								</span>
-								<DarkModeToggle />
-							</div>
-							<div className="flex items-center justify-between p-4">
-								<div className="flex items-center">
-									<span className="text-sm font-medium text-textSecondary">
-										Mode Casino
-									</span>
-									<TooltipIcon onClick={() => setTooltipKey("casino")} />
-								</div>
-
-								<input
-									type="checkbox"
-									checked={isGambling}
-									onChange={() => setIsGambling(!isGambling)}
-									className="w-5 h-5 accent-primary"
-								/>
-							</div>
-							<div className="flex items-center justify-between p-4">
-								<span className="text-sm font-medium text-textSecondary">
-									Menu RU dans l'agenda
-								</span>
-								<input
-									type="checkbox"
-									checked={displayRUMenu}
-									onChange={() => setDisplayRUMenu(!displayRUMenu)}
-									className="w-5 h-5 accent-primary"
-								/>
-							</div>
-							<div className="flex items-center justify-between p-4">
-								<div className="flex items-center">
-									<span className="text-sm font-medium text-textSecondary">
-										Stats Anonymes
-									</span>
-									<TooltipIcon onClick={() => setTooltipKey("stats")} />
-								</div>
-								<input
-									type="checkbox"
-									checked={!isOptedOut}
-									onChange={() => setIsOptedOut(!isOptedOut)}
-									className="w-5 h-5 accent-primary"
-								/>
 							</div>
 						</div>
 					</section>
 
-					{/* Section: Support */}
-					<section className="space-y-4 pb-4">
-						<div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-							<GlobalOutlined /> Support
+					{/* 3. INTERFACE */}
+					<section>
+						<SectionHeader icon={<AppstoreOutlined />} title="Interface" />
+						<div className="rounded-xl overflow-hidden divide-y divide-backgroundTertiary/50 border border-transparent">
+							<SettingRow
+								className="first:rounded-t-xl"
+								label="Mode Sombre"
+								action={<DarkModeToggle />}
+							/>
+							<SettingRow
+								label="Mode Casino"
+								subLabel="Animations 'Loot Box' pour les notes"
+								tooltipKey="casino"
+								onTooltip={setTooltipKey}
+								action={
+									<Switch checked={isGambling} onChange={setIsGambling} />
+								}
+							/>
+							<SettingRow
+								className="last:rounded-b-xl"
+								label="Menu RU dans l'agenda"
+								subLabel="Afficher le repas du midi"
+								action={
+									<Switch checked={displayRUMenu} onChange={setDisplayRUMenu} />
+								}
+							/>
 						</div>
+					</section>
+
+					{/* 4. SYSTEME */}
+					<section className="pb-4">
+						<SectionHeader icon={<GlobalOutlined />} title="Système" />
+						<div className="bg-backgroundSecondary rounded-xl overflow-hidden mb-6">
+							<SettingRow
+								label="Statistiques Anonymes"
+								subLabel="Envoyer des données d'utilisation"
+								tooltipKey="stats"
+								onTooltip={setTooltipKey}
+								action={
+									<Switch
+										checked={!isOptedOut}
+										onChange={(v) => setIsOptedOut(!v)}
+									/>
+								}
+							/>
+						</div>
+
 						<div className="grid grid-cols-3 gap-3">
 							<a
 								href="https://github.com/LouisChabanon/better-lise"
@@ -525,37 +601,34 @@ export default function SettingsDialog({
 								<span className="text-xs font-medium">Signaler un bug</span>
 							</a>
 						</div>
-						<div className="flex justify-center pt-2">
-							<div className="text-center flex flex-col">
-								<button
-									className="text-xs text-textTertiary cursor-pointer hover:underline"
-									onClick={() =>
-										window.dispatchEvent(new Event("open-changelog"))
-									}
-								>
-									Better Lise v{CURRENT_VERSION}
-								</button>
-								<a
-									href="https://github.com/LouisChabanon/better-lise/wiki/Privacy-Policy"
-									target="_blank"
-									className="text-xs text-primary hover:underline"
-								>
-									Politique de confidentialité
-								</a>
-							</div>
-						</div>
-						<div className="text-center">
-							<p className="text-textTertiary text-xs">
+
+						<div className="text-center pt-2 mt-4">
+							<button
+								onClick={() =>
+									window.dispatchEvent(new Event("open-changelog"))
+								}
+								className="text-xs text-textTertiary hover:text-primary transition-colors block mx-auto mb-1 hover:underline"
+							>
+								Better Lise v{CURRENT_VERSION}
+							</button>
+							<a
+								href="https://github.com/LouisChabanon/better-lise/wiki/Privacy-Policy"
+								target="_blank"
+								className="text-xs text-primary hover:underline block mb-2"
+							>
+								Politique de confidentialité
+							</a>
+							<p className="text-[10px] text-textQuaternary">
 								Usiné à Siber'ss par Modo 4! Me223. 2025.
 							</p>
 						</div>
 					</section>
 				</div>
 
-				{/* --- 3. STICKY FOOTER --- */}
+				{/* FOOTER */}
 				<div className="p-4 bg-backgroundPrimary border-t border-primary/10 shrink-0 pb-safe">
 					{error && (
-						<div className="mb-3 p-3 bg-error-container border border-error/20 text-error rounded-xl text-sm text-center font-medium animate-in slide-in-from-bottom-2">
+						<div className="mb-3 p-2 bg-error/10 border border-error/20 text-error rounded-lg text-xs text-center font-medium">
 							{error}
 						</div>
 					)}
@@ -577,6 +650,8 @@ export default function SettingsDialog({
 					</div>
 				</div>
 			</div>
+
+			{/* INFO MODAL */}
 			{tooltipKey && (
 				<TooltipModal
 					content={TOOLTIP_CONTENT[tooltipKey]}
