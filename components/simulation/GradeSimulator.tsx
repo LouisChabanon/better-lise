@@ -41,7 +41,7 @@ export default function GradeSimulator({
 						<select
 							value={selectedSemester}
 							onChange={(e) => setSelectedSemester(e.target.value)}
-							className="bg-transparent text-sm text-textPrimary font-semibold outline-none cursor-pointer w-full"
+							className="bg-backgroundSecondary text-sm text-textPrimary font-semibold outline-none cursor-pointer w-full"
 						>
 							{availableSemesters.map((s) => (
 								<option key={s} value={s}>
