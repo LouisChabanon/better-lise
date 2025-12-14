@@ -26,7 +26,7 @@ export async function getCommunityWeights(): Promise<WeightMap> {
 		const currentCode = g.code;
 
 		if (!maxCounts[currentCode] || currentCount > maxCounts[currentCode]) {
-			weightMap[currentCode] = currentCount;
+			weightMap[currentCode] = g.weight;
 			maxCounts[currentCode] = currentCount;
 		}
 	});
