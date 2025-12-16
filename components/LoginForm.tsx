@@ -93,11 +93,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 					posthog.capture("login_failure", { lise_id: username });
 				}
 				setErrors(state?.errors || "An error occurred during login.");
+				setLoading(false);
 			}
 		} catch (error) {
 			setErrors("An unexpected error occurred. Please try again later.");
 			console.error("Login error:", error);
-		} finally {
 			setLoading(false);
 		}
 	};
