@@ -16,12 +16,8 @@ export async function getGradeData(
 	reload: boolean = true
 ): Promise<RequestState> {
 	const isMock = process.env.MOCK_DATA === "true";
-
 	const start = Date.now();
-
 	const posthog = PostHogClient();
-
-	const grades: GradeType[] = [];
 
 	const session = await verifySession();
 	if (!session.username) {
@@ -48,7 +44,6 @@ export async function getGradeData(
 	}
 
 	const db_grades = await prisma.grade.findMany({ where: { userId: user.id } });
-
 	const isFirstSync = db_grades.length === 0;
 
 	const mappedDbGrades: GradeType[] = db_grades.map((g) => ({
@@ -62,228 +57,222 @@ export async function getGradeData(
 		isNew: !g.opened,
 	}));
 
-	// Fetching data from Lise
-	if (reload === true || db_grades.length === 0) {
-		logger.info("Scraping grades started", {
-			username: user.username,
-			isFirstSync: db_grades.length === 0,
+	// If no reload needed, return early
+	if (reload === false && db_grades.length > 0) {
+		return { data: mappedDbGrades, success: true };
+	}
+
+	// Scrape Lise
+	logger.info("Scraping grades started", {
+		username: user.username,
+		isFirstSync: isFirstSync,
+	});
+
+	const jar = new CookieJar();
+	const fetchWithCookies = fetchCookie(fetch, jar);
+	jar.setCookieSync(`JSESSIONID=${jsessionid}`, LISE_URI);
+
+	let scrapedGrades: GradeType[] = [];
+
+	try {
+		const res = await fetchWithCookies(LISE_URI);
+		const html = await res.text();
+		const $html = cheerio.load(html);
+
+		if (
+			$html("title").text().includes("Connectez-vous") ||
+			$html("title").text().includes("Sign in")
+		) {
+			logger.warn("User session has expired on LISE", {
+				username: user.username,
+			});
+			await deleteSession();
+			return { errors: "Session has expired", success: false };
+		}
+
+		const hiddenFields = getHiddenFields($html);
+		const $table_html = await navigateToLisePage(
+			hiddenFields,
+			{ submenuId: "submenu_47356", buttonId: "4_0" },
+			jar
+		);
+
+		const rows = $table_html("#form\\:dataTableFavori_data > tr");
+
+		// Processing rows
+		rows.each((index, element) => {
+			const cells = $table_html(element).find("td");
+
+			// Helper to clean text
+			const clean = (idx: number) =>
+				$table_html(cells.eq(idx))
+					.clone()
+					.find("ui-column-title")
+					.remove()
+					.end()
+					.text()
+					.trim();
+
+			const rowData: GradeType = {
+				date: clean(0),
+				code: clean(1),
+				libelle: clean(2),
+				note: parseFloat(clean(3).replace(",", ".")), // Handle French locale commas
+				absence: clean(4),
+				comment: clean(5),
+				teachers: clean(6),
+			};
+
+			// Validation
+			if (
+				rowData.date &&
+				rowData.code &&
+				rowData.libelle &&
+				!isNaN(rowData.note)
+			) {
+				scrapedGrades.push(rowData);
+			} else {
+				logger.warn(`Skipping malformed row index ${index}`);
+			}
 		});
 
-		const jar = new CookieJar(); // Create a new cookie jar to set Lise's JSESSIONID cookie
-		const fetchWithCookies = fetchCookie(fetch, jar);
-		jar.setCookieSync(`JSESSIONID=${jsessionid}`, LISE_URI); // Set the JSESSIONID cookie in the cookie jar
+		const gradesToCreate: any[] = [];
+		const updatePromises: Promise<any>[] = [];
+		const deletePromises: Promise<any>[] = [];
 
-		try {
-			const res = await fetchWithCookies(LISE_URI);
-			const html = await res.text();
-			const $html = cheerio.load(html);
+		for (const scraped of scrapedGrades) {
+			// Find all matches in DB (to detect duplicates in DB)
+			const dbMatches = db_grades.filter((db) => db.code === scraped.code);
 
-			if (
-				$html("title").text().includes("Connectez-vous") ||
-				$html("title").text().includes("Sign in")
-			) {
-				logger.warn("User session has expired on LISE", {
-					username: user.username,
+			if (dbMatches.length === 0) {
+				// CASE: NEW GRADE
+				gradesToCreate.push({
+					name: scraped.libelle,
+					code: scraped.code,
+					grade: scraped.note,
+					date: scraped.date,
+					absence: scraped.absence,
+					comment: scraped.comment,
+					teachers: scraped.teachers,
+					userId: user.id,
+					opened: isFirstSync,
 				});
-				await deleteSession();
-				return { errors: "Session has expired", success: false };
-			}
 
-			const hiddenFields = getHiddenFields($html);
+				// Update local state for return
+				mappedDbGrades.push({ ...scraped, isNew: !isFirstSync });
+			} else {
+				// CASE: EXISTING GRADE (Check for modification or DB duplicates)
+				const primaryMatch = dbMatches[0];
 
-			const $table_html = await navigateToLisePage(
-				hiddenFields,
-				{
-					submenuId: "submenu_47356",
-					buttonId: "4_0",
-				},
-				jar
-			);
-			const rows = $table_html("#form\\:dataTableFavori_data > tr");
-			rows.each((index, element) => {
-				const cells = $table_html(element).find("td");
-				const rowData: GradeType = {
-					date: $table_html(cells.eq(0))
-						.clone()
-						.find("ui-column-title")
-						.remove()
-						.end()
-						.text()
-						.trim(),
-					code: $table_html(cells.eq(1))
-						.clone()
-						.find("ui-column-title")
-						.remove()
-						.end()
-						.text()
-						.trim(),
-					libelle: $table_html(cells.eq(2))
-						.clone()
-						.find("ui-column-title")
-						.remove()
-						.end()
-						.text()
-						.trim(),
-					note: parseFloat(
-						$table_html(cells.eq(3))
-							.clone()
-							.find("ui-column-title")
-							.remove()
-							.end()
-							.text()
-							.trim()
-					),
-					absence: $table_html(cells.eq(4))
-						.clone()
-						.find("ui-column-title")
-						.remove()
-						.end()
-						.text()
-						.trim(),
-					comment: $table_html(cells.eq(5))
-						.clone()
-						.find("ui-column-title")
-						.remove()
-						.end()
-						.text()
-						.trim(),
-					teachers: $table_html(cells.eq(6))
-						.clone()
-						.find("ui-column-title")
-						.remove()
-						.end()
-						.text()
-						.trim(),
-				};
-
-				// Validate required fields: date, code, libelle and a numeric note.
-				const hasDate =
-					typeof rowData.date === "string" && rowData.date.length > 0;
-				const hasCode =
-					typeof rowData.code === "string" && rowData.code.length > 0;
-				const hasLibelle =
-					typeof rowData.libelle === "string" && rowData.libelle.length > 0;
-				const hasNote =
-					typeof rowData.note === "number" && !isNaN(rowData.note);
-
-				if (!hasDate || !hasCode || !hasLibelle || !hasNote) {
-					// Skip malformed rows. Log for debugging.
-					logger.warn(
-						`Skipping grade row due to missing data at index ${index}:`,
-						{
-							date: rowData.date,
-							code: rowData.code,
-							libelle: rowData.libelle,
-							note: rowData.note,
-						}
+				// Handle DB Duplicates: If we have more than 1 entry for this code, delete the extras
+				if (dbMatches.length > 1) {
+					const idsToDelete = dbMatches.slice(1).map((g) => g.id);
+					deletePromises.push(
+						prisma.grade.deleteMany({
+							where: { id: { in: idsToDelete } },
+						})
 					);
-				} else {
-					grades.push(rowData);
 				}
-			});
 
-			const newGrades = grades.filter(
-				(g) => !db_grades.some((dbGrade) => dbGrade.code === g.code)
-			);
+				// 2. Handle Modification
+				if (primaryMatch.grade !== scraped.note) {
+					updatePromises.push(
+						prisma.grade.update({
+							where: { id: primaryMatch.id, userId: user.id },
+							data: { grade: scraped.note },
+						})
+					);
 
-			// Measure performance of scraper
-			const end = Date.now();
-			const duration = end - start;
-			posthog.capture({
-				distinctId: user.username,
-				event: "scraper_performance",
-				properties: {
-					endpoint: "grades",
-					duration_ms: Number(duration),
-					is_new_data: newGrades.length > 0,
-					grade_count: newGrades.length,
-				},
-			});
-
-			if (newGrades.length > 0) {
-				await prisma.grade.createMany({
-					data: newGrades.map((g) => ({
-						name: g.libelle,
-						code: g.code,
-						grade: g.note,
-						date: g.date,
-						absence: g.absence,
-						comment: g.comment,
-						teachers: g.teachers,
-						userId: user.id,
-						opened: isFirstSync,
-					})),
-				});
-
-				const userClass = user.class as PromoCode;
-				const userTBK = user.tbk as tbk;
-
-				if (!isFirstSync && user.class && user.tbk && user.class !== "Autre") {
-					const gradeToNotifify = newGrades[0];
-
-					const gradeAlreadyExists = await prisma.grade.findFirst({
-						where: {
-							code: gradeToNotifify.code,
-							user: {
-								id: { not: user.id },
-							},
-						},
-						select: { id: true },
-					});
-
-					if (!gradeAlreadyExists) {
-						notifyClassmates(
-							userClass,
-							userTBK,
-							user.id,
-							newGrades[0].code,
-							newGrades[0].libelle
-						).catch((error) =>
-							logger.error("Failed to send notification", { error: error })
-						);
+					// Update local state
+					const localIdx = mappedDbGrades.findIndex(
+						(m) => m.code === scraped.code
+					);
+					if (localIdx !== -1) {
+						mappedDbGrades[localIdx].note = scraped.note;
+						mappedDbGrades[localIdx].isNew = true;
 					}
 				}
-
-				logger.info("Scraping grades finished", {
-					username: user.username,
-					duration_ms: duration,
-					grades_found: grades.length,
-					new_grades: newGrades.length,
-				});
-				newGrades.forEach((g) => {
-					mappedDbGrades.push({ ...g, isNew: !isFirstSync });
-				});
 			}
-
-			// Log scraper performance to database for status badge
-			try {
-				await prisma.scraperLog.create({
-					data: {
-						duration: duration,
-						endpoint: "grades",
-						status: "success",
-					},
-				});
-			} catch (error) {
-				logger.error("Failed to log scraper performance to database", {
-					error: error instanceof Error ? error.message : String(error),
-					stack: error instanceof Error ? error.stack : undefined,
-				});
-			}
-		} catch (error) {
-			posthog.capture({
-				distinctId: user.username || "unknown_user",
-				event: "scraper_error",
-				properties: { error: String(error) },
-			});
-			logger.error("Error fetching user grades", {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-			});
-			return { errors: "Error fetching grades", success: false };
-		} finally {
-			await posthog.shutdown();
 		}
+
+		// Execute DB Operations
+		await Promise.all([
+			...updatePromises,
+			...deletePromises,
+			gradesToCreate.length > 0
+				? prisma.grade.createMany({ data: gradesToCreate })
+				: Promise.resolve(),
+		]);
+
+		// Handle Notifications
+		if (
+			gradesToCreate.length > 0 &&
+			!isFirstSync &&
+			user.class &&
+			user.tbk &&
+			user.class !== "Autre"
+		) {
+			const firstNew = gradesToCreate[0];
+
+			// Check if someone else has this grade code already
+			const gradeAlreadyExistsGlobally = await prisma.grade.findFirst({
+				where: {
+					code: firstNew.code,
+					userId: { not: user.id }, // Check other users
+				},
+				select: { id: true },
+			});
+
+			if (!gradeAlreadyExistsGlobally) {
+				notifyClassmates(
+					user.class as PromoCode,
+					user.tbk as tbk,
+					user.id,
+					firstNew.code,
+					firstNew.name
+				).catch((e) => logger.error("Notification failed", { error: e }));
+			}
+		}
+
+		// Telemetry & Logging
+		const duration = Date.now() - start;
+		posthog.capture({
+			distinctId: user.username,
+			event: "scraper_performance",
+			properties: {
+				endpoint: "grades",
+				duration_ms: duration,
+				is_new_data: gradesToCreate.length > 0,
+				grade_count: gradesToCreate.length,
+			},
+		});
+
+		await prisma.scraperLog
+			.create({
+				data: {
+					duration: duration,
+					endpoint: "grades",
+					status: "success",
+				},
+			})
+			.catch((e) => logger.error("Failed to log scraper status", { error: e }));
+
+		logger.info("Scraping finished", {
+			new: gradesToCreate.length,
+			updated: updatePromises.length,
+			deleted_dupes: deletePromises.length,
+		});
+	} catch (error) {
+		posthog.capture({
+			distinctId: user.username || "unknown",
+			event: "scraper_error",
+			properties: { error: String(error) },
+		});
+		logger.error("Error fetching grades", { error: error });
+		return { errors: "Error fetching grades", success: false };
+	} finally {
+		await posthog.shutdown();
 	}
+
 	return { data: mappedDbGrades, success: true };
 }
