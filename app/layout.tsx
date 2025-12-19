@@ -3,7 +3,7 @@ import "@ant-design/v5-patch-for-react-19";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Providers from "./providers";
-import PwaInstallPrompt from "@/components/pwa/PwaInstallPrompt";
+//import PwaInstallPrompt from "@/components/pwa/PwaInstallPrompt";
 
 export const metadata: Metadata = {
 	applicationName: "Better Lise",
