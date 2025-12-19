@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "@ant-design/v5-patch-for-react-19";
 import "@/styles/globals.css";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Providers from "./providers";
+import PwaInstallPrompt from "@/components/pwa/PwaInstallPrompt";
 
 export const metadata: Metadata = {
 	applicationName: "Better Lise",
@@ -39,19 +38,18 @@ export default function RootLayout({
 				<meta name="apple-mobile-web-app-title" content="Better Lise" />
 				<link
 					rel="manifest"
-					href={`/manifest.json?v=${process.env.VERCEL_GIT_COMMIT_SHA}`}
+					href={`/manifest.json?v=${process.env.VERCEL_GIT_COMMIT_SHA}`} // To change if moving from Vercel
 				/>
 				<link rel="icon" href="/favicon.ico" />
 			</head>
 			<body>
-				<Analytics />
-				<SpeedInsights />
 				<ThemeProvider>
 					<Providers>
 						<div className="flex flex-col bg-backgroundPrimary overflow-hidden">
 							<main className="flex-1 min-h-0 overflow-hidden md:pb-0 flex flex-col">
 								{children}
 							</main>
+							{/* <PwaInstallPrompt /> */}
 						</div>
 					</Providers>
 				</ThemeProvider>
