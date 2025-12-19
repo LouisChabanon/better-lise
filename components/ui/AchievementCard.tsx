@@ -1,6 +1,6 @@
 "use client";
 import { AchievementDef } from "@/lib/achievements-config";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { LockOutlined, QuestionOutlined } from "@ant-design/icons";
 
 const RARITY_STYLES = {
@@ -49,7 +49,7 @@ export default function AchievementCard({
 	const styles = RARITY_STYLES[rarityKey];
 
 	return (
-		<motion.div
+		<m.div
 			whileTap={{ scale: 0.95 }}
 			onClick={onClick}
 			className={`
@@ -123,6 +123,6 @@ export default function AchievementCard({
 					Secret
 				</span>
 			)}
-		</motion.div>
+		</m.div>
 	);
 }

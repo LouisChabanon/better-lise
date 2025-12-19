@@ -15,7 +15,7 @@ import {
 import SettingsDialog from "./ui/SettingsDialog";
 import { logOut } from "@/actions/Auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import Image from "next/image";
 import LiseStatusBadge from "./ui/LiseStatusBadge";
 
@@ -35,7 +35,7 @@ const NavItem = ({ href, label, icon, isActive, onClick }: any) => (
         `}
 	>
 		{isActive && (
-			<motion.div
+			<m.div
 				layoutId="activeNavIndicator"
 				className="absolute left-0 w-1 h-6 bg-primary rounded-r-full hidden md:block"
 				initial={{ opacity: 0 }}

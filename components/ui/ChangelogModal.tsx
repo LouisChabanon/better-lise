@@ -1,5 +1,5 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Button } from "./Button";
 import { RocketOutlined, FireOutlined, BugOutlined } from "@ant-design/icons";
 import { Release, CHANGELOG } from "@/lib/changelog";
@@ -20,14 +20,14 @@ export default function ChangelogModal({
 		<AnimatePresence>
 			{isOpen && (
 				<div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-					<motion.div
+					<m.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						className="absolute inset-0 bg-black/60"
 						onClick={onClose}
 					/>
-					<motion.div
+					<m.div
 						initial={{ opacity: 0, scale: 0.95, y: 20 }}
 						animate={{ opacity: 1, scale: 1, y: 0 }}
 						exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -137,7 +137,7 @@ export default function ChangelogModal({
 								OK
 							</Button>
 						</div>
-					</motion.div>
+					</m.div>
 				</div>
 			)}
 		</AnimatePresence>

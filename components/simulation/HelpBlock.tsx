@@ -7,7 +7,7 @@ import {
 	WarningOutlined,
 	CloseOutlined,
 } from "@ant-design/icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 export default function HelpBlock() {
 	const [isVisible, setIsVisible] = useState(true);
@@ -16,7 +16,7 @@ export default function HelpBlock() {
 
 	return (
 		<AnimatePresence>
-			<motion.div
+			<m.div
 				initial={{ opacity: 0, y: -10 }}
 				animate={{ opacity: 1, y: 0 }}
 				exit={{ opacity: 0, height: 0 }}
@@ -61,7 +61,7 @@ export default function HelpBlock() {
 						</div>
 					</div>
 				</div>
-			</motion.div>
+			</m.div>
 		</AnimatePresence>
 	);
 }

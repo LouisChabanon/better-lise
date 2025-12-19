@@ -13,7 +13,7 @@ import { CurrentTimeLine } from "@/components/ui/CurrentTimeLine";
 import { getWeekData } from "@/actions/GetWeekData";
 import { getMonthName } from "@/lib/utils/calendar-utils";
 import LoadingPlaceholder from "@/components/ui/LoadingPlaceholder";
-import { AnimatePresence, motion, PanInfo, Variants } from "framer-motion";
+import { AnimatePresence, m, PanInfo, Variants } from "framer-motion";
 import { useCalendarData } from "@/hooks/useCalendarData";
 import LiseStatusBadge from "./ui/LiseStatusBadge";
 
@@ -290,7 +290,7 @@ export default function Agenda({
 
 								{/* ============= EVENTS CONTAINER ============= */}
 								<AnimatePresence initial={false} custom={swipeDirection}>
-									<motion.ol
+									<m.ol
 										key={weekOffset}
 										className="col-start-1 col-end-2 row-start-1 grid grid-cols-5 sm:bg-none h-full"
 										style={{
@@ -339,7 +339,7 @@ export default function Agenda({
 													/>
 												);
 											})}
-									</motion.ol>
+									</m.ol>
 								</AnimatePresence>
 							</div>
 						</div>

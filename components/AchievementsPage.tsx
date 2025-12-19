@@ -7,7 +7,7 @@ import {
 	getUnlockedAchievements,
 } from "@/actions/Achievements";
 import AchievementCard from "@/components/ui/AchievementCard";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import confetti from "canvas-confetti";
 import {
 	LockFilled,
@@ -89,7 +89,7 @@ export default function AchievementsClientPage() {
 						</span>
 					</div>
 					<div className="w-full h-2 bg-backgroundTertiary rounded-full mt-4 overflow-hidden">
-						<motion.div
+						<m.div
 							className="h-full bg-primary"
 							initial={{ width: 0 }}
 							animate={{ width: `${progress}%` }}

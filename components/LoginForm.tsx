@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/actions/Auth";
 import { liseIdChecker } from "@/lib/validators";
-import { motion, Variants } from "framer-motion";
+import { m, Variants } from "framer-motion";
 import posthog from "posthog-js";
 
 type PassInputType = "password" | "text";
@@ -111,14 +111,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 	};
 
 	return (
-		<motion.form
+		<m.form
 			onSubmit={handleSubmit}
 			className="space-y-6"
 			variants={containerVariants}
 			initial="hidden"
 			animate="show"
 		>
-			<motion.div className="flex items-center gap-4" variants={itemVariants}>
+			<m.div className="flex items-center gap-4" variants={itemVariants}>
 				<label
 					htmlFor="username"
 					className="w-40 font-medium text-textSecondary"
@@ -138,8 +138,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 						className="w-full focus:outline-none"
 					/>
 				</div>
-			</motion.div>
-			<motion.div className="flex items-center gap-4" variants={itemVariants}>
+			</m.div>
+			<m.div className="flex items-center gap-4" variants={itemVariants}>
 				<label
 					htmlFor="Password"
 					className="w-40 font-medium text-textSecondary"
@@ -162,7 +162,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 						<EyeInvisibleOutlined onClick={handleShowPassword} />
 					)}
 				</div>
-			</motion.div>
+			</m.div>
 			{errors && (
 				<div className="p-3 bg-error-container border border-error/20 text-error rounded-lg text-sm font-medium text-center overflow-hidden">
 					{errors}
@@ -175,6 +175,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 					</span>
 				</Button>
 			</div>
-		</motion.form>
+		</m.form>
 	);
 }

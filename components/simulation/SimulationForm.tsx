@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PlusOutlined, ExperimentOutlined } from "@ant-design/icons";
 import { Button } from "@/components/ui/Button";
 import { SimulatedGrade } from "@/lib/types";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 export default function SimulationForm({
 	classes,
@@ -49,7 +49,7 @@ export default function SimulationForm({
 				</span>
 			</div>
 
-			<motion.div
+			<m.div
 				initial={false}
 				animate={{ height: isExpanded ? "auto" : "auto" }}
 				className={`mt-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-end ${
@@ -129,7 +129,7 @@ export default function SimulationForm({
 						<PlusOutlined /> Ajouter la note simulée
 					</Button>
 				</div>
-			</motion.div>
+			</m.div>
 		</div>
 	);
 }

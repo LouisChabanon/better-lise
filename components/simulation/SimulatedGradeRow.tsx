@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { DeleteOutlined } from "@ant-design/icons";
 import { SimulatedGrade } from "@/lib/types";
 
@@ -14,7 +14,7 @@ export default function SimulatedGradeRow({
 	onDelete: () => void;
 }) {
 	return (
-		<motion.div
+		<m.div
 			initial={{ opacity: 0, height: 0, y: -10 }}
 			animate={{ opacity: 1, height: "auto", y: 0 }}
 			exit={{ opacity: 0, height: 0, y: -10 }}
@@ -67,6 +67,6 @@ export default function SimulatedGradeRow({
 					{sim.grade}
 				</span>
 			</div>
-		</motion.div>
+		</m.div>
 	);
 }
