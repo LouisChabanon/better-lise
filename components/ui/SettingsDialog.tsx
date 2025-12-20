@@ -28,6 +28,7 @@ import {
 	AppstoreOutlined,
 	ReadOutlined,
 } from "@ant-design/icons";
+import Link from "next/link";
 
 interface SettingsDialogProps {
 	isOpen: boolean;
@@ -619,7 +620,16 @@ export default function SettingsDialog({
 								Politique de confidentialité
 							</a>
 							<p className="text-[10px] text-textQuaternary">
-								Usiné à Siber'ss par Modo 4! Me223. 2025.
+								Usiné à Siber'ss par Modo 4! Me223. 2025. <br />
+								Hébergé gracieusement par{" "}
+								<Link
+									href="https://iresam.org"
+									target="_blank"
+									className="hover:underline"
+								>
+									IRESAM
+								</Link>
+								.
 							</p>
 						</div>
 					</section>
