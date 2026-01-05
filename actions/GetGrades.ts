@@ -46,7 +46,7 @@ export async function getGradeData(
 	const db_grades = await prisma.grade.findMany({ where: { userId: user.id } });
 	const isFirstSync = db_grades.length === 0;
 
-	const mappedDbGrades: GradeType[] = db_grades.map((g) => ({
+	let mappedDbGrades: GradeType[] = db_grades.map((g) => ({
 		code: g.code,
 		libelle: g.name,
 		note: g.grade,
@@ -123,12 +123,12 @@ export async function getGradeData(
 				teachers: clean(6),
 			};
 
-			// Validation
+			// Validation (TODO: Fix this)
 			if (
 				rowData.date &&
 				rowData.code &&
 				rowData.libelle &&
-				!isNaN(rowData.note)
+				!isNaN(rowData.note) // Should acount for NaN and display it as such in table
 			) {
 				scrapedGrades.push(rowData);
 			} else {
@@ -140,6 +140,7 @@ export async function getGradeData(
 		const updatePromises: Promise<any>[] = [];
 		const deletePromises: Promise<any>[] = [];
 
+		// 1. Process Updates and Creates
 		for (const scraped of scrapedGrades) {
 			// Find all matches in DB (to detect duplicates in DB)
 			const dbMatches = db_grades.filter((db) => db.code === scraped.code);
@@ -195,6 +196,36 @@ export async function getGradeData(
 			}
 		}
 
+		// 2. Identify and Delete Grades Gone from Lise
+		// Create a Set of all codes currently found on the website
+		const scrapedCodes = new Set(scrapedGrades.map((g) => g.code));
+
+		// Find grades in DB that are NOT in the scraped set
+		const gradesRemovedFromSource = db_grades.filter(
+			(dbG) => !scrapedCodes.has(dbG.code)
+		);
+
+		if (gradesRemovedFromSource.length > 0) {
+			const idsToRemove = gradesRemovedFromSource.map((g) => g.id);
+			const codesToRemove = new Set(gradesRemovedFromSource.map((g) => g.code));
+
+			// Add DB deletion to the batch promises
+			deletePromises.push(
+				prisma.grade.deleteMany({
+					where: { id: { in: idsToRemove } },
+				})
+			);
+
+			// Filter the return object so the client doesn't see deleted grades
+			mappedDbGrades = mappedDbGrades.filter((g) => !codesToRemove.has(g.code));
+
+			logger.info("Grades removed from source", {
+				count: gradesRemovedFromSource.length,
+				codes: Array.from(codesToRemove),
+				username: user.username,
+			});
+		}
+
 		// Execute DB Operations
 		await Promise.all([
 			...updatePromises,
@@ -244,6 +275,7 @@ export async function getGradeData(
 				duration_ms: duration,
 				is_new_data: gradesToCreate.length > 0,
 				grade_count: gradesToCreate.length,
+				removed_count: gradesRemovedFromSource.length, // Track removals
 			},
 		});
 
@@ -260,7 +292,7 @@ export async function getGradeData(
 		logger.info("Scraping finished", {
 			new: gradesToCreate.length,
 			updated: updatePromises.length,
-			deleted_dupes: deletePromises.length,
+			deleted_dupes: deletePromises.length, // This now includes removed grades
 		});
 	} catch (error) {
 		posthog.capture({
