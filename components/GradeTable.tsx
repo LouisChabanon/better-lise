@@ -247,13 +247,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 	};
 
 	// --- Pagination Calculation ---
-	const pageSize = 15;
-	const totalPages = Math.max(1, Math.ceil(processedGrades.length / pageSize));
-	const startIndex = (currentPage - 1) * pageSize;
-	const currentGrades = processedGrades.slice(
-		startIndex,
-		startIndex + pageSize
-	);
+	const currentGrades = processedGrades;
 
 	// --- Modal Handlers ---
 	const onRowClick = (grade: GradeType) => {
@@ -507,7 +501,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 						) : (
 							<>
 								{/* ================= MOBILE VIEW: CARD LIST (< md) ================= */}
-								<div className="md:hidden space-y-3 pb-2">
+								<div className="md:hidden space-y-3 pb-20">
 									{currentGrades.map((g) => (
 										<div
 											key={g.code}
@@ -651,35 +645,6 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 								</div>
 							</>
 						)}
-					</div>
-
-					{/* --- Pagination --- */}
-					<div
-						className="
-            hidden md:flex
-            mt-4 md:mt-0
-            md:sticky md:bottom-0 md:z-40
-            justify-between items-center 
-            md:p-4 md:bg-backgroundPrimary md:border-t md:border-buttonSecondaryBorder md:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]
-          "
-					>
-						<Button
-							onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-							disabled={currentPage === 1}
-							status="secondary"
-						>
-							<CaretLeftFilled />
-						</Button>
-						<span className="text-sm text-textTertiary font-medium">
-							Page {currentPage} / {totalPages}
-						</span>
-						<Button
-							onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-							disabled={currentPage === totalPages}
-							status="secondary"
-						>
-							<CaretRightFilled />
-						</Button>
 					</div>
 
 					{/* --- Modals --- */}
