@@ -51,6 +51,15 @@ function isRateLimited(ip: string): boolean {
 	const now = Date.now();
 	const record = rateLimitMap.get(ip);
 
+	const whitelistStr = process.env.IP_WHITELIST || "";
+	const whitelistSet = new Set(
+		whitelistStr.split(",").map((item) => item.trim())
+	);
+
+	if (whitelistSet.has(ip)) {
+		return false;
+	}
+
 	if (!record || now > record.resetAt) {
 		rateLimitMap.set(ip, { count: 1, resetAt: now + WINDOW_DURATION });
 		return false;
