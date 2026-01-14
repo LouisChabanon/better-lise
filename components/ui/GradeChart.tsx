@@ -48,7 +48,8 @@ function getCategoryForGrade(grade: number): string | null {
 
 const GradeChart: React.FC<GradeChartProps> = ({ distributionData, userGrade }) => {
 
-    const isDarkMode = useTheme().theme === 'dark';
+    const { resolvedTheme } = useTheme();
+    const isDarkMode = resolvedTheme === 'dark';
 
     const secondaryTextColor = isDarkMode ? "#FFFFFF" : "oklch(27.8% 0.033 256.848)"
     const textColor = isDarkMode ? "#FFFFFF" : "#6750A4"
