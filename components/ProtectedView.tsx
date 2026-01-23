@@ -4,7 +4,7 @@ import { LoginForm } from "./LoginForm";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { LockOutlined } from "@ant-design/icons";
-import { motion } from "framer-motion";
+import {m} from "framer-motion";
 
 export default function ProtectedView({ 
     children, 
@@ -24,11 +24,11 @@ export default function ProtectedView({
 
     return (
         <div className="flex flex-col items-center justify-center h-full w-full p-4 overflow-hidden">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1}} transition={{ duration: 0.5 }}
+            <m.div initial={{ opacity: 0 }} animate={{ opacity: 1}} transition={{ duration: 0.5 }}
                 className="absolute inset-0 bg-backgroundSecondary/50 pointer-events-none" />
             
             {/* Card Container */}
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
@@ -44,13 +44,13 @@ export default function ProtectedView({
 
                 {/* Icon & Header */}
                 <div className="flex flex-col items-center text-center mb-8 mt-2">
-                    <motion.div
+                    <m.div
                         initial={{ scale: 0, rotate: -20 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: "spring" }}
                         className="h-14 w-14 bg-primary-container rounded-full flex items-center justify-center mb-4 text-primary text-2xl shadow-inner">
                         <LockOutlined />
-                    </motion.div>
+                    </m.div>
                     
                     <h2 className="text-2xl font-bold text-textPrimary tracking-tight">
                         Connexion
@@ -70,7 +70,7 @@ export default function ProtectedView({
                 </div>
 
                 {/* Footer Text */}
-                <motion.div 
+                <m.div 
                     className="mt-6 text-center"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -79,8 +79,8 @@ export default function ProtectedView({
                     <p className="text-xs text-textTertiary">
                         Utilisez vos identifiants Lise habituels.
                     </p>
-                </motion.div>
-            </motion.div>
+                </m.div>
+            </m.div>
         </div>
     );
 }
