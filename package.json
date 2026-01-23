@@ -55,11 +55,12 @@
 	"devDependencies": {
 		"@tailwindcss/postcss": "^4.1.11",
 		"@types/canvas-confetti": "^1.9.0",
+		"@types/minimatch": "^6.0.0",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"@types/web-push": "^3.6.4",
-		"eslint-config-next": "16.0.5",
+		"eslint-config-next": "^15.0.0",
 		"prisma": "^6.11.1",
 		"tailwindcss": "^4.1.11",
 		"typescript": "^5"
