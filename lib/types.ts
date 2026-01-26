@@ -48,7 +48,8 @@ export type tbk =
 	| "P3"
 	| "KIN"
 	| "Bordels"
-	| "Sibers";
+	| "Sibers"
+	| "Rabat";
 
 export type PromoCode = "GIM1" | "GIM2" | "GIE1" | "GIE2" | "EXP" | "Autre";
 

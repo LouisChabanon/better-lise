@@ -46,6 +46,7 @@ const TBK_OPTIONS: tbk[] = [
 	"P3",
 	"KIN",
 	"Bordels",
+	"Rabat",
 ];
 
 const CLASSES = ["GIM1", "GIM2", "GIE1", "GIE2", "Autre"];
@@ -464,8 +465,8 @@ export default function SettingsDialog({
 															!isUserLoggedIn
 																? "bg-backgroundSecondary border-transparent opacity-90"
 																: isSubscribed
-																? "bg-primary/5 border-primary/40"
-																: "bg-backgroundSecondary border-transparent"
+																	? "bg-primary/5 border-primary/40"
+																	: "bg-backgroundSecondary border-transparent"
 														}
                         `}
 						>
