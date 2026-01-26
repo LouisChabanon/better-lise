@@ -6,9 +6,25 @@ export interface Release {
 	fixes?: string[];
 }
 
-export const CURRENT_VERSION = "1.3.0";
+export const CURRENT_VERSION = "1.4.0";
 
 export const CHANGELOG: Release[] = [
+	{
+		version: "1.4.0",
+		date: "27 Jan 2026",
+		title: "Succès",
+		features: [
+			"Ajout d'une page 'Mes Succès' permettant de voir ses succès",
+			"Si vous avez des idées de succès à ajouter, n'hésitez pas à me le dire ou à faire une Pull Request sur GitHub",
+			"Ajout d'une page 'Lise Health' permettant de voir l'état de santé de Lise",
+			"Modification de la barre de navigation sur mobile",
+		],
+		fixes: [
+			"Résolution d'un bug d'affichage sur mobile",
+			"Ajout du Campus de Rabat",
+			"Migration de la BDD sur IRESAM",
+		],
+	},
 	{
 		version: "1.3.0",
 		date: "07 Dec 2025",

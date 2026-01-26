@@ -9,10 +9,13 @@ import {
 	CalendarOutlined,
 	ReadOutlined,
 	ClockCircleOutlined,
-	TrophyOutlined,
 	CalculatorOutlined,
+	MenuOutlined,
+	TrophyOutlined,
+	HeartOutlined,
 } from "@ant-design/icons";
 import SettingsDialog from "./ui/SettingsDialog";
+import MobileMenuDrawer from "./MobileMenuDrawer";
 import { logOut } from "@/actions/Auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { m } from "framer-motion";
@@ -94,6 +97,7 @@ export default function AppSidebar({
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [settingsModal, setSettingsModal] = useState<boolean>(false);
+	const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
 	const logoutMutation = useMutation({
 		mutationFn: () => logOut(session.sessionId),
@@ -167,6 +171,18 @@ export default function AppSidebar({
 
 				{/* Footer Actions */}
 				<div className="p-4 border-t border-backgroundSecondary space-y-2">
+					<NavItem
+						href="/achievements"
+						label="Succès"
+						icon={<TrophyOutlined />}
+						isActive={isActive("/achievements")}
+					/>
+					<NavItem
+						href="/lise-health"
+						label="Lise Health"
+						icon={<HeartOutlined />}
+						isActive={isActive("/lise-health")}
+					/>
 					<button
 						onClick={() => setSettingsModal(true)}
 						className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-textSecondary hover:bg-backgroundSecondary hover:text-textPrimary transition-colors text-sm font-medium"
@@ -207,34 +223,42 @@ export default function AppSidebar({
 						icon={<ReadOutlined />}
 						isActive={isActive("/grades")}
 					/>
-					<MobileNavLink
-						href="/absences"
-						label="Absences"
-						icon={<ClockCircleOutlined />}
-						isActive={isActive("/absences")}
-					/>
+					
+					{/* Drawer Trigger */}
+					<button
+						onClick={() => setIsDrawerOpen(true)}
+						className={`flex flex-col items-center justify-center gap-1 p-2 w-full transition-colors ${
+							isDrawerOpen
+								? "text-primary font-semibold"
+								: "text-textTertiary hover:text-textPrimary"
+						}`}
+					>
+						<span className="text-xl"><MenuOutlined /></span>
+						<span className="text-[10px]">Menu</span>
+					</button>
+
 					<MobileNavLink
 						href="/moyenne"
 						label="Moyenne"
 						icon={<CalculatorOutlined />}
 						isActive={isActive("/moyenne")}
 					/>
-					<MobileNavButton
-						onClick={() => setSettingsModal(true)}
-						label="Réglages"
-						icon={<SettingOutlined />}
+					<MobileNavLink
+						href="/absences"
+						label="Absences"
+						icon={<ClockCircleOutlined />}
+						isActive={isActive("/absences")}
 					/>
-					{session?.username && (
-						<MobileNavButton
-							onClick={() => logoutMutation.mutate()}
-							label="Sortir"
-							icon={<LogoutOutlined />}
-							isDestructive
-						/>
-					)}
 				</nav>
 			</main>
 
+			<MobileMenuDrawer 
+				isOpen={isDrawerOpen} 
+				onClose={() => setIsDrawerOpen(false)}
+				onSettingsClick={() => setSettingsModal(true)}
+				onLogout={() => logoutMutation.mutate()}
+				session={session}
+			/>
 			{/* Global Settings Modal */}
 			{settingsModal && (
 				<SettingsDialog

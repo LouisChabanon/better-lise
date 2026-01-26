@@ -12,6 +12,7 @@ model User {
   id                Int                @id @default(autoincrement())
   username          String             @unique
   lastLogin         DateTime
+  currentStreak     Int                @default(0)
   class             String? //GIM1 GIM2 etc...
   tbk               String?
   grades            Grade[]

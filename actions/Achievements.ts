@@ -4,6 +4,7 @@ import prisma from "@/lib/db";
 import { verifySession } from "@/lib/sessions";
 import { ACHIEVEMENTS_LIST } from "@/lib/achievements-config";
 import { revalidatePath } from "next/cache";
+import PostHogClient from "@/lib/posthog-server";
 
 // Helper to check if a list of grades contains specific criteria
 const hasGradeCondition = (grades: any[], condition: (g: any) => boolean) => {
@@ -80,6 +81,13 @@ export async function checkAndUnlockAchievements() {
 		if (mataHighGrade) unlock("DIEU_MATA");
 	}
 
+	// 5. Streaks
+	const streak = user.currentStreak;
+	if (streak >= 5) unlock("STREAK_5");
+	if (streak >= 10) unlock("STREAK_10");
+	if (streak >= 30) unlock("STREAK_30");
+	if (streak >= 300) unlock("STREAK_300");
+
 	// 6. PILLIER: All other achievements unlocked
 	const allCodes = new Set([...existingCodes, ...newUnlocks]);
 	const totalAchievements = ACHIEVEMENTS_LIST.length;
@@ -105,6 +113,19 @@ export async function checkAndUnlockAchievements() {
 			})),
 			skipDuplicates: true,
 		});
+
+		const posthog = PostHogClient();
+		newUnlocks.forEach((code) => {
+			posthog.capture({
+				distinctId: user.username,
+				event: "achievement_unlocked",
+				properties: {
+					code: code,
+				},
+			});
+		});
+		await posthog.shutdown();
+
 		revalidatePath("/achievements");
 	}
 

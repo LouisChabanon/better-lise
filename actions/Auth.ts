@@ -6,6 +6,8 @@ import { CookieJar } from "tough-cookie";
 import fetchCookie from "fetch-cookie";
 import logger from "@/lib/logger";
 import { headers } from "next/headers";
+import { toZonedTime } from "date-fns-tz";
+import { differenceInCalendarDays } from "date-fns";
 
 export type FormState =
 	| {
@@ -168,10 +170,43 @@ export async function signIn(
 			return { errors: "Erreur interne: cookie de session introuvable." };
 		}
 
+
+
+		// Retrieve existing user to calculate streak
+		const existingUser = await prisma.user.findUnique({
+			where: { username },
+			select: { lastLogin: true, currentStreak: true },
+		});
+
+		let newStreak = 1;
+		if (existingUser) {
+			const timeZone = "Europe/Paris";
+			const now = new Date();
+			const lastLogin = existingUser.lastLogin;
+
+			// Convert both to zoned time
+			const nowParis = toZonedTime(now, timeZone);
+			const lastLoginParis = toZonedTime(lastLogin, timeZone);
+
+			const diffDays = differenceInCalendarDays(nowParis, lastLoginParis);
+
+			if (diffDays === 1) {
+				// Consecutive day
+				newStreak = (existingUser.currentStreak || 0) + 1;
+			} else if (diffDays === 0) {
+				// Same day login, keep streak
+				newStreak = existingUser.currentStreak || 1;
+			}
+		}
+
 		const user = await prisma.user.upsert({
 			where: { username: username },
-			update: { lastLogin: new Date() },
-			create: { username: username!, lastLogin: new Date() },
+			update: { lastLogin: new Date(), currentStreak: newStreak },
+			create: {
+				username: username!,
+				lastLogin: new Date(),
+				currentStreak: 1,
+			},
 		});
 		if (!user) {
 			logger.error("Sign-in error: Database upsert failed", { username });
