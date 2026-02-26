@@ -151,7 +151,12 @@ export async function getAbsenceData(
 					if (bestMatch) {
 						const matchedCode = bestMatch.Code;
 						// Check for unjustified absences
-						if (!rowData.motif) {
+						// LISE fills motif with "Non excusé" instead of leaving it empty,
+						// so we must explicitly treat it as unjustified
+						const motifLower = (rowData.motif || "").trim().toLowerCase();
+						const isUnjustified =
+							!motifLower || motifLower === "non excusé" || motifLower === "non excuse";
+						if (isUnjustified) {
 							const hours = parseDurationToHours(rowData.duree);
 							if (!hoursMap[matchedCode]) {
 								hoursMap[matchedCode] = {
