@@ -257,8 +257,8 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 			setGradeToReveal(grade);
 			setSelectedGrade(null);
 		} else {
-			if (posthog.has_opted_in_capturing()) {
-				posthog.capture("view_grade_detail_event", { grade_code: grade.code });
+			if (posthog?.has_opted_in_capturing()) {
+				posthog?.capture("view_grade_detail_event", { grade_code: grade.code });
 			}
 			setSelectedGrade(grade);
 			setGradeToReveal(null);
@@ -340,8 +340,8 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 						status="primary"
 						onClick={() => {
 							refetch();
-							if (posthog.has_opted_in_capturing())
-								posthog.capture("grades_refresh");
+							if (posthog?.has_opted_in_capturing())
+								posthog?.capture("grades_refresh");
 						}}
 						disabled={isFetching}
 						className="shrink-0 !px-3"

@@ -116,7 +116,7 @@ export async function checkAndUnlockAchievements() {
 
 		const posthog = PostHogClient();
 		newUnlocks.forEach((code) => {
-			posthog.capture({
+			posthog?.capture({
 				distinctId: user.username,
 				event: "achievement_unlocked",
 				properties: {
@@ -124,7 +124,7 @@ export async function checkAndUnlockAchievements() {
 				},
 			});
 		});
-		await posthog.shutdown();
+		await posthog?.shutdown();
 
 		revalidatePath("/achievements");
 	}

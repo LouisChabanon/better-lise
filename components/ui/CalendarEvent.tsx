@@ -78,8 +78,8 @@ const CalendarEventComponent = ({
 
 	useEffect(() => {
 		if (isActive && type == "RU") {
-			if (posthog.has_opted_in_capturing()) {
-				posthog.capture("RU_display_event", { tbk: tbk, date: startDate });
+			if (posthog?.has_opted_in_capturing()) {
+				posthog?.capture("RU_display_event", { tbk: tbk, date: startDate });
 			}
 		}
 	}, [isActive, posthog, tbk, startDate, type]);

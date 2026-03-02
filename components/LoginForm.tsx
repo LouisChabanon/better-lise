@@ -71,16 +71,16 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 		localStorage.setItem("lise_id", username);
 		setLoading(true);
 
-		if (posthog.has_opted_in_capturing()) {
-			posthog.capture("login_attempt", { lise_id: username });
+		if (posthog?.has_opted_in_capturing()) {
+			posthog?.capture("login_attempt", { lise_id: username });
 		}
 
 		try {
 			// Call the signIn action
 			const state = await signIn(undefined, formData);
 			if (state?.success) {
-				if (posthog.has_opted_in_capturing()) {
-					posthog.capture("login_success", { lise_id: username });
+				if (posthog?.has_opted_in_capturing()) {
+					posthog?.capture("login_success", { lise_id: username });
 				}
 
 				if (onSuccess) {
@@ -89,8 +89,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 					router.push("/");
 				}
 			} else {
-				if (posthog.has_opted_in_capturing()) {
-					posthog.capture("login_failure", { lise_id: username });
+				if (posthog?.has_opted_in_capturing()) {
+					posthog?.capture("login_failure", { lise_id: username });
 				}
 				setErrors(state?.errors || "An error occurred during login.");
 				setLoading(false);

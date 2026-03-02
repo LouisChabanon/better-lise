@@ -267,7 +267,7 @@ export async function getGradeData(
 
 		// Telemetry & Logging
 		const duration = Date.now() - start;
-		posthog.capture({
+		posthog?.capture({
 			distinctId: user.username,
 			event: "scraper_performance",
 			properties: {
@@ -295,7 +295,7 @@ export async function getGradeData(
 			deleted_dupes: deletePromises.length, // This now includes removed grades
 		});
 	} catch (error) {
-		posthog.capture({
+		posthog?.capture({
 			distinctId: user.username || "unknown",
 			event: "scraper_error",
 			properties: { error: String(error) },
@@ -303,7 +303,7 @@ export async function getGradeData(
 		logger.error("Error fetching grades", { error: error });
 		return { errors: "Error fetching grades", success: false };
 	} finally {
-		await posthog.shutdown();
+		await posthog?.shutdown();
 	}
 
 	return { data: mappedDbGrades, success: true };
