@@ -536,10 +536,19 @@ export default function SettingsDialog({
 							/>
 							<SettingRow
 								className="last:rounded-b-xl"
-								label="Menu RU dans l'agenda"
+								label="Menu RU dans l'agenda (HS)"
 								subLabel="Afficher le repas du midi"
 								action={
-									<Switch checked={displayRUMenu} onChange={setDisplayRUMenu} />
+									// <Switch
+									// 	checked={displayRUMenu}
+									// 	onChange={setDisplayRUMenu}
+									//
+									// />
+									<Switch
+										checked={false}
+										onChange={setDisplayRUMenu}
+										disabled={true}
+									/>
 								}
 							/>
 						</div>
