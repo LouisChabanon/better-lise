@@ -20,8 +20,8 @@ export default function ChangelogManager() {
 		if (lastSeenVersion !== CURRENT_VERSION) {
 			const timer = setTimeout(() => {
 				setIsOpen(true);
-				if (posthog.has_opted_in_capturing()) {
-					posthog.capture("changelog_auto_open", { version: CURRENT_VERSION });
+				if (posthog?.has_opted_in_capturing()) {
+					posthog?.capture("changelog_auto_open", { version: CURRENT_VERSION });
 				}
 			}, 1500);
 			return () => clearTimeout(timer);

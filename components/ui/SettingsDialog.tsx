@@ -298,8 +298,8 @@ export default function SettingsDialog({
 				await unsubscribe();
 			} else {
 				const success = await subscribe();
-				if (success && posthog.has_opted_in_capturing()) {
-					posthog.capture("push_notifications_enabled", { class: userClass });
+				if (success && posthog?.has_opted_in_capturing()) {
+					posthog?.capture("push_notifications_enabled", { class: userClass });
 				}
 			}
 		} catch (e) {
@@ -569,8 +569,8 @@ export default function SettingsDialog({
 								target="_blank"
 								className="flex flex-col items-center justify-center p-3 bg-backgroundSecondary rounded-xl hover:bg-backgroundTertiary transition-colors text-textSecondary"
 								onClick={() =>
-									posthog.has_opted_in_capturing()
-										? posthog.capture("github_click_event")
+									posthog?.has_opted_in_capturing()
+										? posthog?.capture("github_click_event")
 										: ""
 								}
 							>
@@ -582,8 +582,8 @@ export default function SettingsDialog({
 								target="_blank"
 								className="flex flex-col items-center justify-center p-3 bg-backgroundSecondary rounded-xl hover:bg-backgroundTertiary transition-colors text-textSecondary"
 								onClick={() =>
-									posthog.has_opted_in_capturing()
-										? posthog.capture("wiki_click_event")
+									posthog?.has_opted_in_capturing()
+										? posthog?.capture("wiki_click_event")
 										: ""
 								}
 							>
@@ -594,8 +594,8 @@ export default function SettingsDialog({
 								href="mailto:louis.chabanon@gadz.org"
 								className="flex flex-col items-center justify-center p-3 bg-backgroundSecondary rounded-xl hover:bg-backgroundTertiary transition-colors text-textSecondary"
 								onClick={() =>
-									posthog.has_opted_in_capturing()
-										? posthog.capture("mail_click_event")
+									posthog?.has_opted_in_capturing()
+										? posthog?.capture("mail_click_event")
 										: ""
 								}
 							>

@@ -5,7 +5,11 @@ import { PostHogProvider } from "posthog-js/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
 
-if (typeof window !== "undefined") {
+if (
+	typeof window !== "undefined" &&
+	process.env.NEXT_PUBLIC_POSTHOG_KEY &&
+	process.env.NEXT_PUBLIC_POSTHOG_HOST
+) {
 	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
 		api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 		person_profiles: "identified_only",
@@ -26,7 +30,7 @@ function PostHogPageView() {
 			if (searchParams && searchParams.toString()) {
 				url = url + `?${searchParams.toString()}`;
 			}
-			posthog.capture("$pageview", {
+			posthog?.capture("$pageview", {
 				$current_url: url,
 			});
 		}
@@ -36,6 +40,12 @@ function PostHogPageView() {
 }
 
 export function PHProvider({ children }: { children: React.ReactNode }) {
+	if (
+		!process.env.NEXT_PUBLIC_POSTHOG_KEY ||
+		!process.env.NEXT_PUBLIC_POSTHOG_HOST
+	) {
+		return <>{children}</>;
+	}
 	return (
 		<PostHogProvider client={posthog}>
 			<Suspense fallback={null}>
@@ -45,3 +55,4 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 		</PostHogProvider>
 	);
 }
+

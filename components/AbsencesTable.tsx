@@ -112,8 +112,8 @@ export function AbsencesTable({ session }: { session: any }) {
 					<Button
 						status="secondary"
 						onClick={() => {
-							if (posthog.has_opted_in_capturing()) {
-								posthog.capture("absences_stats_click");
+							if (posthog?.has_opted_in_capturing()) {
+								posthog?.capture("absences_stats_click");
 							}
 							setIsStatsModalOpen(true);
 						}}
@@ -127,8 +127,8 @@ export function AbsencesTable({ session }: { session: any }) {
 						status="primary"
 						onClick={() => {
 							refetch();
-							if (posthog.has_opted_in_capturing()) {
-								posthog.capture("absences_refresh");
+							if (posthog?.has_opted_in_capturing()) {
+								posthog?.capture("absences_refresh");
 							}
 						}}
 						disabled={isFetching}

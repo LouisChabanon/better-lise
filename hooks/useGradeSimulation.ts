@@ -147,8 +147,8 @@ export function useGradeSimulation(initialGrades: GradeType[]) {
 
 	const addSimulation = (sim: SimulatedGrade) => {
 		setSimulatedGrades((prev) => [...prev, sim]);
-		if (posthog.has_opted_in_capturing()) {
-			posthog.capture("simulation_created", {
+		if (posthog?.has_opted_in_capturing()) {
+			posthog?.capture("simulation_created", {
 				UE: sim.classCode,
 				grade: sim.grade,
 				coeff: sim.coeff,
@@ -158,8 +158,8 @@ export function useGradeSimulation(initialGrades: GradeType[]) {
 
 	const removeSimulation = (id: string) => {
 		setSimulatedGrades((prev) => prev.filter((s) => s.id !== id));
-		if (posthog.has_opted_in_capturing()) {
-			posthog.capture("simulation_removed", {
+		if (posthog?.has_opted_in_capturing()) {
+			posthog?.capture("simulation_removed", {
 				simulation_id: id,
 			});
 		}
@@ -177,8 +177,8 @@ export function useGradeSimulation(initialGrades: GradeType[]) {
 
 	const handleClassOverride = (code: string, newClass: string) => {
 		setClassOverrides((prev) => ({ ...prev, [code]: newClass }));
-		if (posthog.has_opted_in_capturing()) {
-			posthog.capture("UE_overridden", {
+		if (posthog?.has_opted_in_capturing()) {
+			posthog?.capture("UE_overridden", {
 				code: code,
 				new_UE: newClass,
 			});
@@ -191,8 +191,8 @@ export function useGradeSimulation(initialGrades: GradeType[]) {
 		delete newLocal[code];
 		setLocalCoeffs(newLocal);
 
-		if (posthog.has_opted_in_capturing()) {
-			posthog.capture("weight_voted", {
+		if (posthog?.has_opted_in_capturing()) {
+			posthog?.capture("weight_voted", {
 				code,
 				weight,
 			});
