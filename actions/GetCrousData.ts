@@ -33,7 +33,7 @@ export default async function getCrousData(tbk: tbk) {
 	const mealEvents: CalendarEventProps[] = [];
 
 	// Deactivated the feature since crous blocked the IP :sadge:
-	return;
+	return mealEvents;
 
 	// 	try {
 	// 		logger.info("Fetching Crous data", { tbk });
