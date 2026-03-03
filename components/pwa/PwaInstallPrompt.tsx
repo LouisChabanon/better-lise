@@ -45,8 +45,8 @@ export default function PwaInstallPrompt() {
 		if (/iphone|ipad|ipod/.test(userAgent)) {
 			setPlatform("ios");
 			setIsVisible(true);
-			if (posthog.has_opted_in_capturing()) {
-				posthog.capture("pwa_install_prompt_shown", { platform: "ios" });
+			if (posthog?.has_opted_in_capturing()) {
+				posthog?.capture("pwa_install_prompt_shown", { platform: "ios" });
 			}
 		} else if (/android/.test(userAgent)) {
 			setPlatform("android");
@@ -71,8 +71,8 @@ export default function PwaInstallPrompt() {
 				setPlatform("android"); // Ensure android is set if event fires
 				setIsVisible(true);
 
-				if (posthog.has_opted_in_capturing()) {
-					posthog.capture("pwa_install_prompt_shown", { platform: "android" });
+				if (posthog?.has_opted_in_capturing()) {
+					posthog?.capture("pwa_install_prompt_shown", { platform: "android" });
 				}
 			}
 		};
@@ -90,8 +90,8 @@ export default function PwaInstallPrompt() {
 	const handleDismiss = () => {
 		setIsVisible(false);
 		localStorage.setItem("pwa_install_dismissed", "true");
-		if (posthog.has_opted_in_capturing()) {
-			posthog.capture("pwa_install_prompt_dismissed", { platform });
+		if (posthog?.has_opted_in_capturing()) {
+			posthog?.capture("pwa_install_prompt_dismissed", { platform });
 		}
 	};
 
@@ -105,13 +105,13 @@ export default function PwaInstallPrompt() {
 		const { outcome } = await deferredPrompt.userChoice;
 
 		if (outcome === "accepted") {
-			if (posthog.has_opted_in_capturing()) {
-				posthog.capture("pwa_install_prompt_accepted", { platform: "android" });
+			if (posthog?.has_opted_in_capturing()) {
+				posthog?.capture("pwa_install_prompt_accepted", { platform: "android" });
 			}
 			setIsVisible(false);
 		} else {
-			if (posthog.has_opted_in_capturing()) {
-				posthog.capture("pwa_install_prompt_dismissed", {
+			if (posthog?.has_opted_in_capturing()) {
+				posthog?.capture("pwa_install_prompt_dismissed", {
 					platform: "android",
 					reason: "native_prompt_cancelled",
 				});

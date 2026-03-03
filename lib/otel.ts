@@ -5,6 +5,11 @@ import { resourceFromAttributes } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 
 export function initSDK() {
+	if (!process.env.NEXT_PUBLIC_POSTHOG_HOST || !process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+		console.log("PostHog OTel Logger skipped: missing NEXT_PUBLIC_POSTHOG_HOST or NEXT_PUBLIC_POSTHOG_KEY");
+		return;
+	}
+
 	const sdk = new NodeSDK({
 		resource: resourceFromAttributes({
 			[ATTR_SERVICE_NAME]: "better-lise-service",
