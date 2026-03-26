@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { PHProvider } from "./posthog-provider";
 import ChangelogManager from "@/components/ChangelogManager";
+import PremiumManager from "@/components/PremiumManager";
 import { LazyMotion, domMax } from "framer-motion";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domMax);
@@ -28,6 +29,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 				<LazyMotion features={loadFeatures} strict>
 					{children}
 					<ChangelogManager />
+					{/*<PremiumManager />*/}
 					<ReactQueryDevtools initialIsOpen={false} />
 				</LazyMotion>
 			</QueryClientProvider>

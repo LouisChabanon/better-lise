@@ -183,6 +183,12 @@ export default function AppSidebar({
 						icon={<HeartOutlined />}
 						isActive={isActive("/lise-health")}
 					/>
+					{/*<button
+						onClick={() => window.dispatchEvent(new Event("open-premium-modal"))}
+						className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-500 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-sm font-bold"
+					>
+						<TrophyOutlined /> Premium ✨
+					</button>*/}
 					<button
 						onClick={() => setSettingsModal(true)}
 						className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-textSecondary hover:bg-backgroundSecondary hover:text-textPrimary transition-colors text-sm font-medium"
