@@ -32,9 +32,6 @@ type Meal = {
 export default async function getCrousData(tbk: tbk) {
 	const mealEvents: CalendarEventProps[] = [];
 
-	// Deactivated the feature since crous blocked the IP :sadge:
-	return mealEvents;
-/*
 	try {
 		logger.info("Fetching Crous data", { tbk });
 		const crousURL = crousData.CrousData.find((item) => item.tbk === tbk)?.url;
@@ -42,13 +39,13 @@ export default async function getCrousData(tbk: tbk) {
 			logger.warn("No Crous URL provided for tbk", { tbk });
 			return mealEvents;
 		}
-		
- 		// Fetch with caching to avoid getting blocked by Crous firewall
+
+		// Fetch with caching to avoid getting blocked by Crous firewall
 		// Revalidates cache every 4 hours (14400 seconds)
 		const res = await fetch(crousURL, {
 			next: { revalidate: 14400 },
 		});
-		
+
 		if (!res.ok) {
 			logger.warn("Failed to fetch Crous data", {
 				tbk,
@@ -56,7 +53,7 @@ export default async function getCrousData(tbk: tbk) {
 			});
 			return mealEvents;
 		}
-		
+
 		const text = await res.text();
 		const $ = cheerio.load(text);
 
@@ -130,5 +127,5 @@ export default async function getCrousData(tbk: tbk) {
 		});
 	}
 
-	return mealEvents; */
+	return mealEvents;
 }

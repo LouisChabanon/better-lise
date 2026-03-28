@@ -461,13 +461,12 @@ export default function SettingsDialog({
 						<div
 							className={`
                             relative overflow-hidden rounded-xl border transition-all duration-300
-                            ${
-															!isUserLoggedIn
-																? "bg-backgroundSecondary border-transparent opacity-90"
-																: isSubscribed
-																	? "bg-primary/5 border-primary/40"
-																	: "bg-backgroundSecondary border-transparent"
-														}
+                            ${!isUserLoggedIn
+									? "bg-backgroundSecondary border-transparent opacity-90"
+									: isSubscribed
+										? "bg-primary/5 border-primary/40"
+										: "bg-backgroundSecondary border-transparent"
+								}
                         `}
 						>
 							{/* LOCKED OVERLAY */}
@@ -536,18 +535,13 @@ export default function SettingsDialog({
 							/>
 							<SettingRow
 								className="last:rounded-b-xl"
-								label="Menu RU dans l'agenda (HS)"
+								label="Menu RU dans l'agenda"
 								subLabel="Afficher le repas du midi"
 								action={
-									// <Switch
-									// 	checked={displayRUMenu}
-									// 	onChange={setDisplayRUMenu}
-									//
-									// />
 									<Switch
-										checked={false}
+										checked={displayRUMenu}
 										onChange={setDisplayRUMenu}
-										disabled={true}
+
 									/>
 								}
 							/>
