@@ -20,7 +20,7 @@ export default function PremiumModal({
 	const handleSubscribe = () => {
 		setIsSubscribing(true);
 		setTimeout(() => {
-			alert("🐟 Poisson d'avril ! L'application restera toujours gratuite.");
+			alert("Ceci est bien évidemment une blague. Merci d'avoir voulu payer cependant.");
 			setIsSubscribing(false);
 			onClose();
 		}, 1500);
@@ -47,10 +47,10 @@ export default function PremiumModal({
 						{/* Cool background effects - light opacity for both themes */}
 						<div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-[80px] pointer-events-none" />
 						<div className="absolute bottom-0 left-0 w-64 h-64 bg-fuchsia-500/10 dark:bg-fuchsia-500/15 rounded-full blur-[60px] pointer-events-none" />
-						
+
 						{/* Close button */}
-						<button 
-							onClick={() => redirect("https://lise.ensam.eu")}
+						<button
+							onClick={onClose}
 							className="absolute top-5 right-5 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-textSecondary hover:text-textPrimary transition-colors"
 						>
 							<CloseOutlined className="text-sm" />
@@ -60,7 +60,7 @@ export default function PremiumModal({
 							<div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/20 border border-white/20">
 								<CrownOutlined className="text-2xl text-white" />
 							</div>
-							
+
 							<h2 className="text-3xl font-extrabold mb-3 tracking-tight text-textPrimary">
 								Passez au niveau supérieur.
 							</h2>
@@ -103,15 +103,15 @@ export default function PremiumModal({
 								</div>
 								<div>
 									<h3 className="text-base font-bold text-textPrimary mb-1.5 flex items-center gap-2">
-										Better-Lise Copilot™ 
+										Better-Lise Copilot™
 										<CheckCircleFilled className="text-indigo-500 text-sm" />
 									</h3>
 									<p className="text-[13px] text-textSecondary leading-relaxed">
-										Générez tous vos devoirs en un clic. Découvrez notre IA spécialement entrainée sur le drive tuysse. Bypass des logiciels anti-plagiat garanti à 100%.
+										Découvrez notre IA spécialement entrainée sur le drive tuysse. Bypass des logiciels anti-plagiat garanti à 100%.
 									</p>
 								</div>
 							</div>
-							
+
 							<div className="flex gap-4">
 								<div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0 border border-purple-500/20 shadow-inner">
 									<BankOutlined className="text-purple-500 dark:text-purple-400 text-xl" />
@@ -145,9 +145,9 @@ export default function PremiumModal({
 
 						{/* Footer */}
 						<div className="p-7 pt-2">
-							<Button 
-								status="primary" 
-								className="w-full relative group bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white border-none transition-all py-3.5 rounded-xl h-auto shadow-lg shadow-indigo-500/25" 
+							<Button
+								status="primary"
+								className="w-full relative group bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white border-none transition-all py-3.5 rounded-xl h-auto shadow-lg shadow-indigo-500/25"
 								onClick={handleSubscribe}
 								disabled={isSubscribing}
 							>
@@ -163,7 +163,7 @@ export default function PremiumModal({
 									</span>
 								)}
 							</Button>
-							
+
 							<div className="mt-4 flex flex-col items-center gap-1">
 								<span className="text-[11px] text-textTertiary text-center px-4 leading-tight">
 									En cliquant sur "Passer à la caisse", vous acceptez nos CGV qui stipulent un engagement irrévocable sur 12 mois. Aucun remboursement n'est possible.

@@ -28,8 +28,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 			<QueryClientProvider client={queryClient}>
 				<LazyMotion features={loadFeatures} strict>
 					{children}
-					<ChangelogManager />
-					{/*<PremiumManager />*/}
+					{/* <ChangelogManager /> */}
+					<PremiumManager />
 					<ReactQueryDevtools initialIsOpen={false} />
 				</LazyMotion>
 			</QueryClientProvider>

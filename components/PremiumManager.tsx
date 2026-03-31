@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import PremiumModal from "@/components/ui/PremiumModal";
 import posthog from "posthog-js";
-import { redirect } from "next/navigation";
 
 export default function PremiumManager() {
 	const [isOpen, setIsOpen] = useState(false);

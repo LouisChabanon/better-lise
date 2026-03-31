@@ -85,33 +85,33 @@ export default function MobileMenuDrawer({ isOpen, onClose, onSettingsClick, onL
             <div className="w-12 h-1.5 bg-backgroundTertiary rounded-full mx-auto mb-6" />
 
             <div className="space-y-2">
-			  <div className="px-4 pb-2 text-xs font-semibold text-textTertiary uppercase tracking-wider">
-                  Menu
+              <div className="px-4 pb-2 text-xs font-semibold text-textTertiary uppercase tracking-wider">
+                Menu
               </div>
-              
+
               <DrawerItem
                 icon={<TrophyOutlined />}
                 label="Achievements"
                 href="/achievements"
                 onClick={onClose}
               />
-              
+
               <DrawerItem
                 icon={<HeartOutlined />}
                 label="Lise Health"
                 href="/lise-health"
                 onClick={onClose}
               />
-              
-              {/*<DrawerItem
+
+              <DrawerItem
                 icon={<TrophyOutlined className="text-amber-500" />}
                 label="Premium ✨"
                 onClick={() => {
                   onClose();
                   window.dispatchEvent(new Event("open-premium-modal"));
                 }}
-              /> */}
-              
+              />
+
               <DrawerItem
                 icon={<SettingOutlined />}
                 label="Paramètres"
