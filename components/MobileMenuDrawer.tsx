@@ -104,15 +104,6 @@ export default function MobileMenuDrawer({ isOpen, onClose, onSettingsClick, onL
               />
 
               <DrawerItem
-                icon={<TrophyOutlined className="text-amber-500" />}
-                label="Premium ✨"
-                onClick={() => {
-                  onClose();
-                  window.dispatchEvent(new Event("open-premium-modal"));
-                }}
-              />
-
-              <DrawerItem
                 icon={<SettingOutlined />}
                 label="Paramètres"
                 onClick={() => {

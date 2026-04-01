@@ -55,8 +55,8 @@ const MobileNavLink = ({ href, label, icon, isActive }: any) => (
 	<Link
 		href={href}
 		className={`flex flex-col items-center justify-center gap-1 p-2 w-full transition-colors ${isActive
-				? "text-primary font-semibold"
-				: "text-textTertiary hover:text-textPrimary"
+			? "text-primary font-semibold"
+			: "text-textTertiary hover:text-textPrimary"
 			}`}
 	>
 		<span className={`text-xl ${isActive ? "scale-110" : ""}`}>{icon}</span>
@@ -74,8 +74,8 @@ const MobileNavButton = ({
 	<button
 		onClick={onClick}
 		className={`flex flex-col items-center justify-center gap-1 p-2 w-full transition-colors ${isDestructive
-				? "text-error/80 hover:text-error"
-				: "text-textTertiary hover:text-textPrimary"
+			? "text-error/80 hover:text-error"
+			: "text-textTertiary hover:text-textPrimary"
 			}`}
 	>
 		<span className="text-xl">{icon}</span>
@@ -181,12 +181,6 @@ export default function AppSidebar({
 						isActive={isActive("/lise-health")}
 					/>
 					<button
-						onClick={() => window.dispatchEvent(new Event("open-premium-modal"))}
-						className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-500 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-sm font-bold"
-					>
-						<TrophyOutlined /> Premium ✨
-					</button>
-					<button
 						onClick={() => setSettingsModal(true)}
 						className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-textSecondary hover:bg-backgroundSecondary hover:text-textPrimary transition-colors text-sm font-medium"
 					>
@@ -231,8 +225,8 @@ export default function AppSidebar({
 					<button
 						onClick={() => setIsDrawerOpen(true)}
 						className={`flex flex-col items-center justify-center gap-1 p-2 w-full transition-colors ${isDrawerOpen
-								? "text-primary font-semibold"
-								: "text-textTertiary hover:text-textPrimary"
+							? "text-primary font-semibold"
+							: "text-textTertiary hover:text-textPrimary"
 							}`}
 					>
 						<span className="text-xl"><MenuOutlined /></span>
