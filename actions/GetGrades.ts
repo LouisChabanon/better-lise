@@ -93,7 +93,7 @@ export async function getGradeData(
 		const hiddenFields = getHiddenFields($html);
 		const $table_html = await navigateToLisePage(
 			hiddenFields,
-			{ submenuId: "submenu_47356", buttonId: "4_0" },
+			{ submenuId: "submenu_47356", buttonId: "5_0" },
 			jar
 		);
 
