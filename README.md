@@ -2,6 +2,8 @@
 
 Une interface alternative pour le portail académique de l'ENSAM. Plus fluide, plus rapide et pensée pour le mobile.
 
+> ⚠️ **important :**
+> Mon compte Lise va probablement expirer l'année prochaine, ce qui signifie que je ne pourrais plus tester l'application ni assurer sa maintenance. Si le projet te plaît et que tu souhaites le reprendre pour continuer à le faire exister, ta contribution ou une reprise globale du projet est la bienvenue ! Contacte-moi par mail ou Whatsapp si tu es intéressé.
 -----
 
 ### Documentation Complète
