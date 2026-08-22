@@ -3,8 +3,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Button } from "./ui/Button";
 import { GradeType } from "@/lib/types";
 import {
-	CaretRightFilled,
-	CaretLeftFilled,
 	CaretUpFilled,
 	CaretDownFilled,
 	ReloadOutlined,
@@ -26,6 +24,8 @@ import {
 	markAllGradesAsOpened,
 	markGradeAsNew,
 } from "@/actions/MarkGradeOpened";
+
+import { LoadingBar } from "./ui/LoadingBar";
 
 interface GradeTableProps {
 	session: any;
@@ -69,7 +69,8 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 	const [localGrades, setLocalGrades] = useState<GradeType[]>([]);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [isFiltersOpen, setIsFiltersOpen] = useState(false); // Toggle for mobile/desktop filter panel
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false); // Toggle for mobile/desktop filter panel
+  const [isBarVisible, setIsBarVisible] = useState(false);
 
 	// Filtering State
 	const [selectedSemester, setSelectedSemester] = useState<string>("all");
@@ -105,7 +106,21 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 		if (grades) {
 			setLocalGrades(grades);
 		}
-	}, [grades]);
+  }, [grades]);
+
+
+	useEffect(() => {
+    if (isFetching || isLoading) {
+        setIsBarVisible(true);
+    } else if (isBarVisible) {
+        // Le chargement est fini, on force la barre à 100%
+        // et on attend 300ms avant de masquer le composant
+        const finishTimer = setTimeout(() => {
+            setIsBarVisible(false);
+        }, 300);
+        return () => clearTimeout(finishTimer);
+    }
+	}, [isFetching, isLoading, isBarVisible]);
 
 	const uniqueSemesters = useMemo(() => {
 		if (!localGrades) return [];
@@ -466,27 +481,8 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 			</div>
 
 			{/* ==================== MAIN CONTENT ==================== */}
-			{isFetching ? (
-				<div className="w-full flex flex-col items-center justify-center py-12 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
-					<div className="flex items-center justify-between w-full max-w-md px-1">
-						<span className="text-xs font-bold text-textPrimary uppercase tracking-wider animate-pulse">
-							{message}
-						</span>
-						<span className="text-xs font-mono text-textTertiary">
-							{Math.round(progress)}%
-						</span>
-					</div>
-					<div className="w-full max-w-md h-2 bg-backgroundSecondary border border-buttonSecondaryBorder rounded-full overflow-hidden shadow-inner relative">
-						<div
-							className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_10px] shadow-primary/50"
-							style={{ width: `${progress}%` }}
-						/>
-						<div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-					</div>
-					<p className="text-[10px] text-textTertiary max-w-xs text-center pt-2">
-						En attente de Lise. C'est long...
-					</p>
-				</div>
+      {isBarVisible ? (
+        <LoadingBar progress={isFetching ? progress : 100} message={isFetching ? message : "Terminé !"}/>
 			) : isError ? (
 				<div className="text-center text-error p-8 bg-error/5 rounded-xl border border-error/10">
 					Erreur: {(error as Error).message}
@@ -507,7 +503,7 @@ export function GradeTable({ session, gambling }: GradeTableProps) {
 											key={g.code}
 											onClick={() => onRowClick(g)}
 											className={`
-                        relative flex items-center justify-between p-4 rounded-2xl border border-backgroundSecondary bg-backgroundPrimary 
+                        relative flex items-center justify-between p-4 rounded-2xl border border-backgroundSecondary bg-backgroundPrimary
                         active:scale-[0.98] transition-transform touch-manipulation shadow-sm
                         ${
 													g.isNew

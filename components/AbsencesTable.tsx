@@ -17,6 +17,7 @@ import {
 import { useAbsencesData } from "@/hooks/useAbsencesData";
 import { useScraperLoading } from "@/hooks/useScraperLoading";
 import posthog from "posthog-js";
+import { LoadingBar } from "./ui/LoadingBar";
 
 export function AbsencesTable({ session }: { session: any }) {
 	const { data, isLoading, isFetching, isError, error, refetch } =
@@ -31,15 +32,30 @@ export function AbsencesTable({ session }: { session: any }) {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filteredAbsences, setFilteredAbsences] = useState<AbsenceType[]>([]);
-	const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [isBarVisible, setIsBarVisible] = useState(false);
 
 	// Reference for the bottom of the mobile list
 	const bottomSentinelRef = useRef<HTMLDivElement>(null);
 
 	// --- Effects ---
+
+	useEffect(() => {
+    if (isFetching || isLoading) {
+        setIsBarVisible(true);
+    } else if (isBarVisible) {
+        // Le chargement est fini, on force la barre à 100%
+        // et on attend 300ms avant de masquer le composant
+        const finishTimer = setTimeout(() => {
+            setIsBarVisible(false);
+        }, 300);
+        return () => clearTimeout(finishTimer);
+    }
+  }, [isFetching, isLoading, isBarVisible]);
+
 	useEffect(() => {
 		if (absences) setLocalAbsences(absences);
-	}, [absences]);
+  }, [absences]);
 
 	useEffect(() => {
 		if (!localAbsences) {
@@ -240,27 +256,8 @@ export function AbsencesTable({ session }: { session: any }) {
 			)}
 
 			{/* --- Loading / Error States --- */}
-			{isFetching ? (
-				<div className="w-full flex flex-col items-center justify-center py-12 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
-					<div className="flex items-center justify-between w-full max-w-md px-1">
-						<span className="text-xs font-bold text-textPrimary uppercase tracking-wider animate-pulse">
-							{message}
-						</span>
-						<span className="text-xs font-mono text-textTertiary">
-							{Math.round(progress)}%
-						</span>
-					</div>
-					<div className="w-full max-w-md h-2 bg-backgroundSecondary border border-buttonSecondaryBorder rounded-full overflow-hidden shadow-inner relative">
-						<div
-							className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out shadow-[0_0_10px] shadow-primary/50"
-							style={{ width: `${progress}%` }}
-						/>
-						<div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-					</div>
-					<p className="text-[10px] text-textTertiary max-w-xs text-center pt-2">
-						En attente de Lise. C'est long...
-					</p>
-				</div>
+			{isBarVisible ? (
+				<LoadingBar progress={isFetching ? progress : 100} message={isFetching ? message : "Terminé !"} />
 			) : isError ? (
 				<div className="text-center text-error p-8 bg-error/5 rounded-xl border border-error/10">
 					Erreur: {(error as Error).message}
