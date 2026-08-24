@@ -3,9 +3,11 @@ import "@ant-design/v5-patch-for-react-19";
 import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Providers from "./providers";
+import { SITE_URL } from "@/lib/site";
 //import PwaInstallPrompt from "@/components/pwa/PwaInstallPrompt";
 
 export const metadata: Metadata = {
+	metadataBase: new URL(SITE_URL),
 	applicationName: "Better Lise",
 	title: {
 		default: "Better Lise",
@@ -15,8 +17,24 @@ export const metadata: Metadata = {
 	formatDetection: {
 		telephone: false,
 	},
+	alternates: {
+		canonical: "/",
+	},
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-image-preview": "large",
+			"max-snippet": -1,
+			"max-video-preview": -1,
+		},
+	},
 	openGraph: {
 		type: "website",
+		url: SITE_URL,
+		locale: "fr_FR",
 		siteName: "Better Lise",
 		title: {
 			default: "Better Lise",
@@ -33,7 +51,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html lang="fr">
 			<head>
 				<meta name="apple-mobile-web-app-title" content="Better Lise" />
 				<link
