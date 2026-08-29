@@ -6,9 +6,14 @@ Une interface alternative pour le portail académique de l'ENSAM. Plus fluide, p
 > Mon compte Lise va probablement expirer l'année prochaine, ce qui signifie que je ne pourrais plus tester l'application ni assurer sa maintenance. Si le projet te plaît et que tu souhaites le reprendre pour continuer à le faire exister, ta contribution ou une reprise globale du projet est la bienvenue ! Contacte-moi par mail ou Whatsapp si tu es intéressé.
 -----
 
-### Documentation Complète
+### Patch rapide si le scraper casse
 
-La documentation technique et les guides utilisateurs ont été déplacés sur le **[wiki](https://github.com/LouisChabanon/better-lise/wiki)**.
+Si l'ENSAM ajoute ou retire des pages dans le menus de Lise le scraper peut ne plus fonctionner. Pour patch il suffit de modifier le fichier [actions/GetGrades.ts](https://github.com/LouisChabanon/better-lise/blob/ac54b8656b0d54eb103c4d3b3e89d044818867f0/actions/GetGrades.ts) comme suit : https://github.com/LouisChabanon/better-lise/commit/ac54b8656b0d54eb103c4d3b3e89d044818867f0#r198184969
+
+
+### Documentation
+
+La documentation et les guides utilisateurs ont été déplacés sur le **[wiki](https://github.com/LouisChabanon/better-lise/wiki)**.
 
 | 👨‍💻 **Pour les Développeurs** | 👤 **Pour les Utilisateurs** | ⚖️ **Légal & Infos** |
 | :--- | :--- | :--- |
@@ -16,7 +21,7 @@ La documentation technique et les guides utilisateurs ont été déplacés sur l
 
 -----
 
-## Fonctionnalités Principales
+## Fonctionnalités
 
   - **Agenda & Crous :** Emploi du temps synchronisé avec intégration automatique des menus du RU selon le campus.
   - **Notes Avancées :** Statistiques détaillées (moyenne promo, médiane, écart-type) et graphiques de distribution.
@@ -65,7 +70,7 @@ Le projet repose sur la stack suivante :
 Toute contribution est la bienvenue \!
 
 1.  Forkez le projet.
-2.  Créez une branche (`git checkout -b feature/NomFeature`).
+2.  Créez une branche (`git checkout -b feat/NomFeature`).
 3.  Committez vos changements (`git commit -m 'Description concise de l'ajout'`).
 4.  Pushez (`git push origin feature/NomFeature`).
 5.  Ouvrez une Pull Request.
@@ -73,4 +78,4 @@ Toute contribution est la bienvenue \!
 ## Assistance
 
 Pour toute question, remarque ou signalement de bug :
-**[louis.chabanon@gadz.org](mailto:louis.chabanon@gadz.org)**
+**[louis.chabanon@gadz.org](mailto:louis.chabanon@gmail.com)**
