@@ -63,6 +63,10 @@ enum Endpoints {
         Endpoint(method: .post, path: "grades/\(encodePathSegment(code))/opened")
     }
 
+    static func health() -> Endpoint<LiseHealth> {
+        Endpoint(method: .get, path: "health", requiresAuth: false)
+    }
+
     static func absences() -> Endpoint<AbsencesResponse> {
         Endpoint(method: .get, path: "absences")
     }

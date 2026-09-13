@@ -162,3 +162,9 @@ struct MarkOpenedResponse: Codable, Sendable {
 struct LogoutResponse: Codable, Sendable {
     let loggedOut: Bool
 }
+
+/// Recent scraper performance measured by the server (`avgDuration` in milliseconds).
+struct LiseHealth: Codable, Equatable, Sendable {
+    let avgDuration: Double
+    let count: Int
+}

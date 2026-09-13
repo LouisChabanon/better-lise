@@ -17,11 +17,23 @@ struct AbsencesView: View {
         NavigationStack {
             Group {
                 if session.isSignedIn {
-                    content
+                    if model.syncState.showsFullLoader, let startedAt = model.syncState.startedAt {
+                        ScraperLoadingView(
+                            startedAt: startedAt,
+                            expectedDuration: model.health.expectedSyncDuration,
+                            isFinished: model.syncState.isFinished,
+                            slowNotice: model.health.slowNotice
+                        )
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    } else {
+                        content
+                            .transition(.opacity)
+                    }
                 } else {
                     SignInPrompt(title: "Absences") { isLoginPresented = true }
                 }
             }
+            .animation(.smooth(duration: 0.4), value: model.syncState.showsFullLoader)
             .background(Theme.backgroundSecondary.ignoresSafeArea())
             .navigationTitle("Absences")
             .task(id: session.username) {
@@ -40,14 +52,23 @@ struct AbsencesView: View {
                     summary(data)
                     statsSection(data.stats)
                     listSection(data.absences)
-                } else if model.state.isLoading {
-                    ProgressView("Récupération de tes absences…")
-                        .frame(maxWidth: .infinity, minHeight: 240)
                 }
             }
             .padding(16)
         }
         .refreshable { await model.load() }
+        .overlay(alignment: .bottom) {
+            if model.syncState.showsCompactLoader, let startedAt = model.syncState.startedAt {
+                SyncProgressPill(
+                    startedAt: startedAt,
+                    expectedDuration: model.health.expectedSyncDuration,
+                    isFinished: model.syncState.isFinished
+                )
+                .padding(.bottom, 12)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(duration: 0.4), value: model.syncState.showsCompactLoader)
     }
 
     private func summary(_ data: AbsencesResponse) -> some View {

@@ -31,6 +31,7 @@ struct DayTimelineView: View {
                     }
                     .frame(height: CGFloat(endHour - startHour) * hourHeight)
                     .padding(.trailing, 12)
+                    .padding(.top, 10) // room for the first hour label, drawn above its grid line
                     .id("timeline")
                     .overlay {
                         if isLoading {

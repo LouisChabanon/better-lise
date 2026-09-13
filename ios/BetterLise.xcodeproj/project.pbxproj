@@ -9,10 +9,13 @@
 /* Begin PBXBuildFile section */
 		02900F2394BA538C5E3EFE21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336F9EB868AB3D647A9B6D2B /* SettingsView.swift */; };
 		0884D463920EC2C59B799D96 /* GradesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA747C4397038A2F51580983 /* GradesView.swift */; };
+		0DDABAB94BFCC3AE450E4FC8 /* ScraperLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A64BF92D652629883D3B71 /* ScraperLoadingView.swift */; };
 		0F601BF04AC19160E16CA398 /* Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487E85E813B73462C0FEE385 /* Endpoint.swift */; };
+		1378B06D5A54B9912512505C /* AgendaSwipeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D9B19889CD4A870D222D651 /* AgendaSwipeUITests.swift */; };
 		1A79B6D1DA8CAEE1E3B8EA8C /* StateViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1549AEFA911638FBB732CDD /* StateViews.swift */; };
 		228B0ED964B6B04A32643D7D /* GradesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A95AD370DC8D5BABA777A54 /* GradesViewModel.swift */; };
 		2E18DF1F65437657A1CBDF25 /* EventBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 935D3CD258BF4963983E79FC /* EventBlockView.swift */; };
+		2EFE91ED74125AFD52F89512 /* ScraperProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D9363B3777FE074C50D445A /* ScraperProgress.swift */; };
 		31B725BEB3AC83703684C749 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426021DFE07CB49362F2DEA2 /* SettingsStore.swift */; };
 		3A474AAD290B377930D96383 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE8C007BB53402BD60CD0437 /* RootTabView.swift */; };
 		4C799A9DD74657A6AE67935E /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9FAA9DC03AD0CBD2B135AA /* AppEnvironment.swift */; };
@@ -30,12 +33,15 @@
 		A552E0F3117E9F04140C2D1A /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8008BAB87DDC1C67069CAF /* SessionStore.swift */; };
 		A7CEAF2708FDEC418DD196C6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F05D75D83B76F09F60AE34AF /* Assets.xcassets */; };
 		A968CA04428AA8FAC007495A /* BetterLiseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 727F21BE8F669FDDAA00BB88 /* BetterLiseApp.swift */; };
+		ACFD2B7830038CBCF87FDF8C /* ScraperProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F72E73A4424637EB13CDCEA2 /* ScraperProgressTests.swift */; };
 		B5C7E2C3008BFBE0A3D21D7B /* ResponseCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C5832C6229E26876122C3AC /* ResponseCache.swift */; };
 		C4EF9F51BCC528B1B896490C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9EE1312156857DFB2FCDD2 /* Theme.swift */; };
 		CB76F28DA0FE551AE5687C6D /* AgendaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DFDB5D9DBC1B621A7D6C6F3 /* AgendaView.swift */; };
+		CF977DC89B23237384C3DA26 /* AgendaViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11443F31D86885A93225A723 /* AgendaViewModelTests.swift */; };
 		D10519BC8B7892BF9B4345E3 /* GradeSorting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FE6CF2878FDCE0010FF24AF /* GradeSorting.swift */; };
 		DC07260B3B4E1CC6F08CE7CD /* StoresTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D873A7FA017323FF847C016E /* StoresTests.swift */; };
 		E48318CD2D2C9E04B9DC8211 /* AgendaLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A243BC10CD466C823C985DBE /* AgendaLayoutTests.swift */; };
+		E5B83A749CF43E6D5480B988 /* LiseHealthMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A46CF3A97F2567E693AC448 /* LiseHealthMonitor.swift */; };
 		E93968E007C6F5F08C403A5B /* AbsencesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F423FD54801789F1C88C0FAA /* AbsencesViewModel.swift */; };
 		ED60DA721FBF9843DAFD013C /* DayTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145BCB7747D0BDA8604926FF /* DayTimelineView.swift */; };
 		F2F733FC334BCD64C2C5DFF8 /* SessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C2AC9340A9845002FD7AFB /* SessionStoreTests.swift */; };
@@ -51,15 +57,25 @@
 			remoteGlobalIDString = 5A16FC29F9982B270F0CF5DA;
 			remoteInfo = BetterLise;
 		};
+		DBB7BFCB2868C084ADB56CC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E48084C8C86F755955275859 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A16FC29F9982B270F0CF5DA;
+			remoteInfo = BetterLise;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		09F049E13C46C67B2C5000BC /* AgendaViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgendaViewModel.swift; sourceTree = "<group>"; };
 		0A9FAA9DC03AD0CBD2B135AA /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		0C5832C6229E26876122C3AC /* ResponseCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseCache.swift; sourceTree = "<group>"; };
+		11443F31D86885A93225A723 /* AgendaViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgendaViewModelTests.swift; sourceTree = "<group>"; };
 		145BCB7747D0BDA8604926FF /* DayTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayTimelineView.swift; sourceTree = "<group>"; };
 		17AA26156B20FE21C4E27EBE /* DTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOs.swift; sourceTree = "<group>"; };
 		18EA2D21DA6C986A45D730D7 /* SecureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureStore.swift; sourceTree = "<group>"; };
+		1D9363B3777FE074C50D445A /* ScraperProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScraperProgress.swift; sourceTree = "<group>"; };
+		2A46CF3A97F2567E693AC448 /* LiseHealthMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiseHealthMonitor.swift; sourceTree = "<group>"; };
 		2DFDB5D9DBC1B621A7D6C6F3 /* AgendaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgendaView.swift; sourceTree = "<group>"; };
 		336F9EB868AB3D647A9B6D2B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		34B9FE3D4B50B53B4FD7EDC0 /* AbsencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbsencesView.swift; sourceTree = "<group>"; };
@@ -68,6 +84,7 @@
 		559299524D9F94B507E0087C /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		57E0E5EF50C94549782B6C68 /* AgendaLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgendaLayout.swift; sourceTree = "<group>"; };
 		5C9EE1312156857DFB2FCDD2 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		5D9B19889CD4A870D222D651 /* AgendaSwipeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgendaSwipeUITests.swift; sourceTree = "<group>"; };
 		5FE6CF2878FDCE0010FF24AF /* GradeSorting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeSorting.swift; sourceTree = "<group>"; };
 		6584DD62502D88FE68649061 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		7040616F21B9349D1274D0E3 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
@@ -82,6 +99,8 @@
 		A687C8AE0023B9D836641528 /* GradeDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeDetailSheet.swift; sourceTree = "<group>"; };
 		A9DA4D8B5A48B7D0A3C13AF8 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		AE8C007BB53402BD60CD0437 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		B9A64BF92D652629883D3B71 /* ScraperLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScraperLoadingView.swift; sourceTree = "<group>"; };
+		BAAB772168D8FE90F01BA5BE /* BetterLiseUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BetterLiseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D82E0C066D43B626EEF4E645 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		D873A7FA017323FF847C016E /* StoresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoresTests.swift; sourceTree = "<group>"; };
 		DA747C4397038A2F51580983 /* GradesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradesView.swift; sourceTree = "<group>"; };
@@ -93,6 +112,7 @@
 		F1C2AC9340A9845002FD7AFB /* SessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStoreTests.swift; sourceTree = "<group>"; };
 		F423FD54801789F1C88C0FAA /* AbsencesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbsencesViewModel.swift; sourceTree = "<group>"; };
 		F60DBCF7C62C59F7ACD6F467 /* BetterLise.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BetterLise.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F72E73A4424637EB13CDCEA2 /* ScraperProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScraperProgressTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -112,6 +132,7 @@
 			children = (
 				7426420FCA30C9FC561F9670 /* BetterLise */,
 				52CD77348DE8E538BB195438 /* BetterLiseTests */,
+				CD47CFC8921E4C81FD5B4CA0 /* BetterLiseUITests */,
 				7C24A2528523BDDB20E9F1CD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -134,6 +155,7 @@
 				6584DD62502D88FE68649061 /* APIError.swift */,
 				17AA26156B20FE21C4E27EBE /* DTOs.swift */,
 				487E85E813B73462C0FEE385 /* Endpoint.swift */,
+				2A46CF3A97F2567E693AC448 /* LiseHealthMonitor.swift */,
 			);
 			path = API;
 			sourceTree = "<group>";
@@ -151,8 +173,10 @@
 			isa = PBXGroup;
 			children = (
 				A243BC10CD466C823C985DBE /* AgendaLayoutTests.swift */,
+				11443F31D86885A93225A723 /* AgendaViewModelTests.swift */,
 				7040616F21B9349D1274D0E3 /* APIClientTests.swift */,
 				E36725FE02C0934E7D6962E2 /* GradeSortingTests.swift */,
+				F72E73A4424637EB13CDCEA2 /* ScraperProgressTests.swift */,
 				F1C2AC9340A9845002FD7AFB /* SessionStoreTests.swift */,
 				D873A7FA017323FF847C016E /* StoresTests.swift */,
 				84158B32C2A465D7C14E573B /* StubURLProtocol.swift */,
@@ -171,6 +195,8 @@
 		6FCA66928AB0D360D0F20FF0 /* Design */ = {
 			isa = PBXGroup;
 			children = (
+				B9A64BF92D652629883D3B71 /* ScraperLoadingView.swift */,
+				1D9363B3777FE074C50D445A /* ScraperProgress.swift */,
 				E1549AEFA911638FBB732CDD /* StateViews.swift */,
 				5C9EE1312156857DFB2FCDD2 /* Theme.swift */,
 			);
@@ -208,6 +234,7 @@
 			children = (
 				F60DBCF7C62C59F7ACD6F467 /* BetterLise.app */,
 				EC1CFD545A949C99588FE4E4 /* BetterLiseTests.xctest */,
+				BAAB772168D8FE90F01BA5BE /* BetterLiseUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -251,6 +278,14 @@
 			path = Absences;
 			sourceTree = "<group>";
 		};
+		CD47CFC8921E4C81FD5B4CA0 /* BetterLiseUITests */ = {
+			isa = PBXGroup;
+			children = (
+				5D9B19889CD4A870D222D651 /* AgendaSwipeUITests.swift */,
+			);
+			path = BetterLiseUITests;
+			sourceTree = "<group>";
+		};
 		D28E3AB959D0538385EB16F5 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
@@ -288,6 +323,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		035236B4D3B9D9FB7E2DD8B3 /* BetterLiseUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E4D3C2F633D06EEB40B16535 /* Build configuration list for PBXNativeTarget "BetterLiseUITests" */;
+			buildPhases = (
+				04F97326D1CB65B1CB8900D0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FF15FCBA4CD8AEA88D8E013E /* PBXTargetDependency */,
+			);
+			name = BetterLiseUITests;
+			packageProductDependencies = (
+			);
+			productName = BetterLiseUITests;
+			productReference = BAAB772168D8FE90F01BA5BE /* BetterLiseUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		5A16FC29F9982B270F0CF5DA /* BetterLise */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EF4D7706C64F33F54CB3EC97 /* Build configuration list for PBXNativeTarget "BetterLise" */;
@@ -333,6 +386,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					035236B4D3B9D9FB7E2DD8B3 = {
+						TestTargetID = 5A16FC29F9982B270F0CF5DA;
+					};
 					5A16FC29F9982B270F0CF5DA = {
 						ProvisioningStyle = Automatic;
 					};
@@ -354,6 +410,7 @@
 			targets = (
 				5A16FC29F9982B270F0CF5DA /* BetterLise */,
 				B7874A319129F0E1213A6AE2 /* BetterLiseTests */,
+				035236B4D3B9D9FB7E2DD8B3 /* BetterLiseUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -370,13 +427,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		04F97326D1CB65B1CB8900D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1378B06D5A54B9912512505C /* AgendaSwipeUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6A2D29442AF2CA0A619B61DD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				6B796DFCFCD3E212C9A75C1C /* APIClientTests.swift in Sources */,
 				E48318CD2D2C9E04B9DC8211 /* AgendaLayoutTests.swift in Sources */,
+				CF977DC89B23237384C3DA26 /* AgendaViewModelTests.swift in Sources */,
 				9C43EC8A32707CF886DEE412 /* GradeSortingTests.swift in Sources */,
+				ACFD2B7830038CBCF87FDF8C /* ScraperProgressTests.swift in Sources */,
 				F2F733FC334BCD64C2C5DFF8 /* SessionStoreTests.swift in Sources */,
 				DC07260B3B4E1CC6F08CE7CD /* StoresTests.swift in Sources */,
 				8718E9508A8EEFE9E9C4B3B4 /* StubURLProtocol.swift in Sources */,
@@ -405,9 +472,12 @@
 				D10519BC8B7892BF9B4345E3 /* GradeSorting.swift in Sources */,
 				0884D463920EC2C59B799D96 /* GradesView.swift in Sources */,
 				228B0ED964B6B04A32643D7D /* GradesViewModel.swift in Sources */,
+				E5B83A749CF43E6D5480B988 /* LiseHealthMonitor.swift in Sources */,
 				5CBF6449F0F8CA99C741ABEB /* LoginView.swift in Sources */,
 				B5C7E2C3008BFBE0A3D21D7B /* ResponseCache.swift in Sources */,
 				3A474AAD290B377930D96383 /* RootTabView.swift in Sources */,
+				0DDABAB94BFCC3AE450E4FC8 /* ScraperLoadingView.swift in Sources */,
+				2EFE91ED74125AFD52F89512 /* ScraperProgress.swift in Sources */,
 				F6B6D178E9223B869EB9C6D3 /* SecureStore.swift in Sources */,
 				A552E0F3117E9F04140C2D1A /* SessionStore.swift in Sources */,
 				31B725BEB3AC83703684C749 /* SettingsStore.swift in Sources */,
@@ -425,9 +495,31 @@
 			target = 5A16FC29F9982B270F0CF5DA /* BetterLise */;
 			targetProxy = 33726FF9D21E4CE393BF4EAC /* PBXContainerItemProxy */;
 		};
+		FF15FCBA4CD8AEA88D8E013E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A16FC29F9982B270F0CF5DA /* BetterLise */;
+			targetProxy = DBB7BFCB2868C084ADB56CC9 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		032A2FFC4FAAD3EA3352B817 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.betterlise.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BetterLise;
+			};
+			name = Debug;
+		};
 		08859C50D9C3595661E37C38 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = EC345A7AF01AC655A122E7C8 /* Release.xcconfig */;
@@ -608,6 +700,23 @@
 			};
 			name = Debug;
 		};
+		BA0F07E87AB35ED0B95297C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.betterlise.app.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BetterLise;
+			};
+			name = Release;
+		};
 		D9FB050056ACC5F081731785 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -642,6 +751,15 @@
 			buildConfigurations = (
 				9E8928A4754CE298922D1AEF /* Debug */,
 				5AC6782A0F0991B13E4AE898 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E4D3C2F633D06EEB40B16535 /* Build configuration list for PBXNativeTarget "BetterLiseUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				032A2FFC4FAAD3EA3352B817 /* Debug */,
+				BA0F07E87AB35ED0B95297C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

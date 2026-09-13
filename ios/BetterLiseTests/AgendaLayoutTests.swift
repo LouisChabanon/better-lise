@@ -41,14 +41,41 @@ struct AgendaLayoutTests {
         #expect(placed.isEmpty)
     }
 
-    @Test func weekDaysAreMondayToFriday() {
+    @Test func schoolDaysSpanWholeWeeksAroundToday() {
         let wednesday = date(12, 9)
-        let days = AgendaLayout.weekDays(containing: wednesday, weekOffset: 0)
-        let numbers = days.map { Calendar.paris.component(.day, from: $0) }
-        #expect(numbers == [10, 11, 12, 13, 14])
+        let days = AgendaLayout.schoolDays(around: wednesday, weeksBefore: 1, weeksAfter: 1)
 
-        let nextWeek = AgendaLayout.weekDays(containing: wednesday, weekOffset: 1)
-        #expect(Calendar.paris.component(.day, from: nextWeek[0]) == 17)
+        #expect(days.count == 15)
+        let numbers = days.map { Calendar.paris.component(.day, from: $0) }
+        #expect(numbers == [3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21])
+        #expect(days.allSatisfy { !Calendar.paris.isDateInWeekend($0) })
+    }
+
+    @Test func initialIndexIsTodayOnWeekdaysAndNextMondayOnWeekends() {
+        let days = AgendaLayout.schoolDays(around: date(12, 9), weeksBefore: 1, weeksAfter: 1)
+
+        #expect(AgendaLayout.initialIndex(in: days, today: date(12, 18)) == 7)
+        // Saturday 15 and Sunday 16 open on Monday 17
+        #expect(AgendaLayout.initialIndex(in: days, today: date(15, 10)) == 10)
+        #expect(AgendaLayout.initialIndex(in: days, today: date(16, 22)) == 10)
+    }
+
+    @Test func weekendReferenceCentersOnTheUpcomingWeek() {
+        let saturday = date(15, 10)
+        let days = AgendaLayout.schoolDays(around: saturday, weeksBefore: 0, weeksAfter: 0)
+        #expect(days.map { Calendar.paris.component(.day, from: $0) } == [17, 18, 19, 20, 21])
+    }
+
+    @Test func groupsEventsByParisDay() {
+        let events = [
+            event("Late", date(10, 23, 30), date(10, 23, 45)),
+            event("Morning", date(10, 8), date(10, 9)),
+            event("Tue", date(11, 8), date(11, 9)),
+        ]
+        let grouped = AgendaLayout.groupByDay(events)
+
+        #expect(grouped[Calendar.paris.startOfDay(for: date(10, 12))]?.map(\.title) == ["Morning", "Late"])
+        #expect(grouped[Calendar.paris.startOfDay(for: date(11, 12))]?.map(\.title) == ["Tue"])
     }
 
     @Test func filtersEventsByDay() {

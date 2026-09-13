@@ -15,11 +15,23 @@ struct GradesView: View {
         NavigationStack {
             Group {
                 if session.isSignedIn {
-                    list
+                    if model.syncState.showsFullLoader, let startedAt = model.syncState.startedAt {
+                        ScraperLoadingView(
+                            startedAt: startedAt,
+                            expectedDuration: model.health.expectedSyncDuration,
+                            isFinished: model.syncState.isFinished,
+                            slowNotice: model.health.slowNotice
+                        )
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    } else {
+                        list
+                            .transition(.opacity)
+                    }
                 } else {
                     SignInPrompt(title: "Notes") { isLoginPresented = true }
                 }
             }
+            .animation(.smooth(duration: 0.4), value: model.syncState.showsFullLoader)
             .background(Theme.backgroundSecondary.ignoresSafeArea())
             .navigationTitle("Notes")
             .sheet(item: $selectedGrade) { grade in
@@ -41,10 +53,6 @@ struct GradesView: View {
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
 
-            if model.state.value == nil, model.state.isLoading {
-                loadingRow
-            }
-
             let grades = model.visibleGrades
             let unread = grades.filter(\.isUnread)
             let read = grades.filter { !$0.isUnread }
@@ -59,7 +67,7 @@ struct GradesView: View {
                     ForEach(read) { row($0) }
                 }
             }
-            if grades.isEmpty, !model.state.isLoading, model.state.errorMessage == nil {
+            if grades.isEmpty, model.syncState == .idle, model.state.errorMessage == nil {
                 ContentUnavailableView.search(text: model.searchText)
                     .listRowBackground(Color.clear)
             }
@@ -67,25 +75,18 @@ struct GradesView: View {
         .scrollContentBackground(.hidden)
         .searchable(text: $model.searchText, prompt: "Rechercher une matière")
         .refreshable { await model.load() }
-        .overlay(alignment: .top) {
-            if model.state.isLoading, model.state.value != nil {
-                ProgressView("Synchronisation avec Lise…")
-                    .font(.caption)
-                    .padding(8)
-                    .background(.regularMaterial, in: Capsule())
-                    .padding(.top, 4)
+        .overlay(alignment: .bottom) {
+            if model.syncState.showsCompactLoader, let startedAt = model.syncState.startedAt {
+                SyncProgressPill(
+                    startedAt: startedAt,
+                    expectedDuration: model.health.expectedSyncDuration,
+                    isFinished: model.syncState.isFinished
+                )
+                .padding(.bottom, 12)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-    }
-
-    private var loadingRow: some View {
-        HStack(spacing: 12) {
-            ProgressView()
-            Text("Récupération de tes notes sur Lise… cela peut prendre quelques secondes.")
-                .font(.subheadline)
-                .foregroundStyle(Theme.textTertiary)
-        }
-        .padding(.vertical, 8)
+        .animation(.spring(duration: 0.4), value: model.syncState.showsCompactLoader)
     }
 
     private func row(_ grade: Grade) -> some View {

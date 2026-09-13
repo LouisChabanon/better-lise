@@ -5,15 +5,18 @@ import Observation
 @Observable
 final class GradesViewModel {
     private(set) var state: Loadable<[Grade]> = .idle
+    private(set) var syncState: SyncState = .idle
     var searchText = ""
 
+    let health: LiseHealthMonitor
     private let session: SessionStore
     private let cache: ResponseCache
     private let cacheKey = "grades"
 
-    init(session: SessionStore, cache: ResponseCache) {
+    init(session: SessionStore, cache: ResponseCache, health: LiseHealthMonitor) {
         self.session = session
         self.cache = cache
+        self.health = health
     }
 
     var visibleGrades: [Grade] {
@@ -30,13 +33,31 @@ final class GradesViewModel {
     func load(refresh: Bool = true) async {
         let cached = cache.load([Grade].self, key: cacheKey) ?? state.value
         state = .loading(cached: cached)
+        let startedAt = Date()
+        let hasContent = !(cached ?? []).isEmpty
+        syncState = .syncing(startedAt: startedAt, hasContent: hasContent)
+        Task { await health.refreshIfNeeded() }
+
         do {
             let response = try await session.send(Endpoints.grades(refresh: refresh))
             let sorted = GradeSorting.sorted(response.grades)
             cache.save(sorted, key: cacheKey)
             state = .loaded(sorted)
+            completeSync(startedAt: startedAt, hasContent: hasContent)
         } catch {
+            syncState = .idle
             state = .failed(message: error.localizedDescription, cached: cached)
+        }
+    }
+
+    /// Shows the "Terminé" state briefly, like the web app, before revealing the content.
+    private func completeSync(startedAt: Date, hasContent: Bool) {
+        syncState = .finished(startedAt: startedAt, hasContent: hasContent)
+        Task {
+            try? await Task.sleep(for: SyncState.completionDisplayDuration)
+            if syncState == .finished(startedAt: startedAt, hasContent: hasContent) {
+                syncState = .idle
+            }
         }
     }
 
@@ -59,6 +80,7 @@ final class GradesViewModel {
 
     func reset() {
         state = .idle
+        syncState = .idle
         cache.save([Grade](), key: cacheKey)
     }
 }

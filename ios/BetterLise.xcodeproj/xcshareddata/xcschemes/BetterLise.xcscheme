@@ -35,6 +35,20 @@
                ReferencedContainer = "container:BetterLise.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "035236B4D3B9D9FB7E2DD8B3"
+               BuildableName = "BetterLiseUITests.xctest"
+               BlueprintName = "BetterLiseUITests"
+               ReferencedContainer = "container:BetterLise.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -62,6 +76,17 @@
                BlueprintIdentifier = "B7874A319129F0E1213A6AE2"
                BuildableName = "BetterLiseTests.xctest"
                BlueprintName = "BetterLiseTests"
+               ReferencedContainer = "container:BetterLise.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "035236B4D3B9D9FB7E2DD8B3"
+               BuildableName = "BetterLiseUITests.xctest"
+               BlueprintName = "BetterLiseUITests"
                ReferencedContainer = "container:BetterLise.xcodeproj">
             </BuildableReference>
          </TestableReference>
