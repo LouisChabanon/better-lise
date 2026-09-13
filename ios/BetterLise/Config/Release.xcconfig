@@ -1,0 +1,3 @@
+#include "Shared.xcconfig"
+
+API_BASE_URL = https:/$()/www.better-lise.com

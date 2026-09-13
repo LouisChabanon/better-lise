@@ -1,0 +1,55 @@
+name: BetterLise
+options:
+  bundleIdPrefix: com.betterlise
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: fr
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+targets:
+  BetterLise:
+    type: application
+    platform: iOS
+    sources:
+      - path: BetterLise
+        excludes:
+          - "Config/**"
+    configFiles:
+      Debug: BetterLise/Config/Debug.xcconfig
+      Release: BetterLise/Config/Release.xcconfig
+    settings:
+      base:
+        INFOPLIST_FILE: BetterLise/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+  BetterLiseTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - BetterLiseTests
+    dependencies:
+      - target: BetterLise
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.betterlise.app.tests
+schemes:
+  BetterLise:
+    build:
+      targets:
+        BetterLise: all
+        BetterLiseTests: [test]
+    test:
+      targets:
+        - BetterLiseTests
+      gatherCoverageData: true
+      coverageTargets:
+        - BetterLise

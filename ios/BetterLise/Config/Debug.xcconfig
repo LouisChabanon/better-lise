@@ -1,0 +1,4 @@
+#include "Shared.xcconfig"
+
+// Local Next.js dev server. `$()` prevents `//` from starting a comment.
+API_BASE_URL = http:/$()/localhost:3000
