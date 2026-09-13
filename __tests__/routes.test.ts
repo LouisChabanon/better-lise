@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
 	getProfile: vi.fn(),
 	updateProfile: vi.fn(),
 	markGradesOpened: vi.fn(),
+	markGradeNew: vi.fn(),
 	getAgenda: vi.fn(),
 	gradeDetails: vi.fn(),
 	liseHealth: vi.fn(),
@@ -26,6 +27,7 @@ vi.mock("@/lib/services/user", async (importOriginal) => ({
 	getProfile: mocks.getProfile,
 	updateProfile: mocks.updateProfile,
 	markGradesOpened: mocks.markGradesOpened,
+	markGradeNew: mocks.markGradeNew,
 }));
 vi.mock("@/lib/db", () => ({ default: {} }));
 vi.mock("@/actions/GetGradeDetails", () => ({ default: mocks.gradeDetails }));
@@ -38,6 +40,7 @@ import { GET as getGrades } from "@/app/api/v1/grades/route";
 import { GET as getStats } from "@/app/api/v1/grades/[code]/stats/route";
 import { POST as openGrade } from "@/app/api/v1/grades/[code]/opened/route";
 import { POST as openAll } from "@/app/api/v1/grades/opened/route";
+import { POST as markNew } from "@/app/api/v1/grades/[code]/new/route";
 import { GET as getAbsences } from "@/app/api/v1/absences/route";
 import { GET as getAgenda } from "@/app/api/v1/agenda/route";
 import { GET as getHealth } from "@/app/api/v1/health/route";
@@ -183,6 +186,16 @@ describe("authenticated routes", () => {
 		await openAll(req("/grades/opened", { method: "POST" }), noParams);
 		expect(mocks.markGradesOpened).toHaveBeenLastCalledWith("2023-1234");
 		expect((await openGrade(req("/grades//opened", { method: "POST" }), codeParams(""))).status).toBe(400);
+	});
+
+	it("POST /grades/:code/new puts a grade back behind the casino reveal", async () => {
+		mocks.markGradeNew.mockResolvedValue(success({ updated: 1 }));
+		const res = await markNew(req("/grades/ABC/new", { method: "POST" }), codeParams("ABC"));
+		expect(res.status).toBe(200);
+		expect(mocks.markGradeNew).toHaveBeenCalledWith("2023-1234", "ABC");
+
+		expect((await markNew(req("/grades//new", { method: "POST" }), codeParams(""))).status).toBe(400);
+		expect((await markNew(req("/grades/ABC/new", { method: "POST", auth: false }), codeParams("ABC"))).status).toBe(401);
 	});
 
 	it("GET /absences returns parsed absences", async () => {
