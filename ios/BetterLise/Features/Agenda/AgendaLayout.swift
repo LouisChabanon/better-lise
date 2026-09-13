@@ -46,13 +46,34 @@ enum AgendaLayout {
         return placed
     }
 
-    /// Monday–Friday of the week containing `reference`, shifted by `weekOffset` weeks.
-    static func weekDays(containing reference: Date, weekOffset: Int, calendar: Calendar = .paris) -> [Date] {
-        guard let shifted = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: reference),
-              let monday = calendar.dateInterval(of: .weekOfYear, for: shifted)?.start else {
-            return []
+    /// Every school day (Monday–Friday) of the week of `reference` and the surrounding weeks.
+    /// On weekends the reference week is the upcoming one.
+    static func schoolDays(
+        around reference: Date,
+        weeksBefore: Int,
+        weeksAfter: Int,
+        calendar: Calendar = .paris
+    ) -> [Date] {
+        let anchor = calendar.isDateInWeekend(reference)
+            ? calendar.nextDate(after: reference, matching: DateComponents(weekday: 2), matchingPolicy: .nextTime) ?? reference
+            : reference
+        guard let monday = calendar.dateInterval(of: .weekOfYear, for: anchor)?.start else { return [] }
+
+        return (-weeksBefore...weeksAfter).flatMap { week in
+            (0..<5).compactMap { day in calendar.date(byAdding: .day, value: week * 7 + day, to: monday) }
         }
-        return (0..<5).compactMap { calendar.date(byAdding: .day, value: $0, to: monday) }
+    }
+
+    /// Index of today in `days`, or of the next school day when today is a weekend.
+    static func initialIndex(in days: [Date], today: Date, calendar: Calendar = .paris) -> Int {
+        let startOfToday = calendar.startOfDay(for: today)
+        return days.firstIndex { $0 >= startOfToday } ?? max(days.count - 1, 0)
+    }
+
+    /// Events keyed by the start of their Paris calendar day, sorted by start time.
+    static func groupByDay(_ events: [CalendarEvent], calendar: Calendar = .paris) -> [Date: [CalendarEvent]] {
+        Dictionary(grouping: events) { calendar.startOfDay(for: $0.startDate) }
+            .mapValues { $0.sorted { $0.startDate < $1.startDate } }
     }
 
     static func events(on day: Date, from events: [CalendarEvent], calendar: Calendar = .paris) -> [CalendarEvent] {

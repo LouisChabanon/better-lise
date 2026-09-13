@@ -41,15 +41,29 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.betterlise.app.tests
+  BetterLiseUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - BetterLiseUITests
+    dependencies:
+      - target: BetterLise
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.betterlise.app.uitests
+        TEST_TARGET_NAME: BetterLise
 schemes:
   BetterLise:
     build:
       targets:
         BetterLise: all
         BetterLiseTests: [test]
+        BetterLiseUITests: [test]
     test:
       targets:
         - BetterLiseTests
+        - BetterLiseUITests
       gatherCoverageData: true
       coverageTargets:
         - BetterLise

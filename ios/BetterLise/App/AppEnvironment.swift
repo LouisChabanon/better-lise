@@ -9,6 +9,7 @@ final class AppEnvironment {
     let agenda: AgendaViewModel
     let grades: GradesViewModel
     let absences: AbsencesViewModel
+    let health: LiseHealthMonitor
 
     init(baseURL: URL = AppEnvironment.configuredBaseURL) {
         let client = APIClient(baseURL: baseURL)
@@ -16,8 +17,9 @@ final class AppEnvironment {
         settings = SettingsStore()
         session = SessionStore(client: client, secureStore: KeychainStore())
         agenda = AgendaViewModel(session: session, settings: settings, cache: cache)
-        grades = GradesViewModel(session: session, cache: cache)
-        absences = AbsencesViewModel(session: session, cache: cache)
+        health = LiseHealthMonitor(session: session)
+        grades = GradesViewModel(session: session, cache: cache, health: health)
+        absences = AbsencesViewModel(session: session, cache: cache, health: health)
     }
 
     static var configuredBaseURL: URL {
