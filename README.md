@@ -23,7 +23,7 @@ La documentation technique et les guides utilisateurs ont été déplacés sur l
   - **Absences :** Suivi et estimation du taux d'absence par UE.
   - **Simulateur :** Calcul des futures moyennes en utilisant des coefficients communautaires.
   - **Notifications :** Reception d'alerte dès qu'une nouvelle note est détectée par la communauté.
-  - **PWA :** Installable comme une application native sur iOS et Android.
+  - **Applications natives :** Apps iOS (SwiftUI) et Android (Jetpack Compose), en plus de la PWA.
 
 ## Quick Start (Développement)
 
@@ -49,6 +49,49 @@ npm run dev
 ```
 
 L'application sera accessible sur `http://localhost:3000`.
+
+## 📱 Applications natives
+
+Better Lise dispose d'applications natives iOS et Android (en plus du site web) :
+
+| | iOS (`ios/`) | Android (`android/`) |
+| :--- | :--- | :--- |
+| **Stack** | Swift 6, SwiftUI, Swift Charts (iOS 17+) | Kotlin, Jetpack Compose, Material 3 (Android 8+) |
+| **Réseau** | `URLSession` | OkHttp + kotlinx.serialization |
+| **Session** | Trousseau iOS | Android Keystore (AES-GCM) |
+
+Les deux applications consomment l'API REST `/api/v1` exposée par le serveur Next.js (authentification par jeton Bearer). Toute la logique Lise (scraping, statistiques, notifications) reste côté serveur.
+
+### Endpoints `/api/v1`
+
+| Méthode | Route | Auth |
+| :--- | :--- | :--- |
+| `POST` | `/auth/login` · `/auth/logout` | – · Bearer |
+| `GET` / `PATCH` | `/me` | Bearer |
+| `GET` | `/agenda?liseId=&tbk=&ru=` | publique |
+| `GET` | `/grades?refresh=` · `/grades/{code}/stats` | Bearer |
+| `POST` | `/grades/{code}/opened` · `/grades/opened` | Bearer |
+| `GET` | `/absences` | Bearer |
+| `GET` | `/health` | publique |
+
+Réponses : `{ success, data, error: { code, message } | null }`.
+
+### Lancer les apps en local
+
+```bash
+# Backend (port 3000)
+npm run dev
+npm test               # tests de l'API (vitest)
+
+# iOS — nécessite Xcode 26 et XcodeGen (brew install xcodegen)
+cd ios && xcodegen generate
+xcodebuild test -scheme BetterLise -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+# Debug → http://localhost:3000, Release → https://www.better-lise.com (ios/BetterLise/Config/*.xcconfig)
+
+# Android — nécessite JDK 17 et le SDK Android 36
+cd android && ./gradlew testDebugUnitTest assembleDebug
+# Debug → http://10.0.2.2:3000 (émulateur), Release → https://www.better-lise.com
+```
 
 ## 🛠 Technologies
 
