@@ -17,6 +17,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Redeem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,7 +43,14 @@ import com.betterlise.app.ui.theme.NumberStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GradeDetailSheet(grade: Grade, stats: Loadable<GradeStats>, onRetry: () -> Unit, onDismiss: () -> Unit) {
+fun GradeDetailSheet(
+    grade: Grade,
+    stats: Loadable<GradeStats>,
+    onRetry: () -> Unit,
+    onDismiss: () -> Unit,
+    /** Puts the grade back to "new" (replays the casino reveal). */
+    onMarkAsNew: (() -> Unit)? = null,
+) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.background) {
         Column(
             Modifier
@@ -64,6 +75,12 @@ fun GradeDetailSheet(grade: Grade, stats: Loadable<GradeStats>, onRetry: () -> U
                 SurfaceCard {
                     if (grade.teachers.isNotBlank()) Text("Intervenants : ${grade.teachers}", style = MaterialTheme.typography.bodyMedium)
                     if (grade.comment.isNotBlank()) Text("Commentaire : ${grade.comment}", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            if (onMarkAsNew != null) {
+                OutlinedButton(onClick = onMarkAsNew, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.Redeem, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                    Text("Marquer comme nouvelle")
                 }
             }
         }

@@ -8,7 +8,11 @@ import com.betterlise.app.data.cache.ResponseCache
 import com.betterlise.app.data.settings.SettingsRepository
 import com.betterlise.app.ui.agenda.AgendaViewModel
 import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -50,7 +54,13 @@ class AgendaViewModelTest {
     }
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() {
+        // Let DataStore reads started on Dispatchers.IO finish before Main is reset
+        val job = model.viewModelScope.coroutineContext[Job]
+        job?.cancel()
+        runBlocking { withTimeout(5_000) { job?.join() } }
+        Dispatchers.resetMain()
+    }
 
     private val state get() = model.state.value
 

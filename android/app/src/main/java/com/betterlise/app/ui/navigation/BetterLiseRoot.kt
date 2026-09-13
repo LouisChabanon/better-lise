@@ -103,7 +103,10 @@ fun BetterLiseRoot(container: AppContainer) {
             modifier = Modifier.padding(bottom = padding.calculateBottomPadding()).consumeWindowInsets(padding),
         ) {
             composable(TopLevel.Agenda.route) { AgendaScreen(agenda) }
-            composable(TopLevel.Grades.route) { GradesScreen(grades, onSignIn = openLogin) }
+            composable(TopLevel.Grades.route) {
+                val settingsState by settings.state.collectAsStateWithLifecycle()
+                GradesScreen(grades, casinoMode = settingsState.settings.casinoMode, onSignIn = openLogin)
+            }
             composable(TopLevel.Absences.route) { AbsencesScreen(absences, onSignIn = openLogin) }
             composable(TopLevel.Settings.route) { SettingsScreen(settings, onSignIn = openLogin) }
             composable(LOGIN_ROUTE) {
