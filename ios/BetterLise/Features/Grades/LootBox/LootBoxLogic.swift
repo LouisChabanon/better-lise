@@ -41,7 +41,33 @@ enum LootRarity: CaseIterable, Equatable, Sendable {
 struct LootItem: Identifiable, Equatable, Sendable {
     let id: Int
     let grade: Double
+    /// Formatted once: formatting 50 labels every frame was a visible cost while rolling.
+    let label: String
+
+    init(id: Int, grade: Double) {
+        self.id = id
+        self.grade = grade
+        label = grade.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "fr_FR")))
+    }
+
     var rarity: LootRarity { LootRarity(grade: grade) }
+}
+
+/// Limits how often tick feedback fires. At full speed the reel crosses ~30 items per second, more than
+/// the Taptic Engine or the ear can separate; the slow end still gets every tick.
+struct TickThrottle: Sendable {
+    let minimumInterval: TimeInterval
+    private var lastFire: TimeInterval?
+
+    init(minimumInterval: TimeInterval) {
+        self.minimumInterval = minimumInterval
+    }
+
+    mutating func shouldFire(at time: TimeInterval) -> Bool {
+        if let lastFire, time - lastFire < minimumInterval - 1e-9 { return false }
+        lastFire = time
+        return true
+    }
 }
 
 /// Port of the web reel (components/LootCase.tsx).
@@ -53,6 +79,11 @@ enum LootBox {
     static let revealHoldDuration: TimeInterval = 3
     /// `cubic-bezier(0, 0.65, 0.45, 1)`: fast start, long suspenseful deceleration.
     static let easing = CubicBezier(0, 0.65, 0.45, 1)
+
+    /// The same curve for Core Animation, which runs the roll on the render server.
+    static var timingFunction: CAMediaTimingFunction {
+        CAMediaTimingFunction(controlPoints: Float(easing.x1), Float(easing.y1), Float(easing.x2), Float(easing.y2))
+    }
 
     static var rollDuration: TimeInterval {
         #if DEBUG

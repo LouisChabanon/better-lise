@@ -4,6 +4,8 @@
 <dict>
 	<key>BLAPIBaseURL</key>
 	<string>$(API_BASE_URL)</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>fr</string>
 	<key>CFBundleDisplayName</key>
