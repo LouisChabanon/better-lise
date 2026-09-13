@@ -3,7 +3,7 @@ import { fail, ok } from "@/lib/api/respond";
 import { firstIssue, loginSchema, readJson } from "@/lib/api/validation";
 import { signSession } from "@/lib/jwt";
 import logger from "@/lib/logger";
-import { getClientIp, isRateLimited } from "@/lib/rate-limit";
+import { getClientIp, isAccountRateLimited, isRateLimited } from "@/lib/rate-limit";
 import { authenticate } from "@/lib/services/auth";
 
 export async function POST(request: NextRequest) {
@@ -19,6 +19,16 @@ export async function POST(request: NextRequest) {
 	const parsed = loginSchema.safeParse(await readJson(request));
 	if (!parsed.success) {
 		return fail("VALIDATION", firstIssue(parsed.error));
+	}
+
+	if (isAccountRateLimited(parsed.data.username)) {
+		logger.warn("API sign-in blocked: Account rate limit exceeded", {
+			username: parsed.data.username,
+		});
+		return fail(
+			"RATE_LIMITED",
+			"Trop de tentatives pour ce compte. Veuillez réessayer plus tard."
+		);
 	}
 
 	const result = await authenticate(parsed.data.username, parsed.data.password);

@@ -104,6 +104,16 @@ describe("POST /auth/login", () => {
 		expect(res.status).toBe(401);
 	});
 
+	it("rate limits an account even when the IP changes on every attempt", async () => {
+		mocks.authenticate.mockResolvedValue(failure("INVALID_CREDENTIALS", "bad"));
+		const attempt = (i: number) =>
+			login(req("/auth/login", { method: "POST", body: { username: "2023-7777", password: "x" }, auth: false, ip: `9.9.9.${i}` }));
+		for (let i = 0; i < 10; i++) await attempt(i);
+		const res = await attempt(99);
+		expect(res.status).toBe(429);
+		expect(mocks.authenticate).toHaveBeenCalledTimes(10);
+	});
+
 	it("rate limits the 6th attempt from the same IP", async () => {
 		mocks.authenticate.mockResolvedValue(failure("INVALID_CREDENTIALS", "bad"));
 		const attempt = () =>

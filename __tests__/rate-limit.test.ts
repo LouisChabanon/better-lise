@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { getClientIp, isRateLimited, resetRateLimits } from "@/lib/rate-limit";
+import { getClientIp, isAccountRateLimited, isRateLimited, resetRateLimits } from "@/lib/rate-limit";
 
 describe("rate limit", () => {
 	beforeEach(() => {
@@ -29,5 +29,21 @@ describe("rate limit", () => {
 	it("extracts the first forwarded IP", () => {
 		expect(getClientIp("10.0.0.1, 172.16.0.1")).toBe("10.0.0.1");
 		expect(getClientIp(null)).toBe("127.0.0.1");
+	});
+});
+
+describe("account rate limit", () => {
+	beforeEach(() => {
+		resetRateLimits();
+		process.env.IP_WHITELIST = "7.7.7.7";
+	});
+
+	it("allows 10 attempts per account per 15 minutes regardless of IP", () => {
+		const now = 5_000_000;
+		const results = Array.from({ length: 11 }, () => isAccountRateLimited("2023-1234", now));
+		expect(results.slice(0, 10).every((r) => r === false)).toBe(true);
+		expect(results[10]).toBe(true);
+		expect(isAccountRateLimited("2023-9999", now)).toBe(false);
+		expect(isAccountRateLimited("2023-1234", now + 15 * 60_000 + 1)).toBe(false);
 	});
 });
