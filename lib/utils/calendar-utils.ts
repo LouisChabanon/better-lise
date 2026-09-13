@@ -1,6 +1,6 @@
 import { CalendarEventProps } from "@/lib/types";
 
-function CalculateEatingTime(events: CalendarEventProps[]) {
+export function CalculateEatingTime(events: CalendarEventProps[]) {
 	// Adjust RU events (from Crous) to fit into actual gaps during meal hours.
 	// If no suitable gap is found for an RU event on a given day, the RU event
 	// will be removed so it doesn't show.
