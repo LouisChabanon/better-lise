@@ -3,7 +3,7 @@
 import { createSession, deleteSession } from "@/lib/sessions";
 import logger from "@/lib/logger";
 import { headers } from "next/headers";
-import { getClientIp, isRateLimited } from "@/lib/rate-limit";
+import { getClientIp, isAccountRateLimited, isRateLimited } from "@/lib/rate-limit";
 import { authenticate, logoutFromLise } from "@/lib/services/auth";
 import { loginSchema, firstIssue } from "@/lib/api/validation";
 
@@ -40,6 +40,14 @@ export async function signIn(
 	if (!parsed.success) {
 		logger.warn("Sign-in validation failed", { reason: "invalid_format", username });
 		return { errors: firstIssue(parsed.error) };
+	}
+
+	if (isAccountRateLimited(parsed.data.username)) {
+		logger.warn("Sign-in blocked: Account rate limit exceeded", { username });
+		return {
+			success: false,
+			errors: "Trop de tentatives pour ce compte. Veuillez réessayer plus tard.",
+		};
 	}
 
 	const result = await authenticate(parsed.data.username, parsed.data.password);

@@ -49,7 +49,9 @@ export async function verifyToken(
 ): Promise<SessionPayload | null> {
 	const secret = getSecret();
 	try {
-		const { payload } = await jwtVerify(token, secret);
+		const { payload } = await jwtVerify(token, secret, {
+			algorithms: ["HS256"],
+		});
 		if (
 			typeof payload.username !== "string" ||
 			typeof payload.authToken !== "string" ||
