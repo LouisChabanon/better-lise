@@ -50,16 +50,26 @@ object AgendaLayout {
         return placed
     }
 
-    /** Monday–Friday of the week containing [today], shifted by [weekOffset] weeks. */
-    fun weekDays(today: LocalDate, weekOffset: Int): List<LocalDate> {
-        val monday = today.plusWeeks(weekOffset.toLong()).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        return (0L until 5L).map { monday.plusDays(it) }
+    /**
+     * Every school day (Monday–Friday) of the week of [reference] and the surrounding weeks.
+     * On weekends the reference week is the upcoming one.
+     */
+    fun schoolDays(reference: LocalDate, weeksBefore: Int, weeksAfter: Int): List<LocalDate> {
+        val anchor = if (reference.dayOfWeek.value >= 6) reference.with(TemporalAdjusters.next(DayOfWeek.MONDAY)) else reference
+        val monday = anchor.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        return (-weeksBefore..weeksAfter).flatMap { week ->
+            (0L until 5L).map { day -> monday.plusWeeks(week.toLong()).plusDays(day) }
+        }
     }
+
+    /** Index of [today] in [days], or of the next school day when today is a weekend. */
+    fun initialIndex(days: List<LocalDate>, today: LocalDate): Int =
+        days.indexOfFirst { !it.isBefore(today) }.takeIf { it >= 0 } ?: (days.size - 1).coerceAtLeast(0)
+
+    /** Events keyed by their Paris calendar day, sorted by start time. */
+    fun groupByDay(events: List<CalendarEvent>): Map<LocalDate, List<CalendarEvent>> =
+        events.groupBy { it.startDate.atZone(PARIS).toLocalDate() }.mapValues { (_, dayEvents) -> dayEvents.sortedBy { it.startDate } }
 
     fun eventsOn(day: LocalDate, events: List<CalendarEvent>): List<CalendarEvent> =
         events.filter { it.startDate.atZone(PARIS).toLocalDate() == day }
-
-    /** Index (0 = Monday) of [today] in the work week, or 0 on weekends. */
-    fun defaultDayIndex(today: LocalDate): Int =
-        today.dayOfWeek.value.let { if (it in 1..5) it - 1 else 0 }
 }

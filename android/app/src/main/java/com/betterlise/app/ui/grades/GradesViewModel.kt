@@ -7,11 +7,15 @@ import com.betterlise.app.data.api.Grade
 import com.betterlise.app.data.api.GradeStats
 import com.betterlise.app.data.auth.SessionRepository
 import com.betterlise.app.data.auth.SessionState
+import com.betterlise.app.data.api.LiseHealth
 import com.betterlise.app.data.cache.ResponseCache
+import com.betterlise.app.data.health.LiseHealthMonitor
+import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.domain.GradeSorting
 import com.betterlise.app.ui.components.Loadable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +29,7 @@ data class GradesUiState(
     val query: String = "",
     val selected: Grade? = null,
     val stats: Loadable<GradeStats> = Loadable.Idle,
+    val sync: SyncState = SyncState.Idle,
 ) {
     val visibleGrades: List<Grade>
         get() {
@@ -40,7 +45,10 @@ data class GradesUiState(
 class GradesViewModel(
     private val session: SessionRepository,
     private val cache: ResponseCache,
+    private val healthMonitor: LiseHealthMonitor,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
+    val health: StateFlow<LiseHealth?> = healthMonitor.health
     private val _state = MutableStateFlow(GradesUiState())
     val state: StateFlow<GradesUiState> = _state.asStateFlow()
     private var loadJob: Job? = null
@@ -59,16 +67,29 @@ class GradesViewModel(
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             val cached = cache.load(CACHE_KEY, GRADES) ?: _state.value.grades.value
-            _state.update { it.copy(grades = Loadable.Loading(cached)) }
+            val startedAt = clock()
+            val hasContent = !cached.isNullOrEmpty()
+            _state.update { it.copy(grades = Loadable.Loading(cached), sync = SyncState.Syncing(startedAt, hasContent)) }
+            launch { healthMonitor.refreshIfNeeded() }
             try {
                 val sorted = GradeSorting.sorted(session.send(Endpoints.grades(refresh = true)).grades)
                 cache.save(CACHE_KEY, GRADES, sorted)
-                _state.update { it.copy(grades = Loadable.Loaded(sorted)) }
+                val finished = SyncState.Finished(startedAt, hasContent)
+                _state.update { it.copy(grades = Loadable.Loaded(sorted), sync = finished) }
+                completeSync(finished)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.update { it.copy(grades = Loadable.Failed(e.message ?: "Erreur", cached)) }
+                _state.update { it.copy(grades = Loadable.Failed(e.message ?: "Erreur", cached), sync = SyncState.Idle) }
             }
+        }
+    }
+
+    /** Shows "Terminé" briefly, like the web app, before revealing the content. */
+    private fun completeSync(finished: SyncState.Finished) {
+        viewModelScope.launch {
+            delay(SyncState.COMPLETION_DISPLAY_MS)
+            _state.update { if (it.sync == finished) it.copy(sync = SyncState.Idle) else it }
         }
     }
 

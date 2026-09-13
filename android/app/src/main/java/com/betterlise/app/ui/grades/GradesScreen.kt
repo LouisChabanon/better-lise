@@ -17,10 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -45,6 +43,9 @@ import com.betterlise.app.ui.components.EmptyState
 import com.betterlise.app.ui.components.ErrorBanner
 import com.betterlise.app.ui.components.SignInPrompt
 import com.betterlise.app.ui.components.errorMessage
+import com.betterlise.app.data.health.LiseHealthMonitor
+import com.betterlise.app.ui.loading.SyncAwareContent
+import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.ui.components.isLoading
 import com.betterlise.app.ui.theme.AppTheme
 import com.betterlise.app.ui.theme.NumberStyle
@@ -73,11 +74,16 @@ fun GradesScreen(viewModel: GradesViewModel, onSignIn: () -> Unit) {
                 SignInPrompt("Notes", onSignIn)
                 return@Box
             }
-            PullToRefreshBox(
-                isRefreshing = state.grades.isLoading && state.grades.value != null,
-                onRefresh = viewModel::refresh,
+            val health by viewModel.health.collectAsStateWithLifecycle()
+            SyncAwareContent(
+                sync = state.sync,
+                expectedSeconds = LiseHealthMonitor.expectedDurationSeconds(health),
+                slowNotice = LiseHealthMonitor.slowNotice(health),
             ) {
-                GradeList(state, viewModel)
+                // The pill reports sync progress, so the pull indicator only acknowledges the gesture
+                PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh) {
+                    GradeList(state, viewModel)
+                }
             }
         }
     }
@@ -122,22 +128,6 @@ private fun GradeList(state: GradesUiState, viewModel: GradesViewModel) {
         state.grades.errorMessage?.let { message ->
             item { ErrorBanner(message, onRetry = viewModel::refresh) }
         }
-        if (state.grades.isLoading && state.grades.value == null) {
-            item {
-                Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                    Text(
-                        "Récupération de tes notes sur Lise… cela peut prendre quelques secondes.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
-                }
-            }
-        } else if (state.grades.isLoading) {
-            item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-        }
         if (unread.isNotEmpty()) {
             item { SectionTitle("Nouvelles notes") }
             items(unread, key = { "new-${it.code}" }) { GradeRow(it) { viewModel.open(it) } }
@@ -146,7 +136,7 @@ private fun GradeList(state: GradesUiState, viewModel: GradesViewModel) {
             item { SectionTitle(if (unread.isEmpty()) "Toutes les notes" else "Déjà consultées") }
             items(read, key = { it.code }) { GradeRow(it) { viewModel.open(it) } }
         }
-        if (grades.isEmpty() && !state.grades.isLoading && state.grades.errorMessage == null) {
+        if (grades.isEmpty() && state.sync == SyncState.Idle && state.grades.errorMessage == null) {
             item { EmptyState("Aucune note", if (state.query.isBlank()) "Tes notes apparaîtront ici." else "Aucun résultat pour « ${state.query} ».") }
         }
     }

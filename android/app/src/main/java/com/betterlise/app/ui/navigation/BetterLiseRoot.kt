@@ -55,8 +55,8 @@ fun BetterLiseRoot(container: AppContainer) {
     val navController = rememberNavController()
     val factory = viewModelFactory {
         initializer { AgendaViewModel(container.session, container.settings, container.cache) }
-        initializer { GradesViewModel(container.session, container.cache) }
-        initializer { AbsencesViewModel(container.session, container.cache) }
+        initializer { GradesViewModel(container.session, container.cache, container.health) }
+        initializer { AbsencesViewModel(container.session, container.cache, container.health) }
         initializer { SettingsViewModel(container.session, container.settings, container.cache) }
         initializer { LoginViewModel(container.session, container.settings) }
     }

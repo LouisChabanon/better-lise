@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.EventBusy
 import androidx.compose.material.icons.rounded.Schedule
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,6 +45,8 @@ import com.betterlise.app.ui.components.ErrorBanner
 import com.betterlise.app.ui.components.SignInPrompt
 import com.betterlise.app.ui.components.SurfaceCard
 import com.betterlise.app.ui.components.errorMessage
+import com.betterlise.app.data.health.LiseHealthMonitor
+import com.betterlise.app.ui.loading.SyncAwareContent
 import com.betterlise.app.ui.components.isLoading
 import com.betterlise.app.ui.theme.AppTheme
 import com.betterlise.app.ui.theme.NumberStyle
@@ -74,50 +75,48 @@ fun AbsencesScreen(viewModel: AbsencesViewModel, onSignIn: () -> Unit) {
                 return@Box
             }
             val data = state.absences.value
-            PullToRefreshBox(isRefreshing = state.absences.isLoading && data != null, onRefresh = viewModel::refresh) {
-                LazyColumn(
-                    Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    state.absences.errorMessage?.let { item { ErrorBanner(it, onRetry = viewModel::refresh) } }
-                    if (data == null) {
-                        if (state.absences.isLoading) {
-                            item {
-                                Box(Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator()
-                                }
+            val health by viewModel.health.collectAsStateWithLifecycle()
+            SyncAwareContent(
+                sync = state.sync,
+                expectedSeconds = LiseHealthMonitor.expectedDurationSeconds(health),
+                slowNotice = LiseHealthMonitor.slowNotice(health),
+            ) {
+                PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh) {
+                    LazyColumn(
+                        Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        state.absences.errorMessage?.let { item { ErrorBanner(it, onRetry = viewModel::refresh) } }
+                        if (data == null) return@LazyColumn
+                        item {
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                SummaryTile(Icons.Rounded.EventBusy, data.nbTotalAbsences.toString(), "absences", Modifier.weight(1f))
+                                SummaryTile(Icons.Rounded.Schedule, data.dureeTotaleAbsences, "au total", Modifier.weight(1f))
                             }
                         }
-                        return@LazyColumn
-                    }
-                    item {
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            SummaryTile(Icons.Rounded.EventBusy, data.nbTotalAbsences.toString(), "absences", Modifier.weight(1f))
-                            SummaryTile(Icons.Rounded.Schedule, data.dureeTotaleAbsences, "au total", Modifier.weight(1f))
-                        }
-                    }
-                    item {
-                        Column(Modifier.padding(top = 8.dp)) {
-                            Text("Par UE", style = MaterialTheme.typography.titleLarge)
-                            Text(
-                                "Part d'absences non justifiées. Au-delà de 20 %, la revalidation est automatique. Ceci est une estimation : vérifie sur Lise.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    if (data.stats.isEmpty()) {
-                        item { SurfaceCard { Text("Aucune absence non justifiée rattachée à une UE.") } }
-                    }
-                    data.stats.forEach { stat -> item(key = stat.code) { StatCard(stat) } }
-                    if (data.absences.isNotEmpty()) {
-                        item { Text("Historique", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp)) }
                         item {
-                            SurfaceCard {
-                                data.absences.forEachIndexed { index, absence ->
-                                    AbsenceRow(absence)
-                                    if (index < data.absences.lastIndex) HorizontalDivider()
+                            Column(Modifier.padding(top = 8.dp)) {
+                                Text("Par UE", style = MaterialTheme.typography.titleLarge)
+                                Text(
+                                    "Part d'absences non justifiées. Au-delà de 20 %, la revalidation est automatique. Ceci est une estimation : vérifie sur Lise.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        if (data.stats.isEmpty()) {
+                            item { SurfaceCard { Text("Aucune absence non justifiée rattachée à une UE.") } }
+                        }
+                        data.stats.forEach { stat -> item(key = stat.code) { StatCard(stat) } }
+                        if (data.absences.isNotEmpty()) {
+                            item { Text("Historique", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp)) }
+                            item {
+                                SurfaceCard {
+                                    data.absences.forEachIndexed { index, absence ->
+                                        AbsenceRow(absence)
+                                        if (index < data.absences.lastIndex) HorizontalDivider()
+                                    }
                                 }
                             }
                         }
