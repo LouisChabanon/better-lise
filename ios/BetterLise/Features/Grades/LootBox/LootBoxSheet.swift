@@ -22,6 +22,11 @@ struct LootBoxSheet: View {
     private var isRevealed: Bool { phase == .revealed }
     private var isRolling: Bool { phase == .rolling }
 
+    private var reelMotion: ReelMotion {
+        guard let roll else { return .idle }
+        return isRevealed ? .landed(roll) : .rolling(roll)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             header
@@ -32,7 +37,7 @@ struct LootBoxSheet: View {
                     ReelView(
                         items: reel,
                         highlightsWinner: isRevealed,
-                        roll: roll,
+                        motion: reelMotion,
                         onSoundTick: { sound?.playTick() },
                         onFinish: reveal
                     )
@@ -166,13 +171,11 @@ private struct NeonPulse: ViewModifier {
     let color: Color
     let isActive: Bool
 
+    // One view structure whether active or not: an if/else here gave the reel a new identity when the glow
+    // started, so SwiftUI rebuilt it right after the reveal (and it rolled again)
     func body(content: Content) -> some View {
-        if isActive {
-            content.phaseAnimator([0.4, 1.0]) { view, intensity in
-                view.shadow(color: color.opacity(0.9), radius: 10 + 20 * intensity)
-            } animation: { _ in .easeInOut(duration: 0.5) }
-        } else {
-            content
-        }
+        content.phaseAnimator([0.4, 1.0]) { view, intensity in
+            view.shadow(color: color.opacity(isActive ? 0.9 : 0), radius: isActive ? 10 + 20 * intensity : 0)
+        } animation: { _ in .easeInOut(duration: 0.5) }
     }
 }

@@ -8,12 +8,20 @@ struct RollRequest: Equatable {
     let jitterUnit: Double
 }
 
+/// What the reel shows. `landed` is idempotent: a reel rebuilt by SwiftUI after the reveal jumps straight to
+/// the stop instead of replaying the roll.
+enum ReelMotion: Equatable {
+    case idle
+    case rolling(RollRequest)
+    case landed(RollRequest)
+}
+
 /// The lootbox reel. The strip is a static SwiftUI row moved by a Core Animation animation, so the roll
 /// runs on the render server at up to 120 Hz whatever the main thread is doing (sounds, haptics, SwiftUI).
 struct ReelView: UIViewRepresentable {
     let items: [LootItem]
     let highlightsWinner: Bool
-    let roll: RollRequest?
+    let motion: ReelMotion
     /// Throttled tick for sound (haptics are handled internally).
     let onSoundTick: () -> Void
     /// The motion really ended (Core Animation completion).
@@ -27,9 +35,7 @@ struct ReelView: UIViewRepresentable {
         view.onSoundTick = onSoundTick
         view.onFinish = onFinish
         view.setHighlightsWinner(highlightsWinner)
-        if let roll {
-            view.request(roll)
-        }
+        view.apply(motion)
     }
 
     static func dismantleUIView(_ view: ReelContainerView, coordinator: ()) {
@@ -44,8 +50,14 @@ final class ReelContainerView: UIView {
     private let items: [LootItem]
     private let host: UIHostingController<ReelRow>
     private var highlightsWinner = false
-    private var pendingRoll: RollRequest?
-    private var startedRollID: UUID?
+    private var pendingMotion: ReelMotion = .idle
+    private var handledRollID: UUID?
+
+    /// Number of roll animations started (exposed for tests).
+    private(set) var rollStartCount = 0
+    var isAnimatingRoll: Bool { strip.layer.animation(forKey: Self.rollAnimationKey) != nil }
+    var stripTranslation: CGFloat { (strip.layer.value(forKeyPath: "transform.translation.x") as? CGFloat) ?? 0 }
+    private static let rollAnimationKey = "roll"
 
     private var displayLink: CADisplayLink?
     private var lastIndex: Int?
@@ -69,6 +81,12 @@ final class ReelContainerView: UIView {
         strip.isUserInteractionEnabled = false
         strip.addSubview(host.view)
         addSubview(strip)
+
+        // One accessibility element describing the roll: VoiceOver users hear the outcome, and UI tests can
+        // tell a running roll from a landed one (element frames only reflect the final model position)
+        isAccessibilityElement = true
+        accessibilityIdentifier = "reel"
+        accessibilityLabel = "Caisse"
     }
 
     required init?(coder: NSCoder) { nil }
@@ -79,7 +97,7 @@ final class ReelContainerView: UIView {
         strip.bounds = CGRect(x: 0, y: 0, width: stripWidth, height: bounds.height)
         strip.center = CGPoint(x: stripWidth / 2, y: bounds.midY)
         host.view.frame = strip.bounds
-        startPendingRollIfPossible()
+        applyPendingMotionIfPossible()
     }
 
     func setHighlightsWinner(_ value: Bool) {
@@ -88,10 +106,19 @@ final class ReelContainerView: UIView {
         host.rootView = ReelRow(items: items, highlightsWinner: value)
     }
 
-    func request(_ roll: RollRequest) {
-        guard roll.id != startedRollID, roll.id != pendingRoll?.id else { return }
-        pendingRoll = roll
-        startPendingRollIfPossible()
+    func apply(_ motion: ReelMotion) {
+        switch motion {
+        case .idle:
+            return
+        case .rolling(let roll):
+            // Each request rolls once, however many times SwiftUI updates the view
+            guard roll.id != handledRollID else { return }
+        case .landed(let roll):
+            // Already rolled here: the animation's model value is the stop, nothing to do
+            guard roll.id != handledRollID else { return }
+        }
+        pendingMotion = motion
+        applyPendingMotionIfPossible()
     }
 
     func stopTicking() {
@@ -99,11 +126,34 @@ final class ReelContainerView: UIView {
         displayLink = nil
     }
 
-    private func startPendingRollIfPossible() {
-        guard let roll = pendingRoll, bounds.width > 0 else { return }
-        pendingRoll = nil
-        startedRollID = roll.id
+    private func applyPendingMotionIfPossible() {
+        guard bounds.width > 0 else { return }
+        let motion = pendingMotion
+        pendingMotion = .idle
+        switch motion {
+        case .idle:
+            return
+        case .rolling(let roll):
+            handledRollID = roll.id
+            startRoll(roll)
+        case .landed(let roll):
+            handledRollID = roll.id
+            let stop = LootBox.stopOffset(containerWidth: bounds.width, jitterUnit: roll.jitterUnit)
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            strip.layer.setValue(stop, forKeyPath: "transform.translation.x")
+            CATransaction.commit()
+            markLanded()
+        }
+    }
 
+    private func markLanded() {
+        accessibilityValue = "Arrêtée sur \(items[LootBox.winningIndex].label)"
+    }
+
+    private func startRoll(_ roll: RollRequest) {
+        rollStartCount += 1
+        accessibilityValue = "Ouverture en cours"
         let stop = LootBox.stopOffset(containerWidth: bounds.width, jitterUnit: roll.jitterUnit)
         haptics.prepare()
         lastIndex = LootBox.centeredIndex(offset: 0, containerWidth: bounds.width)
@@ -112,6 +162,7 @@ final class ReelContainerView: UIView {
         CATransaction.setCompletionBlock { [weak self] in
             guard let self else { return }
             stopTicking()
+            markLanded()
             onFinish()
         }
         let animation = CABasicAnimation(keyPath: "transform.translation.x")
@@ -122,7 +173,7 @@ final class ReelContainerView: UIView {
         animation.preferredFrameRateRange = CAFrameRateRange(minimum: 80, maximum: 120, preferred: 120)
         // Model value first, so the strip stays exactly where the animation lands
         strip.layer.setValue(stop, forKeyPath: "transform.translation.x")
-        strip.layer.add(animation, forKey: "roll")
+        strip.layer.add(animation, forKey: Self.rollAnimationKey)
         CATransaction.commit()
 
         startTicking()

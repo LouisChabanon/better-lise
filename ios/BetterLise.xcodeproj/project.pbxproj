@@ -32,6 +32,7 @@
 		6EB4D3D36C647416A54EF533 /* GradesViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A78B2AF50187DE635CE36194 /* GradesViewModelTests.swift */; };
 		71D892DAB1D36850AB5DF921 /* crate_item_scroll.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 762C09F16487876788BA6351 /* crate_item_scroll.m4a */; };
 		720F83C5DA47CC9F331B3C31 /* AbsencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34B9FE3D4B50B53B4FD7EDC0 /* AbsencesView.swift */; };
+		730DDCC090B01028C4444E87 /* ReelContainerViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2C37ED73B0A592B4226488E /* ReelContainerViewTests.swift */; };
 		761CFD08315C6299FD1CB832 /* AgendaViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F049E13C46C67B2C5000BC /* AgendaViewModel.swift */; };
 		764D81E9584621B225192442 /* GradeDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A687C8AE0023B9D836641528 /* GradeDetailSheet.swift */; };
 		7F87DDF7F1CE3892F1DCA6F3 /* LootBoxSound.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506A06878A9F47500704FAAC /* LootBoxSound.swift */; };
@@ -127,6 +128,7 @@
 		BAAB772168D8FE90F01BA5BE /* BetterLiseUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BetterLiseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFE783303D53FF12FFAD04CD /* crate_open.m4a */ = {isa = PBXFileReference; path = crate_open.m4a; sourceTree = "<group>"; };
 		C544387718AD4C6DD192D2C6 /* LootBoxSoundTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LootBoxSoundTests.swift; sourceTree = "<group>"; };
+		D2C37ED73B0A592B4226488E /* ReelContainerViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelContainerViewTests.swift; sourceTree = "<group>"; };
 		D82E0C066D43B626EEF4E645 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		D873A7FA017323FF847C016E /* StoresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoresTests.swift; sourceTree = "<group>"; };
 		DA747C4397038A2F51580983 /* GradesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradesView.swift; sourceTree = "<group>"; };
@@ -228,6 +230,7 @@
 				A78B2AF50187DE635CE36194 /* GradesViewModelTests.swift */,
 				58851860EC83308D89633165 /* LootBoxLogicTests.swift */,
 				C544387718AD4C6DD192D2C6 /* LootBoxSoundTests.swift */,
+				D2C37ED73B0A592B4226488E /* ReelContainerViewTests.swift */,
 				F72E73A4424637EB13CDCEA2 /* ScraperProgressTests.swift */,
 				F1C2AC9340A9845002FD7AFB /* SessionStoreTests.swift */,
 				D873A7FA017323FF847C016E /* StoresTests.swift */,
@@ -505,6 +508,7 @@
 				6EB4D3D36C647416A54EF533 /* GradesViewModelTests.swift in Sources */,
 				2C60F5871927857D4DE146DA /* LootBoxLogicTests.swift in Sources */,
 				1F9FDDB0553DE96B8DF8310A /* LootBoxSoundTests.swift in Sources */,
+				730DDCC090B01028C4444E87 /* ReelContainerViewTests.swift in Sources */,
 				ACFD2B7830038CBCF87FDF8C /* ScraperProgressTests.swift in Sources */,
 				F2F733FC334BCD64C2C5DFF8 /* SessionStoreTests.swift in Sources */,
 				DC07260B3B4E1CC6F08CE7CD /* StoresTests.swift in Sources */,
