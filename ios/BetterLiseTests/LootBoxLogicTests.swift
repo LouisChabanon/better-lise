@@ -86,4 +86,27 @@ struct LootBoxLogicTests {
         #expect(request.httpMethod == "POST")
         #expect(request.url?.absoluteString == "http://localhost:3000/api/v1/grades/FITE%20S7%2FMATA/new")
     }
+
+    @Test func tickThrottleLimitsBurstsButKeepsSlowTicks() {
+        var throttle = TickThrottle(minimumInterval: 0.05)
+        // The slow end of the roll (last two ticks) is further apart than the interval: every tick fires
+        let fired = [10.00, 10.02, 10.049, 10.05, 10.3, 10.7].map { throttle.shouldFire(at: $0) }
+        #expect(fired == [true, false, false, true, true, true])
+    }
+
+    @Test func reelLabelsArePrecomputedInFrench() {
+        let reel = LootBox.makeReel(winning: 18.5) { 0.25 }
+        #expect(reel[LootBox.winningIndex].label == "18,50")
+        #expect(reel[0].label == "5,00")
+    }
+
+    @Test func coreAnimationCurveMatchesTheTickCurve() {
+        let function = LootBox.timingFunction
+        var first: [Float] = [0, 0]
+        var second: [Float] = [0, 0]
+        function.getControlPoint(at: 1, values: &first)
+        function.getControlPoint(at: 2, values: &second)
+        #expect(first == [Float(LootBox.easing.x1), Float(LootBox.easing.y1)])
+        #expect(second == [Float(LootBox.easing.x2), Float(LootBox.easing.y2)])
+    }
 }

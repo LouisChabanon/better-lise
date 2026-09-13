@@ -30,6 +30,10 @@ final class CasinoModeUITests: XCTestCase {
         open.tap()
 
         XCTAssertTrue(app.staticTexts["LEGENDARY"].waitForExistence(timeout: 6), "The rarity is announced on reveal")
+        // The reel must land on the real grade, under the center marker (jitter is at most ±24 pt)
+        let winner = app.staticTexts["18,50"]
+        XCTAssertTrue(winner.waitForExistence(timeout: 3))
+        XCTAssertLessThan(abs(winner.frame.midX - app.windows.firstMatch.frame.midX), 40, "The winning grade is centered")
         XCTAssertTrue(app.staticTexts["Moyenne"].waitForExistence(timeout: 8), "The grade detail opens after the reveal")
 
         let replay = app.buttons["Marquer comme nouvelle"]
