@@ -4,6 +4,8 @@ import SwiftUI
 struct GradeDetailSheet: View {
     let grade: Grade
     let loadStats: () async throws -> GradeStats
+    /// Puts the grade back to "new" (replays the casino reveal).
+    var onMarkAsNew: (() -> Void)?
 
     @State private var stats: Loadable<GradeStats> = .idle
 
@@ -24,6 +26,15 @@ struct GradeDetailSheet: View {
                     }
                     if !grade.comment.isEmpty || !grade.teachers.isEmpty {
                         details
+                    }
+                    if let onMarkAsNew {
+                        Button(action: onMarkAsNew) {
+                            Label("Marquer comme nouvelle", systemImage: "gift")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(Theme.primary)
+                        .controlSize(.large)
                     }
                 }
                 .padding(20)

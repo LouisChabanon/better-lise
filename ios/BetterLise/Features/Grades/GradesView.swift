@@ -2,8 +2,13 @@ import SwiftUI
 
 struct GradesView: View {
     @Environment(SessionStore.self) private var session
+    @Environment(SettingsStore.self) private var settings
     @State private var model: GradesViewModel
     @State private var selectedGrade: Grade?
+    /// Casino mode: new grade currently shown in the lootbox.
+    @State private var gradeToReveal: Grade?
+    /// Set when the lootbox finished, so the detail opens once its sheet is gone.
+    @State private var revealedGrade: Grade?
     @Binding var isLoginPresented: Bool
 
     init(model: GradesViewModel, isLoginPresented: Binding<Bool>) {
@@ -35,9 +40,33 @@ struct GradesView: View {
             .background(Theme.backgroundSecondary.ignoresSafeArea())
             .navigationTitle("Notes")
             .sheet(item: $selectedGrade) { grade in
-                GradeDetailSheet(grade: grade, loadStats: { try await model.stats(for: grade) })
-                    .presentationDetents([.medium, .large])
-                    .task { await model.markOpened(grade) }
+                GradeDetailSheet(
+                    grade: grade,
+                    loadStats: { try await model.stats(for: grade) },
+                    onMarkAsNew: {
+                        selectedGrade = nil
+                        Task { await model.markNew(grade) }
+                    }
+                )
+                .presentationDetents([.medium, .large])
+                .task { await model.markOpened(grade) }
+            }
+            .sheet(item: $gradeToReveal, onDismiss: {
+                if let revealedGrade {
+                    selectedGrade = revealedGrade
+                    self.revealedGrade = nil
+                }
+            }) { grade in
+                LootBoxSheet(
+                    grade: grade,
+                    onReveal: { Task { await model.markOpened(grade) } },
+                    onComplete: {
+                        revealedGrade = grade
+                        gradeToReveal = nil
+                    }
+                )
+                .presentationDetents([.height(380)])
+                .presentationDragIndicator(.hidden)
             }
             .task(id: session.username) {
                 if session.isSignedIn { await model.load() } else { model.reset() }
@@ -90,15 +119,21 @@ struct GradesView: View {
     }
 
     private func row(_ grade: Grade) -> some View {
-        Button { selectedGrade = grade } label: {
-            GradeRow(grade: grade)
+        let hidesNote = settings.casinoMode && grade.isUnread
+        return Button {
+            if hidesNote { gradeToReveal = grade } else { selectedGrade = grade }
+        } label: {
+            GradeRow(grade: grade, hidesNote: hidesNote)
         }
+        .accessibilityIdentifier(hidesNote ? "hiddenGrade" : "grade")
         .listRowBackground(Theme.backgroundPrimary)
     }
 }
 
 struct GradeRow: View {
     let grade: Grade
+    /// Casino mode keeps new grades behind a "?" until they are revealed.
+    var hidesNote = false
 
     var body: some View {
         let badge = Theme.gradeBadge(grade.note)
@@ -120,12 +155,22 @@ struct GradeRow: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
-            Text(grade.note.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: "fr_FR"))))
-                .font(.system(.title3, design: .rounded, weight: .bold).monospacedDigit())
-                .foregroundStyle(badge.foreground)
-                .frame(minWidth: 56)
-                .padding(.vertical, 8)
-                .background(badge.background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            if hidesNote {
+                Text("?")
+                    .font(.system(.title3, design: .rounded, weight: .heavy))
+                    .foregroundStyle(Theme.onPrimary)
+                    .frame(minWidth: 56)
+                    .padding(.vertical, 8)
+                    .background(Theme.primary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .accessibilityLabel("Note à révéler")
+            } else {
+                Text(grade.note.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: "fr_FR"))))
+                    .font(.system(.title3, design: .rounded, weight: .bold).monospacedDigit())
+                    .foregroundStyle(badge.foreground)
+                    .frame(minWidth: 56)
+                    .padding(.vertical, 8)
+                    .background(badge.background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())

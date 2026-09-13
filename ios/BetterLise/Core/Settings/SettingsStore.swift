@@ -37,6 +37,7 @@ final class SettingsStore {
         static let campus = "settings.campus"
         static let promo = "settings.promo"
         static let showRU = "settings.showRU"
+        static let casinoMode = "settings.casinoMode"
     }
 
     private let defaults: UserDefaults
@@ -57,12 +58,18 @@ final class SettingsStore {
         didSet { defaults.set(showRU, forKey: Keys.showRU) }
     }
 
+    /// New grades are hidden behind a lootbox reveal (web "Mode Casino"). Off by default.
+    var casinoMode: Bool {
+        didSet { defaults.set(casinoMode, forKey: Keys.casinoMode) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         liseId = defaults.string(forKey: Keys.liseId) ?? ""
         campus = defaults.string(forKey: Keys.campus).flatMap(Campus.init(rawValue:)) ?? .sibers
         promo = defaults.string(forKey: Keys.promo).flatMap(Promo.init(rawValue:))
         showRU = defaults.object(forKey: Keys.showRU) as? Bool ?? true
+        casinoMode = defaults.bool(forKey: Keys.casinoMode)
     }
 
     var hasValidLiseId: Bool { LiseID.isValid(liseId) }

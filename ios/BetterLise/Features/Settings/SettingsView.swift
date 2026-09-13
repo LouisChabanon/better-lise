@@ -46,6 +46,22 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    Toggle(isOn: $settings.casinoMode) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Mode Casino")
+                            Text("Animations « Loot Box » pour les notes")
+                                .font(.caption)
+                                .foregroundStyle(Theme.textTertiary)
+                        }
+                    }
+                    .tint(Theme.primary)
+                } header: {
+                    Text("Interface")
+                } footer: {
+                    Text("Au lieu de voir tes notes directement, elles sont cachées derrière un mini-jeu type caisse CS:GO. Désactive-le pour un affichage instantané et classique de tes notes.")
+                }
+
                 Section("À propos") {
                     LabeledContent("Version", value: Bundle.main.appVersion)
                     Link(destination: URL(string: "https://github.com/LouisChabanon/better-lise")!) {

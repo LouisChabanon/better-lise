@@ -12,10 +12,19 @@ final class AppEnvironment {
     let health: LiseHealthMonitor
 
     init(baseURL: URL = AppEnvironment.configuredBaseURL) {
-        let client = APIClient(baseURL: baseURL)
-        cache = ResponseCache()
+        var client = APIClient(baseURL: baseURL)
+        var secureStore: SecureStore = KeychainStore()
+        var cache = ResponseCache()
+        #if DEBUG
+        if UITestSupport.isStubbingAPI {
+            client = APIClient(baseURL: URL(string: "https://ui-test.invalid")!, session: UITestSupport.makeStubbedSession())
+            secureStore = UITestSupport.makeSignedInStore()
+            cache = ResponseCache(directory: FileManager.default.temporaryDirectory.appending(path: UUID().uuidString))
+        }
+        #endif
+        self.cache = cache
         settings = SettingsStore()
-        session = SessionStore(client: client, secureStore: KeychainStore())
+        session = SessionStore(client: client, secureStore: secureStore)
         agenda = AgendaViewModel(session: session, settings: settings, cache: cache)
         health = LiseHealthMonitor(session: session)
         grades = GradesViewModel(session: session, cache: cache, health: health)
