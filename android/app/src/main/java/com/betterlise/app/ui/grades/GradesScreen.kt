@@ -1,0 +1,205 @@
+package com.betterlise.app.ui.grades
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.betterlise.app.data.api.Grade
+import com.betterlise.app.ui.components.EmptyState
+import com.betterlise.app.ui.components.ErrorBanner
+import com.betterlise.app.ui.components.SignInPrompt
+import com.betterlise.app.ui.components.errorMessage
+import com.betterlise.app.ui.components.isLoading
+import com.betterlise.app.ui.theme.AppTheme
+import com.betterlise.app.ui.theme.NumberStyle
+import java.text.NumberFormat
+import java.util.Locale
+
+internal fun formatNote(value: Double): String =
+    NumberFormat.getNumberInstance(Locale.FRENCH).apply { maximumFractionDigits = 2 }.format(value)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GradesScreen(viewModel: GradesViewModel, onSignIn: () -> Unit) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TopAppBar(
+                title = { Text("Notes") },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+            )
+        },
+    ) { padding ->
+        Box(Modifier.padding(padding).fillMaxSize()) {
+            if (!state.isSignedIn) {
+                SignInPrompt("Notes", onSignIn)
+                return@Box
+            }
+            PullToRefreshBox(
+                isRefreshing = state.grades.isLoading && state.grades.value != null,
+                onRefresh = viewModel::refresh,
+            ) {
+                GradeList(state, viewModel)
+            }
+        }
+    }
+
+    state.selected?.let { grade ->
+        GradeDetailSheet(
+            grade = grade,
+            stats = state.stats,
+            onRetry = { viewModel.loadStats(grade) },
+            onDismiss = viewModel::dismissDetail,
+        )
+    }
+}
+
+@Composable
+private fun GradeList(state: GradesUiState, viewModel: GradesViewModel) {
+    val grades = state.visibleGrades
+    val unread = grades.filter { it.isUnread }
+    val read = grades.filterNot { it.isUnread }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+    ) {
+        item {
+            OutlinedTextField(
+                value = state.query,
+                onValueChange = viewModel::onQueryChange,
+                placeholder = { Text("Rechercher une matière") },
+                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.surface,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        state.grades.errorMessage?.let { message ->
+            item { ErrorBanner(message, onRetry = viewModel::refresh) }
+        }
+        if (state.grades.isLoading && state.grades.value == null) {
+            item {
+                Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Text(
+                        "Récupération de tes notes sur Lise… cela peut prendre quelques secondes.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
+                }
+            }
+        } else if (state.grades.isLoading) {
+            item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        }
+        if (unread.isNotEmpty()) {
+            item { SectionTitle("Nouvelles notes") }
+            items(unread, key = { "new-${it.code}" }) { GradeRow(it) { viewModel.open(it) } }
+        }
+        if (read.isNotEmpty()) {
+            item { SectionTitle(if (unread.isEmpty()) "Toutes les notes" else "Déjà consultées") }
+            items(read, key = { it.code }) { GradeRow(it) { viewModel.open(it) } }
+        }
+        if (grades.isEmpty() && !state.grades.isLoading && state.grades.errorMessage == null) {
+            item { EmptyState("Aucune note", if (state.query.isBlank()) "Tes notes apparaîtront ici." else "Aucun résultat pour « ${state.query} ».") }
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 12.dp, bottom = 2.dp, start = 4.dp),
+    )
+}
+
+@Composable
+private fun GradeRow(grade: Grade, onClick: () -> Unit) {
+    val tone = AppTheme.colors.grade(grade.note)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(14.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "${grade.libelle}, ${formatNote(grade.note)} sur 20" + if (grade.isUnread) ", nouvelle note" else ""
+            },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (grade.isUnread) Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                Text(grade.libelle, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+            Text(
+                "${grade.date} · ${grade.code}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Text(
+            formatNote(grade.note),
+            style = MaterialTheme.typography.titleLarge.merge(NumberStyle),
+            color = tone.foreground,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .widthIn(min = 56.dp)
+                .background(tone.background, RoundedCornerShape(12.dp))
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+        )
+    }
+}
