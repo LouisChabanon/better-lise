@@ -93,6 +93,19 @@ cd android && ./gradlew testDebugUnitTest assembleDebug
 # Debug → http://10.0.2.2:3000 (émulateur), Release → https://www.better-lise.com
 ```
 
+#### Tester sur un vrai téléphone
+
+Sur un appareil physique, `localhost` désigne le téléphone lui-même. Le plus simple est d'exposer le serveur de dev en HTTPS sur votre tailnet [Tailscale](https://tailscale.com) (certificat valide, aucune exception réseau à ajouter) :
+
+```bash
+tailscale serve --bg 3000   # → https://<votre-mac>.<tailnet>.ts.net
+```
+
+Puis indiquez cette URL, uniquement pour vos builds de debug (fichiers ignorés par git) :
+
+- **iOS** : copiez `ios/BetterLise/Config/Local.xcconfig.example` vers `Local.xcconfig` et renseignez `API_BASE_URL` et votre `DEVELOPMENT_TEAM`.
+- **Android** : ajoutez `betterlise.apiBaseUrl=https://<votre-mac>.<tailnet>.ts.net` dans `android/local.properties`.
+
 ## 🛠 Technologies
 
 Le projet repose sur la stack suivante :

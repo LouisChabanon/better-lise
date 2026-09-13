@@ -1,0 +1,13 @@
+// Copy to Local.xcconfig (git-ignored) to customise your own builds.
+
+// Apple developer team used for signing on a real device (Xcode › Settings › Accounts).
+DEVELOPMENT_TEAM = ABCDE12345
+
+// Debug builds only: backend reachable from a real iPhone.
+// Recommended: expose `npm run dev` over HTTPS on your tailnet with
+//   tailscale serve --bg 3000
+// then use your Mac's MagicDNS name (valid certificate, no ATS exception needed).
+API_BASE_URL = https:/$()/your-mac.your-tailnet.ts.net
+
+// Only needed if com.betterlise.app is unavailable for your team.
+// PRODUCT_BUNDLE_IDENTIFIER = com.yourname.betterlise

@@ -1,4 +1,8 @@
 #include "Shared.xcconfig"
 
-// Local Next.js dev server. `$()` prevents `//` from starting a comment.
+// Local Next.js dev server, reachable from the simulator. `$()` prevents `//` from starting a comment.
 API_BASE_URL = http:/$()/localhost:3000
+
+// Optional, git-ignored per-developer overrides (API URL for a real iPhone, signing team).
+// Copy Local.xcconfig.example to Local.xcconfig to use them.
+#include? "Local.xcconfig"

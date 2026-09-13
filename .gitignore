@@ -49,6 +49,7 @@ certificates
 /ios/**/xcuserdata/
 /ios/**/DerivedData/
 *.xcuserstate
+/ios/BetterLise/Config/Local.xcconfig
 /android/.gradle/
 /android/**/build/
 /android/local.properties
