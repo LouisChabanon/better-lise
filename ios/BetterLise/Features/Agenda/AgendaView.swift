@@ -99,6 +99,7 @@ private struct DayPager: View {
                         .refreshable { await model.load() }
                         .containerRelativeFrame(.horizontal)
                         .id(index)
+                        .accessibilityIdentifier("dayPage-\(index)")
                     }
                 }
                 .scrollTargetLayout()
