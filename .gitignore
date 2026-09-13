@@ -45,3 +45,11 @@ next-env.d.ts
 /lib/generated/prisma
 
 certificates
+# native apps
+/ios/**/xcuserdata/
+/ios/**/DerivedData/
+*.xcuserstate
+/android/.gradle/
+/android/**/build/
+/android/local.properties
+/android/.kotlin/
