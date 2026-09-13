@@ -70,3 +70,18 @@ export async function markGradesOpened(
 	});
 	return success({ updated: count });
 }
+
+/** Puts an opened grade back to "new" so the casino reveal can be replayed. */
+export async function markGradeNew(
+	username: string,
+	code: string
+): Promise<ServiceResult<{ updated: number }>> {
+	const user = await prisma.user.findUnique({ where: { username }, select: { id: true } });
+	if (!user) return failure("NOT_FOUND", "User not found");
+
+	const { count } = await prisma.grade.updateMany({
+		where: { userId: user.id, code, opened: true },
+		data: { opened: false },
+	});
+	return success({ updated: count });
+}

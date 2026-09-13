@@ -23,7 +23,7 @@ La documentation technique et les guides utilisateurs ont été déplacés sur l
   - **Absences :** Suivi et estimation du taux d'absence par UE.
   - **Simulateur :** Calcul des futures moyennes en utilisant des coefficients communautaires.
   - **Notifications :** Reception d'alerte dès qu'une nouvelle note est détectée par la communauté.
-  - **Applications natives :** Apps iOS (SwiftUI) et Android (Jetpack Compose), en plus de la PWA.
+  - **Applications natives :** Apps iOS (SwiftUI) et Android (Jetpack Compose), en plus de la PWA, avec le Mode Casino (révélation des notes façon caisse CS:GO, sons et vibrations).
 
 ## Quick Start (Développement)
 

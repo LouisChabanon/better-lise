@@ -3,6 +3,7 @@
 import prisma from "@/lib/db";
 import { verifySession } from "@/lib/sessions";
 import { revalidatePath } from "next/cache";
+import { markGradeNew } from "@/lib/services/user";
 
 export async function markGradeAsOpened(code: string): Promise<void> {
 	const session = await verifySession();
@@ -52,13 +53,5 @@ export async function markGradeAsNew(code: string): Promise<void> {
 	const session = await verifySession();
 	if (!session.username) return;
 
-	const user = await prisma.user.findUnique({
-		where: { username: session.username },
-	});
-	if (!user) return;
-
-	await prisma.grade.updateMany({
-		where: { userId: user.id, opened: true, code: code },
-		data: { opened: false },
-	});
+	await markGradeNew(session.username, code);
 }

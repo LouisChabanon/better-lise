@@ -32,7 +32,7 @@ vi.mock("@/lib/services/lise-session", async (importOriginal) => ({
 import { authenticate, computeStreak, logoutFromLise } from "@/lib/services/auth";
 import { diffGrades, syncGrades } from "@/lib/services/grades";
 import { fetchAbsences } from "@/lib/services/absences";
-import { getProfile, markGradesOpened, updateProfile } from "@/lib/services/user";
+import { getProfile, markGradeNew, markGradesOpened, updateProfile } from "@/lib/services/user";
 import { getAgenda } from "@/lib/services/agenda";
 import { failure, success } from "@/lib/services/result";
 
@@ -278,6 +278,20 @@ describe("user service", () => {
 
 		prismaMock.user.findUnique.mockResolvedValue(null);
 		expect(await markGradesOpened("u")).toMatchObject({ code: "NOT_FOUND" });
+	});
+
+	it("puts an opened grade back to new for casino replays", async () => {
+		prismaMock.user.findUnique.mockResolvedValue({ id: 3 });
+		prismaMock.grade.updateMany.mockResolvedValue({ count: 1 });
+
+		expect(await markGradeNew("u", "CODE")).toEqual(success({ updated: 1 }));
+		expect(prismaMock.grade.updateMany).toHaveBeenLastCalledWith({
+			where: { userId: 3, code: "CODE", opened: true },
+			data: { opened: false },
+		});
+
+		prismaMock.user.findUnique.mockResolvedValue(null);
+		expect(await markGradeNew("u", "CODE")).toMatchObject({ code: "NOT_FOUND" });
 	});
 });
 
