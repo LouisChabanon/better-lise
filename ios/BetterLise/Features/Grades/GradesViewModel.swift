@@ -74,6 +74,20 @@ final class GradesViewModel {
         }
     }
 
+    /// Casino mode replay: hides the grade behind the lootbox again, rolling back if the server fails.
+    func markNew(_ grade: Grade) async {
+        // The caller may hold a stale copy (e.g. taken before the reveal): trust the current list
+        guard let grades = state.value, grades.contains(where: { $0.code == grade.code && !$0.isUnread }) else { return }
+        let updated = grades.map { $0.code == grade.code ? Grade(copying: $0, isNew: true) : $0 }
+        state = .loaded(GradeSorting.sorted(updated))
+        do {
+            _ = try await session.send(Endpoints.markGradeNew(code: grade.code))
+            cache.save(state.value ?? updated, key: cacheKey)
+        } catch {
+            state = .failed(message: error.localizedDescription, cached: grades)
+        }
+    }
+
     func stats(for grade: Grade) async throws -> GradeStats {
         try await session.send(Endpoints.gradeStats(code: grade.code))
     }

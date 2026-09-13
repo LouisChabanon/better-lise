@@ -67,6 +67,11 @@ enum Endpoints {
         Endpoint(method: .get, path: "health", requiresAuth: false)
     }
 
+    /// Casino mode replay: puts the grade back behind the lootbox.
+    static func markGradeNew(code: String) -> Endpoint<MarkOpenedResponse> {
+        Endpoint(method: .post, path: "grades/\(encodePathSegment(code))/new")
+    }
+
     static func absences() -> Endpoint<AbsencesResponse> {
         Endpoint(method: .get, path: "absences")
     }

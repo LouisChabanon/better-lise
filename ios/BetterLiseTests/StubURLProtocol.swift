@@ -5,6 +5,8 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     struct Stub: Sendable {
         let status: Int
         let body: String
+        /// When set, the stub only answers requests whose path ends with it (otherwise FIFO).
+        var path: String? = nil
     }
 
     private static let lock = NSLock()
@@ -34,7 +36,9 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override func startLoading() {
         let stub: Stub? = Self.lock.withLock {
             Self.requests.append(request)
-            return Self.queue.isEmpty ? nil : Self.queue.removeFirst()
+            let requestPath = request.url?.path ?? ""
+            guard let index = Self.queue.firstIndex(where: { $0.path.map(requestPath.hasSuffix) ?? true }) else { return nil }
+            return Self.queue.remove(at: index)
         }
         guard let stub, let url = request.url,
               let response = HTTPURLResponse(url: url, statusCode: stub.status, httpVersion: nil, headerFields: nil) else {
@@ -50,12 +54,12 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 }
 
 enum Fixtures {
-    static func success(_ data: String) -> StubURLProtocol.Stub {
-        .init(status: 200, body: #"{"success":true,"data":\#(data),"error":null}"#)
+    static func success(_ data: String, path: String? = nil) -> StubURLProtocol.Stub {
+        .init(status: 200, body: #"{"success":true,"data":\#(data),"error":null}"#, path: path)
     }
 
-    static func failure(_ status: Int, code: String, message: String = "msg") -> StubURLProtocol.Stub {
-        .init(status: status, body: #"{"success":false,"data":null,"error":{"code":"\#(code)","message":"\#(message)"}}"#)
+    static func failure(_ status: Int, code: String, message: String = "msg", path: String? = nil) -> StubURLProtocol.Stub {
+        .init(status: status, body: #"{"success":false,"data":null,"error":{"code":"\#(code)","message":"\#(message)"}}"#, path: path)
     }
 
     static let login = success(#"{"token":"fresh-token","username":"2023-1234","expiresAt":"2025-03-10T12:00:00.000Z"}"#)
