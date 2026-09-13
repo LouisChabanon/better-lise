@@ -30,6 +30,8 @@ data class GradesUiState(
     val selected: Grade? = null,
     val stats: Loadable<GradeStats> = Loadable.Idle,
     val sync: SyncState = SyncState.Idle,
+    /** Casino mode: new grade currently shown in the lootbox. */
+    val revealing: Grade? = null,
 ) {
     val visibleGrades: List<Grade>
         get() {
@@ -95,6 +97,48 @@ class GradesViewModel(
 
     fun onQueryChange(query: String) = _state.update { it.copy(query = query) }
 
+    /** Casino mode hides new grades behind the lootbox; otherwise the detail opens right away. */
+    fun onGradeTapped(grade: Grade, casinoMode: Boolean) {
+        if (casinoMode && grade.isUnread) {
+            _state.update { it.copy(revealing = grade) }
+        } else {
+            open(grade)
+        }
+    }
+
+    /** The reel stopped: the grade is now seen. */
+    fun onRevealed() {
+        _state.value.revealing?.let(::markOpened)
+    }
+
+    /** The reveal finished: show the grade detail. */
+    fun finishReveal() {
+        val grade = _state.value.revealing ?: return
+        _state.update { it.copy(revealing = null) }
+        open(grade)
+    }
+
+    fun dismissReveal() = _state.update { it.copy(revealing = null) }
+
+    /** Casino mode replay: hides the grade behind the lootbox again, rolling back if the server fails. */
+    fun markNew(grade: Grade) {
+        val previous = _state.value.grades.value ?: return
+        // The caller may hold a stale copy: trust the current list
+        if (previous.none { it.code == grade.code && !it.isUnread }) return
+        val updated = GradeSorting.sorted(previous.map { if (it.code == grade.code) it.copy(isNew = true) else it })
+        _state.update { it.copy(grades = Loadable.Loaded(updated), selected = null, stats = Loadable.Idle) }
+        viewModelScope.launch {
+            try {
+                session.send(Endpoints.markGradeNew(grade.code))
+                cache.save(CACHE_KEY, GRADES, updated)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(grades = Loadable.Failed(e.message ?: "Erreur", previous)) }
+            }
+        }
+    }
+
     fun open(grade: Grade) {
         _state.update { it.copy(selected = grade, stats = Loadable.Loading(null)) }
         loadStats(grade)
@@ -121,8 +165,8 @@ class GradesViewModel(
 
     /** Optimistically clears the "new" flag, rolling back with an error if the server call fails. */
     private fun markOpened(grade: Grade) {
-        if (!grade.isUnread) return
         val previous = _state.value.grades.value ?: return
+        if (previous.none { it.code == grade.code && it.isUnread }) return
         val updated = previous.map { if (it.code == grade.code) it.copy(isNew = false) else it }
         _state.update { it.copy(grades = Loadable.Loaded(updated)) }
         viewModelScope.launch {

@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +48,7 @@ import com.betterlise.app.data.health.LiseHealthMonitor
 import com.betterlise.app.ui.loading.SyncAwareContent
 import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.ui.components.isLoading
+import com.betterlise.app.ui.grades.lootbox.LootBoxSheet
 import com.betterlise.app.ui.theme.AppTheme
 import com.betterlise.app.ui.theme.NumberStyle
 import java.text.NumberFormat
@@ -57,7 +59,7 @@ internal fun formatNote(value: Double): String =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GradesScreen(viewModel: GradesViewModel, onSignIn: () -> Unit) {
+fun GradesScreen(viewModel: GradesViewModel, casinoMode: Boolean, onSignIn: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -82,7 +84,7 @@ fun GradesScreen(viewModel: GradesViewModel, onSignIn: () -> Unit) {
             ) {
                 // The pill reports sync progress, so the pull indicator only acknowledges the gesture
                 PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh) {
-                    GradeList(state, viewModel)
+                    GradeList(state, viewModel, casinoMode)
                 }
             }
         }
@@ -94,12 +96,22 @@ fun GradesScreen(viewModel: GradesViewModel, onSignIn: () -> Unit) {
             stats = state.stats,
             onRetry = { viewModel.loadStats(grade) },
             onDismiss = viewModel::dismissDetail,
+            onMarkAsNew = { viewModel.markNew(grade) },
+        )
+    }
+
+    state.revealing?.let { grade ->
+        LootBoxSheet(
+            grade = grade,
+            onRevealed = viewModel::onRevealed,
+            onComplete = viewModel::finishReveal,
+            onDismiss = viewModel::dismissReveal,
         )
     }
 }
 
 @Composable
-private fun GradeList(state: GradesUiState, viewModel: GradesViewModel) {
+private fun GradeList(state: GradesUiState, viewModel: GradesViewModel, casinoMode: Boolean) {
     val grades = state.visibleGrades
     val unread = grades.filter { it.isUnread }
     val read = grades.filterNot { it.isUnread }
@@ -130,11 +142,13 @@ private fun GradeList(state: GradesUiState, viewModel: GradesViewModel) {
         }
         if (unread.isNotEmpty()) {
             item { SectionTitle("Nouvelles notes") }
-            items(unread, key = { "new-${it.code}" }) { GradeRow(it) { viewModel.open(it) } }
+            items(unread, key = { "new-${it.code}" }) {
+                GradeRow(it, hidesNote = casinoMode) { viewModel.onGradeTapped(it, casinoMode) }
+            }
         }
         if (read.isNotEmpty()) {
             item { SectionTitle(if (unread.isEmpty()) "Toutes les notes" else "Déjà consultées") }
-            items(read, key = { it.code }) { GradeRow(it) { viewModel.open(it) } }
+            items(read, key = { it.code }) { GradeRow(it, hidesNote = false) { viewModel.onGradeTapped(it, casinoMode) } }
         }
         if (grades.isEmpty() && state.sync == SyncState.Idle && state.grades.errorMessage == null) {
             item { EmptyState("Aucune note", if (state.query.isBlank()) "Tes notes apparaîtront ici." else "Aucun résultat pour « ${state.query} ».") }
@@ -154,7 +168,7 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun GradeRow(grade: Grade, onClick: () -> Unit) {
+private fun GradeRow(grade: Grade, hidesNote: Boolean, onClick: () -> Unit) {
     val tone = AppTheme.colors.grade(grade.note)
     Row(
         modifier = Modifier
@@ -162,8 +176,13 @@ private fun GradeRow(grade: Grade, onClick: () -> Unit) {
             .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
             .padding(14.dp)
+            .testTag(if (hidesNote) "hiddenGrade" else "grade")
             .semantics(mergeDescendants = true) {
-                contentDescription = "${grade.libelle}, ${formatNote(grade.note)} sur 20" + if (grade.isUnread) ", nouvelle note" else ""
+                contentDescription = if (hidesNote) {
+                    "${grade.libelle}, note à révéler"
+                } else {
+                    "${grade.libelle}, ${formatNote(grade.note)} sur 20" + if (grade.isUnread) ", nouvelle note" else ""
+                }
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -180,6 +199,19 @@ private fun GradeRow(grade: Grade, onClick: () -> Unit) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+        if (hidesNote) {
+            Text(
+                "?",
+                style = MaterialTheme.typography.titleLarge.merge(NumberStyle),
+                color = MaterialTheme.colorScheme.onPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .widthIn(min = 56.dp)
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+            )
+            return@Row
         }
         Text(
             formatNote(grade.note),

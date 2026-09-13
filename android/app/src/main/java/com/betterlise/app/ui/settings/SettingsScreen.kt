@@ -110,6 +110,26 @@ fun SettingsScreen(viewModel: SettingsViewModel, onSignIn: () -> Unit) {
                 }
             }
 
+            Section("Interface") {
+                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Mode Casino")
+                        Text(
+                            "Animations « Loot Box » pour les notes",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = state.settings.casinoMode, onCheckedChange = viewModel::setCasinoMode)
+                }
+                Text(
+                    "Au lieu de voir tes notes directement, elles sont cachées derrière un mini-jeu type caisse CS:GO. Désactive-le pour un affichage instantané et classique de tes notes.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+                )
+            }
+
             Section("À propos") {
                 SettingRow("Version", BuildConfig.VERSION_NAME)
                 HorizontalDivider()

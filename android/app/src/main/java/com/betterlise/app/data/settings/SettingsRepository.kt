@@ -38,6 +38,8 @@ data class UserSettings(
     val campus: Campus = Campus.Sibers,
     val promo: Promo? = null,
     val showRu: Boolean = true,
+    /** New grades are hidden behind a lootbox reveal (web "Mode Casino"). Off by default. */
+    val casinoMode: Boolean = false,
 ) {
     val hasValidLiseId: Boolean get() = LiseId.isValid(liseId)
 }
@@ -50,12 +52,14 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             campus = Campus.fromId(prefs[CAMPUS]) ?: Campus.Sibers,
             promo = Promo.fromId(prefs[PROMO]),
             showRu = prefs[SHOW_RU] ?: true,
+            casinoMode = prefs[CASINO_MODE] ?: false,
         )
     }
 
     suspend fun setLiseId(value: String) = dataStore.edit { it[LISE_ID] = value.trim() }
     suspend fun setCampus(value: Campus) = dataStore.edit { it[CAMPUS] = value.id }
     suspend fun setShowRu(value: Boolean) = dataStore.edit { it[SHOW_RU] = value }
+    suspend fun setCasinoMode(value: Boolean) = dataStore.edit { it[CASINO_MODE] = value }
     suspend fun setPromo(value: Promo?) = dataStore.edit {
         if (value == null) it.remove(PROMO) else it[PROMO] = value.id
     }
@@ -65,5 +69,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val CAMPUS = stringPreferencesKey("campus")
         val PROMO = stringPreferencesKey("promo")
         val SHOW_RU = booleanPreferencesKey("show_ru")
+        val CASINO_MODE = booleanPreferencesKey("casino_mode")
     }
 }

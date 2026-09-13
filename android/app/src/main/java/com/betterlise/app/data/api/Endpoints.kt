@@ -63,6 +63,13 @@ object Endpoints {
         serializer = MarkOpenedResponse.serializer(),
     )
 
+    /** Casino mode replay: puts the grade back behind the lootbox. */
+    fun markGradeNew(code: String) = Endpoint(
+        method = HttpMethod.POST,
+        path = "grades/${encodeSegment(code)}/new",
+        serializer = MarkOpenedResponse.serializer(),
+    )
+
     fun absences() = Endpoint(HttpMethod.GET, "absences", AbsencesResponse.serializer())
 
     fun health() = Endpoint(HttpMethod.GET, "health", LiseHealth.serializer(), requiresAuth = false)
