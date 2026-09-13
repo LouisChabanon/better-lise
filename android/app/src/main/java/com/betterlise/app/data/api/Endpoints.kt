@@ -65,6 +65,8 @@ object Endpoints {
 
     fun absences() = Endpoint(HttpMethod.GET, "absences", AbsencesResponse.serializer())
 
+    fun health() = Endpoint(HttpMethod.GET, "health", LiseHealth.serializer(), requiresAuth = false)
+
     // Encoded path segments survive HttpUrl.addEncodedPathSegments untouched
     private fun encodeSegment(value: String): String =
         java.net.URLEncoder.encode(value, "UTF-8").replace("+", "%20")

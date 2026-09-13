@@ -1,5 +1,12 @@
 package com.betterlise.app.ui.agenda
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
+import kotlinx.coroutines.flow.drop
+import kotlin.math.abs
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,13 +29,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -86,26 +90,14 @@ fun AgendaScreen(viewModel: AgendaViewModel) {
         topBar = {
             TopAppBar(
                 title = {
-                    val first = state.weekDays.firstOrNull()
-                    Text(
-                        first?.let { "${it.month.getDisplayName(TextStyle.FULL, FR).replaceFirstChar(Char::titlecase)} ${it.year}" } ?: "Agenda",
-                    )
-                },
-                navigationIcon = {
-                    Row {
-                        IconButton(onClick = { viewModel.shiftWeek(-1) }) {
-                            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, contentDescription = "Semaine précédente")
-                        }
-                        IconButton(onClick = { viewModel.shiftWeek(1) }) {
-                            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "Semaine suivante")
-                        }
-                    }
+                    val monday = state.visibleWeekStart
+                    Text("${monday.month.getDisplayName(TextStyle.FULL, FR).replaceFirstChar(Char::titlecase)} ${monday.year}")
                 },
                 actions = {
                     if (state.events.isLoading) {
                         CircularProgressIndicator(Modifier.size(20.dp).padding(end = 4.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(12.dp))
-                    } else if (state.weekOffset != 0) {
+                    } else if (!state.isShowingToday) {
                         TextButton(onClick = viewModel::goToToday) { Text("Aujourd'hui") }
                     }
                 },
@@ -123,33 +115,11 @@ fun AgendaScreen(viewModel: AgendaViewModel) {
                 return@Column
             }
 
-            DayStrip(
-                days = state.weekDays,
-                selectedIndex = state.selectedDayIndex,
-                hasEvents = { state.eventsOn(it).isNotEmpty() },
-                onSelect = viewModel::selectDay,
-            )
+            WeekStrip(state, viewModel)
             state.events.errorMessage?.let {
                 ErrorBanner(it, Modifier.padding(horizontal = 16.dp, vertical = 4.dp), onRetry = viewModel::refresh)
             }
-
-            val pagerState = rememberPagerState(initialPage = state.selectedDayIndex) { state.weekDays.size }
-            LaunchedEffect(state.selectedDayIndex, state.weekOffset) {
-                if (pagerState.currentPage != state.selectedDayIndex) pagerState.animateScrollToPage(state.selectedDayIndex)
-            }
-            LaunchedEffect(pagerState.settledPage) { viewModel.selectDay(pagerState.settledPage) }
-
-            PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
-                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
-                    val day = state.weekDays.getOrNull(page) ?: return@HorizontalPager
-                    DayTimeline(
-                        day = day,
-                        events = state.eventsOn(day),
-                        isInitialLoad = state.events.isLoading && state.events.value == null,
-                        onSelect = { selectedEvent = it },
-                    )
-                }
-            }
+            DayPager(state, viewModel, onSelect = { selectedEvent = it })
         }
     }
 
@@ -158,51 +128,126 @@ fun AgendaScreen(viewModel: AgendaViewModel) {
     }
 }
 
+/** One page per school day across every loaded week: swiping past Friday lands on the next Monday. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DayStrip(days: List<LocalDate>, selectedIndex: Int, hasEvents: (LocalDate) -> Boolean, onSelect: (Int) -> Unit) {
-    val today = LocalDate.now(PARIS)
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        days.forEachIndexed { index, day ->
-            val selected = index == selectedIndex
-            val colors = MaterialTheme.colorScheme
-            val content = when {
-                selected -> colors.onPrimary
-                day == today -> colors.primary
-                else -> colors.onSurfaceVariant
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(if (selected) colors.primary else colors.surface)
-                    .clickable { onSelect(index) }
-                    .padding(vertical = 8.dp)
-                    .semantics {
-                        this.selected = selected
-                        contentDescription = day.format(DateTimeFormatter.ofPattern("EEEE d MMMM", FR))
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    day.dayOfWeek.getDisplayName(TextStyle.SHORT, FR).replaceFirstChar(Char::titlecase),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = content,
-                )
-                Text("${day.dayOfMonth}", style = MaterialTheme.typography.titleLarge, color = content)
-                Box(
-                    Modifier
-                        .padding(top = 2.dp)
-                        .size(5.dp)
-                        .background(
-                            if (hasEvents(day)) (if (selected) colors.onPrimary else colors.primary) else Color.Transparent,
-                            CircleShape,
-                        ),
+private fun DayPager(state: AgendaUiState, viewModel: AgendaViewModel, onSelect: (CalendarEvent) -> Unit) {
+    val pagerState = rememberPagerState(initialPage = state.selectedIndex) { state.days.size }
+
+    // User swipes are reported once the page settles; programmatic moves come back as requests
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect(viewModel::pagerDidScroll)
+    }
+    LaunchedEffect(state.pagerRequest) {
+        val request = state.pagerRequest ?: return@LaunchedEffect
+        if (abs(request.target - pagerState.currentPage) <= 5) {
+            pagerState.animateScrollToPage(request.target)
+        } else {
+            pagerState.scrollToPage(request.target)
+        }
+    }
+
+    PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
+        HorizontalPager(
+            state = pagerState,
+            beyondViewportPageCount = 1,
+            modifier = Modifier.fillMaxSize().testTag("dayPager"),
+        ) { page ->
+            val day = state.days[page]
+            DayTimeline(
+                day = day,
+                events = state.eventsOn(day),
+                isInitialLoad = state.events.isLoading && state.events.value == null,
+                onSelect = onSelect,
+            )
+        }
+    }
+}
+
+/** Monday–Friday cards, paged by week and kept in sync with the day pager. */
+@Composable
+private fun WeekStrip(state: AgendaUiState, viewModel: AgendaViewModel) {
+    val pagerState = rememberPagerState(initialPage = state.visibleWeek) { state.weekCount }
+    val haptics = LocalHapticFeedback.current
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect(viewModel::stripDidScroll)
+    }
+    LaunchedEffect(state.stripRequest) {
+        val request = state.stripRequest ?: return@LaunchedEffect
+        if (abs(request.target - pagerState.currentPage) <= 1) {
+            pagerState.animateScrollToPage(request.target)
+        } else {
+            pagerState.scrollToPage(request.target)
+        }
+    }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.drop(1).collect {
+            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        }
+    }
+
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxWidth().testTag("weekStrip"),
+    ) { week ->
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            state.indicesInWeek(week).forEach { index ->
+                val day = state.days[index]
+                DayChip(
+                    day = day,
+                    isSelected = index == state.selectedIndex,
+                    hasEvents = state.eventsOn(day).isNotEmpty(),
+                    onClick = { viewModel.select(index) },
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun DayChip(day: LocalDate, isSelected: Boolean, hasEvents: Boolean, onClick: () -> Unit, modifier: Modifier) {
+    val colors = MaterialTheme.colorScheme
+    val isToday = day == LocalDate.now(PARIS)
+    val content = when {
+        isSelected -> colors.onPrimary
+        isToday -> colors.primary
+        else -> colors.onSurfaceVariant
+    }
+    val background by animateColorAsState(if (isSelected) colors.primary else colors.surface, label = "chip")
+
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(background)
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp)
+            .testTag("dayChip")
+            .semantics {
+                selected = isSelected
+                contentDescription = day.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", FR))
+            },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            day.dayOfWeek.getDisplayName(TextStyle.SHORT, FR).replaceFirstChar(Char::titlecase),
+            style = MaterialTheme.typography.labelMedium,
+            color = content,
+        )
+        Text("${day.dayOfMonth}", style = MaterialTheme.typography.titleLarge, color = content)
+        Box(
+            Modifier
+                .padding(top = 2.dp)
+                .size(5.dp)
+                .background(
+                    if (hasEvents) (if (isSelected) colors.onPrimary else colors.primary) else Color.Transparent,
+                    CircleShape,
+                ),
+        )
     }
 }
 
@@ -229,6 +274,7 @@ private fun DayTimeline(day: LocalDate, events: List<CalendarEvent>, isInitialLo
 
         BoxWithConstraints(
             Modifier
+                .padding(top = 10.dp) // room for the first hour label, drawn above its grid line
                 .fillMaxWidth()
                 .height(HOUR_HEIGHT * (END_HOUR - START_HOUR))
                 .padding(end = 12.dp),

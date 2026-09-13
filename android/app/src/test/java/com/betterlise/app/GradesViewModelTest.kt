@@ -1,9 +1,12 @@
 package com.betterlise.app
 
 import com.betterlise.app.data.api.ApiClient
+import com.betterlise.app.data.api.LiseHealth
 import com.betterlise.app.data.auth.InMemorySecureStore
 import com.betterlise.app.data.auth.SessionRepository
 import com.betterlise.app.data.cache.ResponseCache
+import com.betterlise.app.data.health.LiseHealthMonitor
+import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.ui.components.Loadable
 import com.betterlise.app.ui.grades.GradesViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +33,7 @@ class GradesViewModelTest {
     @get:Rule val tmp = TemporaryFolder()
     private lateinit var server: MockWebServer
     private lateinit var session: SessionRepository
+    private lateinit var health: LiseHealthMonitor
 
     private val gradesJson = """{"grades":[
         {"date":"01/01/2025","code":"OLD","libelle":"Old","note":8,"isNew":false},
@@ -45,6 +49,8 @@ class GradesViewModelTest {
             set(SessionRepository.KEY_USERNAME, "2023-1234")
         }
         session = SessionRepository(ApiClient(server.url("/").toString()), store)
+        // Canned estimate so the health call never consumes the queued grade responses
+        health = LiseHealthMonitor(fetch = { LiseHealth(9_000.0, 10) })
     }
 
     @After
@@ -64,11 +70,13 @@ class GradesViewModelTest {
     @Test
     fun `loads, sorts and filters grades`() = runTest {
         server.enqueue(Responses.success(gradesJson))
-        val viewModel = GradesViewModel(session, ResponseCache(tmp.root))
+        val viewModel = GradesViewModel(session, ResponseCache(tmp.root), health)
 
         val state = viewModel.awaitLoaded()
 
         assertEquals(listOf("NEW", "OLD"), state.grades.value!!.map { it.code })
+        // First sync without cache shows the full loader, then its "Terminé" state
+        assertTrue(state.sync is SyncState.Finished && state.sync.showsFullLoader)
         assertEquals(1, state.unreadCount)
         viewModel.onQueryChange("old")
         assertEquals(listOf("OLD"), viewModel.state.value.visibleGrades.map { it.code })
@@ -79,7 +87,7 @@ class GradesViewModelTest {
         server.enqueue(Responses.success(gradesJson))
         server.enqueue(Responses.success("""{"avg":12,"min":2,"max":19,"count":3,"median":12,"stdDeviation":3,"distribution":{"labels":[],"counts":[]}}"""))
         server.enqueue(Responses.failure(500, "INTERNAL"))
-        val viewModel = GradesViewModel(session, ResponseCache(tmp.root))
+        val viewModel = GradesViewModel(session, ResponseCache(tmp.root), health)
         val grade = viewModel.awaitLoaded().grades.value!!.first { it.code == "NEW" }
 
         viewModel.open(grade)
@@ -93,10 +101,10 @@ class GradesViewModelTest {
     fun `serves cached grades while refreshing`() = runTest {
         server.enqueue(Responses.success(gradesJson))
         val cache = ResponseCache(tmp.root)
-        GradesViewModel(session, cache).awaitLoaded()
+        GradesViewModel(session, cache, health).awaitLoaded()
 
         server.enqueue(Responses.failure(502, "LISE_UNAVAILABLE"))
-        val second = GradesViewModel(session, cache).awaitLoaded()
+        val second = GradesViewModel(session, cache, health).awaitLoaded()
 
         assertTrue(second.grades is Loadable.Failed)
         assertEquals(2, second.grades.value!!.size)

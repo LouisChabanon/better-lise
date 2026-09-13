@@ -48,18 +48,35 @@ class AgendaLayoutTest {
     }
 
     @Test
-    fun `week days are monday to friday`() {
-        val wednesday = LocalDate.of(2025, 3, 12)
-        assertEquals((10..14).toList(), AgendaLayout.weekDays(wednesday, 0).map { it.dayOfMonth })
-        assertEquals(17, AgendaLayout.weekDays(wednesday, 1).first().dayOfMonth)
-        // Sunday still belongs to the week that started on Monday the 10th
-        assertEquals(10, AgendaLayout.weekDays(LocalDate.of(2025, 3, 16), 0).first().dayOfMonth)
+    fun `school days span whole weeks around today`() {
+        val days = AgendaLayout.schoolDays(LocalDate.of(2025, 3, 12), weeksBefore = 1, weeksAfter = 1)
+
+        assertEquals(15, days.size)
+        assertEquals(listOf(3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21), days.map { it.dayOfMonth })
     }
 
     @Test
-    fun `default day index is today on weekdays and monday on weekends`() {
-        assertEquals(2, AgendaLayout.defaultDayIndex(LocalDate.of(2025, 3, 12)))
-        assertEquals(0, AgendaLayout.defaultDayIndex(LocalDate.of(2025, 3, 15)))
+    fun `weekends center on the upcoming week`() {
+        val days = AgendaLayout.schoolDays(LocalDate.of(2025, 3, 15), weeksBefore = 0, weeksAfter = 0)
+        assertEquals(listOf(17, 18, 19, 20, 21), days.map { it.dayOfMonth })
+    }
+
+    @Test
+    fun `initial index is today on weekdays and next monday on weekends`() {
+        val days = AgendaLayout.schoolDays(LocalDate.of(2025, 3, 12), weeksBefore = 1, weeksAfter = 1)
+
+        assertEquals(7, AgendaLayout.initialIndex(days, LocalDate.of(2025, 3, 12)))
+        assertEquals(10, AgendaLayout.initialIndex(days, LocalDate.of(2025, 3, 15)))
+        assertEquals(10, AgendaLayout.initialIndex(days, LocalDate.of(2025, 3, 16)))
+    }
+
+    @Test
+    fun `events are grouped by Paris day and sorted`() {
+        val grouped = AgendaLayout.groupByDay(
+            listOf(event("Late", at(10, 23, 30), at(10, 23, 45)), event("Morning", at(10, 8), at(10, 9)), event("Tue", at(11, 8), at(11, 9))),
+        )
+        assertEquals(listOf("Morning", "Late"), grouped.getValue(LocalDate.of(2025, 3, 10)).map { it.title })
+        assertEquals(listOf("Tue"), grouped.getValue(LocalDate.of(2025, 3, 11)).map { it.title })
     }
 
     @Test

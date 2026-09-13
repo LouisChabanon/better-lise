@@ -156,3 +156,7 @@ data class AbsencesResponse(
 
 @Serializable
 data class MarkOpenedResponse(val updated: Int)
+
+/** Recent scraper performance measured by the server ([avgDuration] in milliseconds). */
+@Serializable
+data class LiseHealth(val avgDuration: Double, val count: Int)

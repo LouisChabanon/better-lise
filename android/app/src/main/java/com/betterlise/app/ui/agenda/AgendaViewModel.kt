@@ -11,6 +11,7 @@ import com.betterlise.app.data.settings.UserSettings
 import com.betterlise.app.domain.AgendaLayout
 import com.betterlise.app.domain.PARIS
 import com.betterlise.app.ui.components.Loadable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,32 +22,47 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
 import java.time.LocalDate
 
+/** A one-shot scroll command; [nonce] makes two requests for the same target distinct. */
+data class ScrollRequest(val target: Int, val nonce: Long)
+
 data class AgendaUiState(
     val settings: UserSettings = UserSettings(),
     val events: Loadable<List<CalendarEvent>> = Loadable.Idle,
-    val weekOffset: Int = 0,
-    val selectedDayIndex: Int = 0,
-    val weekDays: List<LocalDate> = emptyList(),
+    val eventsByDay: Map<LocalDate, List<CalendarEvent>> = emptyMap(),
+    val days: List<LocalDate>,
+    val todayIndex: Int,
+    val selectedIndex: Int = todayIndex,
+    val visibleWeek: Int = todayIndex / 5,
+    /** Programmatic scroll the day pager must perform. */
+    val pagerRequest: ScrollRequest? = null,
+    /** Programmatic scroll the week strip must perform. */
+    val stripRequest: ScrollRequest? = null,
 ) {
-    fun eventsOn(day: LocalDate) = AgendaLayout.eventsOn(day, events.value.orEmpty())
+    val selectedDay: LocalDate get() = days[selectedIndex]
+    val weekCount: Int get() = days.size / 5
+    val isShowingToday: Boolean get() = selectedIndex == todayIndex
+    val visibleWeekStart: LocalDate get() = days[(visibleWeek * 5).coerceAtMost(days.lastIndex)]
+
+    fun eventsOn(day: LocalDate): List<CalendarEvent> = eventsByDay[day].orEmpty()
+    fun indicesInWeek(week: Int): IntRange = (week * 5) until minOf(week * 5 + 5, days.size)
 }
 
 class AgendaViewModel(
     private val session: SessionRepository,
     private val settingsRepository: SettingsRepository,
     private val cache: ResponseCache,
-    private val today: () -> LocalDate = { LocalDate.now(PARIS) },
+    today: () -> LocalDate = { LocalDate.now(PARIS) },
 ) : ViewModel() {
-    private val _state = MutableStateFlow(
-        AgendaUiState(
-            selectedDayIndex = AgendaLayout.defaultDayIndex(today()),
-            weekDays = AgendaLayout.weekDays(today(), 0),
-        ),
-    )
-    val state: StateFlow<AgendaUiState> = _state.asStateFlow()
+    private val _state: MutableStateFlow<AgendaUiState>
+    val state: StateFlow<AgendaUiState>
     private var loadJob: Job? = null
+    private var requestCounter = 0L
 
     init {
+        val days = AgendaLayout.schoolDays(today(), WEEKS_AROUND, WEEKS_AROUND)
+        _state = MutableStateFlow(AgendaUiState(days = days, todayIndex = AgendaLayout.initialIndex(days, today())))
+        state = _state.asStateFlow()
+
         viewModelScope.launch {
             settingsRepository.settings
                 .distinctUntilChanged { old, new ->
@@ -59,49 +75,75 @@ class AgendaViewModel(
         }
     }
 
+    // Scroll coordination: each pager reports user scrolls; the other one gets an explicit request.
+
+    /** The user swiped the day pager. */
+    fun pagerDidScroll(index: Int) = _state.update { current ->
+        if (index !in current.days.indices || index == current.selectedIndex) return@update current
+        val week = index / 5
+        if (week == current.visibleWeek) {
+            current.copy(selectedIndex = index)
+        } else {
+            current.copy(selectedIndex = index, visibleWeek = week, stripRequest = nextRequest(week))
+        }
+    }
+
+    /** The user swiped the week strip: keep the same weekday in the new week. */
+    fun stripDidScroll(week: Int) = _state.update { current ->
+        if (week !in 0 until current.weekCount || week == current.visibleWeek) return@update current
+        val index = (week * 5 + current.selectedIndex % 5).coerceAtMost(current.days.lastIndex)
+        current.copy(visibleWeek = week, selectedIndex = index, pagerRequest = nextRequest(index))
+    }
+
+    /** A day card was tapped (or "Aujourd'hui"): both pagers follow. */
+    fun select(index: Int) = _state.update { current ->
+        if (index !in current.days.indices) return@update current
+        val week = index / 5
+        current.copy(
+            selectedIndex = index,
+            pagerRequest = nextRequest(index),
+            visibleWeek = week,
+            stripRequest = if (week != current.visibleWeek) nextRequest(week) else current.stripRequest,
+        )
+    }
+
+    fun goToToday() = select(_state.value.todayIndex)
+
+    private fun nextRequest(target: Int) = ScrollRequest(target, ++requestCounter)
+
     fun refresh() {
         val settings = _state.value.settings
         if (!settings.hasValidLiseId) {
-            _state.update { it.copy(events = Loadable.Idle) }
+            _state.update { it.copy(events = Loadable.Idle, eventsByDay = emptyMap()) }
             return
         }
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             val key = "agenda-${settings.liseId}-${settings.campus.id}-${settings.showRu}"
             val cached = cache.load(key, EVENTS) ?: _state.value.events.value
-            _state.update { it.copy(events = Loadable.Loading(cached)) }
+            _state.update { it.withEvents(Loadable.Loading(cached)) }
             try {
                 val response = session.sendPublic(Endpoints.agenda(settings.liseId, settings.campus.id, settings.showRu))
                 cache.save(key, EVENTS, response.events)
-                _state.update { it.copy(events = Loadable.Loaded(response.events)) }
-            } catch (e: kotlinx.coroutines.CancellationException) {
+                _state.update { it.withEvents(Loadable.Loaded(response.events)) }
+            } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.update { it.copy(events = Loadable.Failed(e.message ?: "Erreur", cached)) }
+                _state.update { it.withEvents(Loadable.Failed(e.message ?: "Erreur", cached)) }
             }
         }
     }
 
-    fun selectDay(index: Int) = _state.update { it.copy(selectedDayIndex = index.coerceIn(0, 4)) }
+    private fun AgendaUiState.withEvents(events: Loadable<List<CalendarEvent>>): AgendaUiState =
+        if (events.value == this.events.value) {
+            copy(events = events)
+        } else {
+            copy(events = events, eventsByDay = AgendaLayout.groupByDay(events.value.orEmpty()))
+        }
 
-    fun shiftWeek(delta: Int) = _state.update {
-        val offset = it.weekOffset + delta
-        it.copy(
-            weekOffset = offset,
-            weekDays = AgendaLayout.weekDays(today(), offset),
-            selectedDayIndex = if (delta > 0) 0 else 4,
-        )
-    }
-
-    fun goToToday() = _state.update {
-        it.copy(
-            weekOffset = 0,
-            weekDays = AgendaLayout.weekDays(today(), 0),
-            selectedDayIndex = AgendaLayout.defaultDayIndex(today()),
-        )
-    }
-
-    private companion object {
-        val EVENTS = ListSerializer(CalendarEvent.serializer())
+    companion object {
+        /** School weeks reachable by swiping on each side of the current week. */
+        const val WEEKS_AROUND = 26
+        private val EVENTS = ListSerializer(CalendarEvent.serializer())
     }
 }
