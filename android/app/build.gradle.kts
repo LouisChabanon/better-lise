@@ -1,9 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
+
+// Debug builds default to the emulator's alias for the host machine. Override per developer in the
+// git-ignored local.properties, e.g. `betterlise.apiBaseUrl=https://your-mac.your-tailnet.ts.net`.
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+val debugApiBaseUrl: String = localProperties.getProperty("betterlise.apiBaseUrl") ?: "http://10.0.2.2:3000"
 
 android {
     namespace = "com.betterlise.app"
@@ -19,8 +28,7 @@ android {
 
     buildTypes {
         debug {
-            // Android emulator alias for the host machine's localhost
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000\"")
+            buildConfigField("String", "API_BASE_URL", "\"$debugApiBaseUrl\"")
         }
         release {
             buildConfigField("String", "API_BASE_URL", "\"https://www.better-lise.com\"")

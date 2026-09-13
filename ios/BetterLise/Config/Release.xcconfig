@@ -1,3 +1,6 @@
 #include "Shared.xcconfig"
 
+// Signing overrides only: API_BASE_URL is set below, after the include, so it always wins.
+#include? "Local.xcconfig"
+
 API_BASE_URL = https:/$()/www.better-lise.com
