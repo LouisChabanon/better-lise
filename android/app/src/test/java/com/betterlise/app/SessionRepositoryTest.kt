@@ -119,4 +119,36 @@ class SessionRepositoryTest {
         assertEquals(SessionState.SignedOut, session.state.value)
         assertNull(store.get(KEY_PASSWORD))
     }
+
+    @Test
+    fun `delete account calls the API then signs out`() = runTest {
+        signedInStore(withPassword = true)
+        server.enqueue(Responses.success("""{"deleted":true}"""))
+        val session = SessionRepository(client, store)
+
+        session.deleteAccount()
+
+        val request = server.takeRequest()
+        assertEquals("DELETE", request.method)
+        assertEquals("/api/v1/me", request.path)
+        assertEquals(SessionState.SignedOut, session.state.value)
+        assertNull(store.get(KEY_TOKEN))
+        assertNull(store.get(KEY_PASSWORD))
+    }
+
+    @Test
+    fun `failed deletion keeps the session`() = runTest {
+        signedInStore(withPassword = false)
+        server.enqueue(Responses.failure(500, "INTERNAL"))
+        val session = SessionRepository(client, store)
+
+        try {
+            session.deleteAccount()
+            fail("Expected the deletion to throw")
+        } catch (_: ApiError) {
+        }
+
+        assertEquals(SessionState.SignedIn("2023-1234"), session.state.value)
+        assertEquals("old-token", store.get(KEY_TOKEN))
+    }
 }

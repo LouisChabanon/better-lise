@@ -5,9 +5,14 @@ struct SettingsView: View {
     @Environment(SettingsStore.self) private var settings
     @Binding var isLoginPresented: Bool
     let onSignOut: () -> Void
+    let onDeleteAccount: () async throws -> Void
 
     @State private var syncError: String?
     @State private var isConfirmingSignOut = false
+    @State private var isConfirmingDeletion = false
+    @State private var isDeleting = false
+    @State private var deletionError: String?
+    @State private var didDeleteAccount = false
 
     var body: some View {
         @Bindable var settings = settings
@@ -73,21 +78,73 @@ struct SettingsView: View {
             .navigationTitle("Réglages")
             .onChange(of: settings.campus) { syncProfile() }
             .onChange(of: settings.promo) { syncProfile() }
+            .onChange(of: session.isSignedIn) { _, isSignedIn in
+                if isSignedIn { didDeleteAccount = false }
+            }
             .confirmationDialog("Se déconnecter ?", isPresented: $isConfirmingSignOut, titleVisibility: .visible) {
                 Button("Se déconnecter", role: .destructive, action: onSignOut)
+            }
+            .alert("Supprimer ton compte Better Lise ?", isPresented: $isConfirmingDeletion) {
+                Button("Supprimer", role: .destructive, action: deleteAccount)
+                Button("Annuler", role: .cancel) {}
+            } message: {
+                Text(AccountDeletionCopy.confirmation)
             }
         }
     }
 
     @ViewBuilder
     private var accountSection: some View {
-        Section("Compte") {
+        Section {
             if let username = session.username {
                 LabeledContent("Connecté en tant que", value: username)
                 Button("Se déconnecter", role: .destructive) { isConfirmingSignOut = true }
             } else {
                 Button("Se connecter avec Lise") { isLoginPresented = true }
             }
+        } header: {
+            Text("Compte")
+        } footer: {
+            if didDeleteAccount {
+                Text(AccountDeletionCopy.done)
+            }
+        }
+
+        if session.isSignedIn {
+            Section {
+                Button(role: .destructive) {
+                    deletionError = nil
+                    isConfirmingDeletion = true
+                } label: {
+                    HStack {
+                        Text("Supprimer mon compte Better Lise")
+                        if isDeleting {
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled(isDeleting)
+                .accessibilityIdentifier("deleteAccount")
+                if let deletionError {
+                    Text(deletionError).font(.caption).foregroundStyle(Theme.danger.foreground)
+                }
+            } footer: {
+                Text(AccountDeletionCopy.summary)
+            }
+        }
+    }
+
+    private func deleteAccount() {
+        isDeleting = true
+        Task {
+            do {
+                try await onDeleteAccount()
+                didDeleteAccount = true
+            } catch {
+                deletionError = "Suppression impossible : \(error.localizedDescription)"
+            }
+            isDeleting = false
         }
     }
 
@@ -105,6 +162,14 @@ struct SettingsView: View {
             }
         }
     }
+}
+
+/// Account deletion wording, shared with Android: it must be explicit that only the Better Lise
+/// wrapper is deleted, never the ENSAM Lise account.
+enum AccountDeletionCopy {
+    static let summary = "Supprime les données que Better Lise conserve sur toi : notes enregistrées, absences, succès, votes de coefficients et notifications. Ton compte Lise de l’ENSAM n’est pas supprimé."
+    static let confirmation = "Tes notes enregistrées, absences, succès, votes de coefficients et abonnements aux notifications seront définitivement effacés de Better Lise.\n\nCela ne supprime pas ton compte Lise (lise.ensam.eu) : il reste intact et tu pourras toujours te reconnecter à Better Lise plus tard."
+    static let done = "Ton compte Better Lise a été supprimé. Ton compte Lise de l’ENSAM reste inchangé."
 }
 
 extension Bundle {

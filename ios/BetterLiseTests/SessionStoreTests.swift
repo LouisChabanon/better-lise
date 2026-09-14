@@ -83,4 +83,33 @@ struct SessionStoreTests {
         #expect(session.state == .signedOut)
         #expect(store.string(for: "session.password") == nil)
     }
+
+    @Test func deleteAccountCallsTheAPIThenSignsOut() async throws {
+        store.set("t", for: "session.token")
+        store.set("2023-1234", for: "session.username")
+        store.set("pw", for: "session.password")
+        StubURLProtocol.reset([Fixtures.success(#"{"deleted":true}"#)])
+        let session = SessionStore(client: client, secureStore: store)
+
+        try await session.deleteAccount()
+
+        let request = try #require(StubURLProtocol.recordedRequests().last)
+        #expect(request.httpMethod == "DELETE")
+        #expect(request.url?.path.hasSuffix("/api/v1/me") == true)
+        #expect(session.state == .signedOut)
+        #expect(store.string(for: "session.token") == nil)
+        #expect(store.string(for: "session.password") == nil)
+    }
+
+    @Test func failedDeletionKeepsTheSession() async {
+        store.set("t", for: "session.token")
+        store.set("2023-1234", for: "session.username")
+        StubURLProtocol.reset([Fixtures.failure(500, code: "INTERNAL")])
+        let session = SessionStore(client: client, secureStore: store)
+
+        await #expect(throws: APIError.self) { try await session.deleteAccount() }
+
+        #expect(session.state == .signedIn(username: "2023-1234"))
+        #expect(store.string(for: "session.token") == "t")
+    }
 }

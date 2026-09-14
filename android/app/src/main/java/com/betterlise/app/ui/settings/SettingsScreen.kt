@@ -2,16 +2,19 @@ package com.betterlise.app.ui.settings
 
 import android.content.Intent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -52,6 +56,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, onSignIn: () -> Unit) {
     var liseId by rememberSaveable { mutableStateOf("") }
     var picker by remember { mutableStateOf<Picker?>(null) }
     var confirmSignOut by remember { mutableStateOf(false) }
+    var confirmDeletion by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(state.settings.liseId) { if (liseId.isEmpty()) liseId = state.settings.liseId }
@@ -78,6 +83,12 @@ fun SettingsScreen(viewModel: SettingsViewModel, onSignIn: () -> Unit) {
                 } else {
                     ActionRow("Se connecter avec Lise", color = MaterialTheme.colorScheme.primary, onClick = onSignIn)
                 }
+            }
+            if (state.deletion.isDone) {
+                Footnote(AccountDeletionCopy.DONE)
+            }
+            if (state.username != null) {
+                DeleteAccountSection(state.deletion, onDelete = { confirmDeletion = true })
             }
 
             Section("Identifiant Lise") {
@@ -156,6 +167,20 @@ fun SettingsScreen(viewModel: SettingsViewModel, onSignIn: () -> Unit) {
         null -> Unit
     }
 
+    if (confirmDeletion) {
+        AlertDialog(
+            onDismissRequest = { confirmDeletion = false },
+            title = { Text("Supprimer ton compte Better Lise ?") },
+            text = { Text(AccountDeletionCopy.CONFIRMATION) },
+            confirmButton = {
+                TextButton(onClick = { confirmDeletion = false; viewModel.deleteAccount() }) {
+                    Text("Supprimer", color = AppTheme.colors.danger.foreground)
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmDeletion = false }) { Text("Annuler") } },
+        )
+    }
+
     if (confirmSignOut) {
         AlertDialog(
             onDismissRequest = { confirmSignOut = false },
@@ -171,6 +196,50 @@ fun SettingsScreen(viewModel: SettingsViewModel, onSignIn: () -> Unit) {
 }
 
 private enum class Picker { Campus, Promo }
+
+/**
+ * Account deletion wording, shared with iOS: it must be explicit that only the Better Lise
+ * wrapper is deleted, never the ENSAM Lise account.
+ */
+internal object AccountDeletionCopy {
+    const val SUMMARY = "Supprime les données que Better Lise conserve sur toi : notes enregistrées, absences, succès, votes de coefficients et notifications. Ton compte Lise de l’ENSAM n’est pas supprimé."
+    const val CONFIRMATION = "Tes notes enregistrées, absences, succès, votes de coefficients et abonnements aux notifications seront définitivement effacés de Better Lise.\n\nCela ne supprime pas ton compte Lise (lise.ensam.eu) : il reste intact et tu pourras toujours te reconnecter à Better Lise plus tard."
+    const val DONE = "Ton compte Better Lise a été supprimé. Ton compte Lise de l’ENSAM reste inchangé."
+}
+
+@Composable
+private fun DeleteAccountSection(deletion: AccountDeletionState, onDelete: () -> Unit) {
+    Column {
+        SurfaceCard {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) {
+                    ActionRow(
+                        "Supprimer mon compte Better Lise",
+                        color = AppTheme.colors.danger.foreground,
+                        enabled = !deletion.isDeleting,
+                        modifier = Modifier.testTag("deleteAccount"),
+                        onClick = onDelete,
+                    )
+                }
+                if (deletion.isDeleting) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+            }
+            deletion.error?.let {
+                Text(it, color = AppTheme.colors.danger.foreground, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        Footnote(AccountDeletionCopy.SUMMARY)
+    }
+}
+
+@Composable
+private fun Footnote(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 4.dp, top = 6.dp, end = 4.dp),
+    )
+}
 
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
@@ -200,12 +269,18 @@ private fun SettingRow(label: String, value: String, onClick: (() -> Unit)? = nu
 }
 
 @Composable
-private fun ActionRow(label: String, color: androidx.compose.ui.graphics.Color, onClick: () -> Unit) {
+private fun ActionRow(
+    label: String,
+    color: androidx.compose.ui.graphics.Color,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
     Text(
         label,
-        color = color,
+        color = if (enabled) color else color.copy(alpha = 0.5f),
         style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
+        modifier = modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onClick).padding(vertical = 12.dp),
     )
 }
 

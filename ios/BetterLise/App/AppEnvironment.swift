@@ -38,6 +38,15 @@ final class AppEnvironment {
 
     func signOut() async {
         await session.signOut()
+        clearAccountData()
+    }
+
+    func deleteAccount() async throws {
+        try await session.deleteAccount()
+        clearAccountData()
+    }
+
+    private func clearAccountData() {
         cache.clear()
         grades.reset()
         absences.reset()

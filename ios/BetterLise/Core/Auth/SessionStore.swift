@@ -56,6 +56,13 @@ final class SessionStore {
         clearSession()
     }
 
+    /// Deletes the Better Lise account server-side, then forgets the session. Throws and keeps
+    /// the session when the server refuses, so the user can retry.
+    func deleteAccount() async throws {
+        _ = try await send(Endpoints.deleteAccount())
+        clearSession()
+    }
+
     /// Sends an authenticated request. On an expired session, logs in again once
     /// with the saved credentials and retries; otherwise signs the user out.
     func send<T: Decodable>(_ endpoint: Endpoint<T>) async throws -> T {
