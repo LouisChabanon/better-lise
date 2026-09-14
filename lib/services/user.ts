@@ -56,6 +56,39 @@ export async function updateProfile(
 	}
 }
 
+/**
+ * Deletes the Better Lise account: the user row and everything stored for it
+ * (grades, absences, achievements, coefficient votes, push subscriptions).
+ * The Lise account itself lives at the ENSAM and is never touched; signing in
+ * again simply creates a fresh Better Lise account.
+ */
+export async function deleteAccount(
+	username: string
+): Promise<ServiceResult<{ deleted: true }>> {
+	const user = await prisma.user.findUnique({ where: { username }, select: { id: true } });
+	if (!user) return failure("NOT_FOUND", "User not found");
+
+	const owned = { where: { userId: user.id } };
+	try {
+		await prisma.$transaction([
+			prisma.grade.deleteMany(owned),
+			prisma.absence.deleteMany(owned),
+			prisma.achievement.deleteMany(owned),
+			prisma.gradeWeightVote.deleteMany(owned),
+			prisma.pushSubscription.deleteMany(owned),
+			prisma.user.delete({ where: { id: user.id } }),
+		]);
+		logger.info("Better Lise account deleted", { userId: user.id });
+		return success({ deleted: true });
+	} catch (error) {
+		logger.error("Failed to delete Better Lise account", {
+			userId: user.id,
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return failure("INTERNAL", "Database Error");
+	}
+}
+
 /** Marks one grade (by code) or all of the user's grades as opened. */
 export async function markGradesOpened(
 	username: string,

@@ -3,7 +3,12 @@ import * as cheerio from "cheerio";
 import { GRADES_TABLE_HTML, ABSENCES_PAGE_HTML } from "./fixtures/lise-html";
 
 const prismaMock = vi.hoisted(() => ({
-	user: { findUnique: vi.fn(), upsert: vi.fn(), update: vi.fn() },
+	$transaction: vi.fn(),
+	user: { findUnique: vi.fn(), upsert: vi.fn(), update: vi.fn(), delete: vi.fn() },
+	absence: { deleteMany: vi.fn() },
+	achievement: { deleteMany: vi.fn() },
+	gradeWeightVote: { deleteMany: vi.fn() },
+	pushSubscription: { deleteMany: vi.fn() },
 	grade: {
 		findMany: vi.fn(),
 		findFirst: vi.fn(),
@@ -32,7 +37,13 @@ vi.mock("@/lib/services/lise-session", async (importOriginal) => ({
 import { authenticate, computeStreak, logoutFromLise } from "@/lib/services/auth";
 import { diffGrades, syncGrades } from "@/lib/services/grades";
 import { fetchAbsences } from "@/lib/services/absences";
-import { getProfile, markGradeNew, markGradesOpened, updateProfile } from "@/lib/services/user";
+import {
+	deleteAccount,
+	getProfile,
+	markGradeNew,
+	markGradesOpened,
+	updateProfile,
+} from "@/lib/services/user";
 import { getAgenda } from "@/lib/services/agenda";
 import { failure, success } from "@/lib/services/result";
 
@@ -292,6 +303,44 @@ describe("user service", () => {
 
 		prismaMock.user.findUnique.mockResolvedValue(null);
 		expect(await markGradeNew("u", "CODE")).toMatchObject({ code: "NOT_FOUND" });
+	});
+});
+
+describe("deleteAccount", () => {
+	beforeEach(() => {
+		prismaMock.$transaction.mockImplementation((operations: Promise<unknown>[]) =>
+			Promise.all(operations)
+		);
+		for (const model of ["grade", "absence", "achievement", "gradeWeightVote", "pushSubscription"] as const) {
+			prismaMock[model].deleteMany.mockResolvedValue({ count: 2 });
+		}
+		prismaMock.user.delete.mockResolvedValue({ id: 3 });
+	});
+
+	it("removes the user and every row they own in one transaction", async () => {
+		prismaMock.user.findUnique.mockResolvedValue({ id: 3 });
+
+		expect(await deleteAccount("2023-1234")).toEqual(success({ deleted: true }));
+
+		expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+		for (const model of ["grade", "absence", "achievement", "gradeWeightVote", "pushSubscription"] as const) {
+			expect(prismaMock[model].deleteMany).toHaveBeenCalledWith({ where: { userId: 3 } });
+		}
+		expect(prismaMock.user.delete).toHaveBeenCalledWith({ where: { id: 3 } });
+	});
+
+	it("reports a missing user without touching the database", async () => {
+		prismaMock.user.findUnique.mockResolvedValue(null);
+
+		expect(await deleteAccount("2023-1234")).toMatchObject({ code: "NOT_FOUND" });
+		expect(prismaMock.$transaction).not.toHaveBeenCalled();
+	});
+
+	it("returns an internal error when the transaction fails", async () => {
+		prismaMock.user.findUnique.mockResolvedValue({ id: 3 });
+		prismaMock.$transaction.mockRejectedValue(new Error("db"));
+
+		expect(await deleteAccount("2023-1234")).toMatchObject({ code: "INTERNAL" });
 	});
 });
 

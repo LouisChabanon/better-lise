@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
 	updateProfile: vi.fn(),
 	markGradesOpened: vi.fn(),
 	markGradeNew: vi.fn(),
+	deleteAccount: vi.fn(),
 	getAgenda: vi.fn(),
 	gradeDetails: vi.fn(),
 	liseHealth: vi.fn(),
@@ -28,6 +29,7 @@ vi.mock("@/lib/services/user", async (importOriginal) => ({
 	updateProfile: mocks.updateProfile,
 	markGradesOpened: mocks.markGradesOpened,
 	markGradeNew: mocks.markGradeNew,
+	deleteAccount: mocks.deleteAccount,
 }));
 vi.mock("@/lib/db", () => ({ default: {} }));
 vi.mock("@/actions/GetGradeDetails", () => ({ default: mocks.gradeDetails }));
@@ -35,7 +37,7 @@ vi.mock("@/actions/GetLiseHealth", () => ({ getLiseHealth: mocks.liseHealth }));
 
 import { POST as login } from "@/app/api/v1/auth/login/route";
 import { POST as logout } from "@/app/api/v1/auth/logout/route";
-import { GET as getMe, PATCH as patchMe } from "@/app/api/v1/me/route";
+import { DELETE as deleteMe, GET as getMe, PATCH as patchMe } from "@/app/api/v1/me/route";
 import { GET as getGrades } from "@/app/api/v1/grades/route";
 import { GET as getStats } from "@/app/api/v1/grades/[code]/stats/route";
 import { POST as openGrade } from "@/app/api/v1/grades/[code]/opened/route";
@@ -215,6 +217,33 @@ describe("authenticated routes", () => {
 
 		const invalid = await patchMe(req("/me", { method: "PATCH", body: { tbk: "Paris" } }), noParams);
 		expect(invalid.status).toBe(400);
+	});
+
+	it("DELETE /me removes the Better Lise account and closes the Lise session", async () => {
+		mocks.deleteAccount.mockResolvedValue(success({ deleted: true }));
+		mocks.logoutFromLise.mockResolvedValue(true);
+
+		const res = await deleteMe(req("/me", { method: "DELETE" }), noParams);
+
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({ success: true, data: { deleted: true } });
+		expect(mocks.deleteAccount).toHaveBeenCalledWith("2023-1234");
+		expect(mocks.logoutFromLise).toHaveBeenCalledWith("JSID");
+	});
+
+	it("DELETE /me keeps the Lise session when the deletion fails", async () => {
+		mocks.deleteAccount.mockResolvedValue(failure("INTERNAL", "Database Error"));
+
+		const res = await deleteMe(req("/me", { method: "DELETE" }), noParams);
+
+		expect(res.status).toBe(500);
+		expect(mocks.logoutFromLise).not.toHaveBeenCalled();
+	});
+
+	it("DELETE /me requires a session", async () => {
+		const res = await deleteMe(req("/me", { method: "DELETE", auth: false }), noParams);
+		expect(res.status).toBe(401);
+		expect(mocks.deleteAccount).not.toHaveBeenCalled();
 	});
 });
 
