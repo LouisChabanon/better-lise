@@ -1,11 +1,12 @@
 package com.betterlise.app
 
-import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -25,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
@@ -35,7 +37,7 @@ import org.robolectric.annotation.Config
 import java.io.File
 import java.time.LocalDate
 
-/** JVM UI tests (Robolectric): swiping keeps the day pager and the week strip in sync. */
+/** JVM UI tests (Robolectric): the agenda shows whole weeks and swipes between them. */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [35])
 class AgendaSwipeUiTest {
@@ -58,54 +60,47 @@ class AgendaSwipeUiTest {
             today = { LocalDate.of(2025, 3, 12) },
         )
         compose.setContent { BetterLiseTheme { AgendaScreen(model) } }
-        compose.waitUntil(5_000) { selectedChips().isNotEmpty() }
+        compose.waitUntil(5_000) { visibleHeaders().size == 5 }
     }
 
-    private fun selectedChips() = compose.onAllNodes(hasTestTag("dayChip") and isSelected()).fetchSemanticsNodes()
-
-    private fun selectedLabel(): String {
+    private fun settledHeaders(): List<String> {
         compose.waitForIdle()
-        val node = compose.onNode(hasTestTag("dayChip") and isSelected())
-        node.assertIsDisplayed()
-        return node.fetchSemanticsNode().config[SemanticsProperties.ContentDescription].first()
+        return visibleHeaders()
+    }
+
+    /** Day numbers of the headers on screen, i.e. the week currently shown. */
+    private fun visibleHeaders(): List<String> {
+        val width = compose.onRoot().fetchSemanticsNode().boundsInRoot.right
+        return compose.onAllNodes(hasTestTag("dayHeader")).fetchSemanticsNodes()
+            // Pages kept around the visible one report empty bounds
+            .filter { it.boundsInRoot.width > 0f && it.boundsInRoot.left >= -0.5f && it.boundsInRoot.right <= width + 0.5f }
+            .map { it.config[SemanticsProperties.ContentDescription].first() }
     }
 
     @Test
-    fun swipingDaysAcrossWeeksKeepsTheHighlightedCardVisible() {
-        var label = selectedLabel() // mercredi 12 mars
-
-        repeat(6) {
-            compose.onNodeWithTag("dayPager").performTouchInput { swipeLeft() }
-            val next = selectedLabel()
-            assertNotEquals(label, next)
-            label = next
-        }
-        repeat(2) {
-            compose.onNodeWithTag("dayPager").performTouchInput { swipeRight() }
-            val next = selectedLabel()
-            assertNotEquals(label, next)
-            label = next
-        }
+    fun opensOnTheWholeCurrentWeekWithTodayHighlighted() {
+        assertEquals(
+            listOf("lundi 10 mars 2025", "mardi 11 mars 2025", "mercredi 12 mars 2025", "jeudi 13 mars 2025", "vendredi 14 mars 2025"),
+            settledHeaders(),
+        )
+        compose.onNode(hasTestTag("dayHeader") and isSelected()).assertIsDisplayed()
+        compose.onNodeWithText("Aujourd'hui").assertDoesNotExist()
     }
 
     @Test
-    fun swipingTheWeekStripMovesTheCalendar() {
-        val initial = selectedLabel()
+    fun swipingChangesTheWeekAndTodayBringsItBack() {
+        val initial = settledHeaders()
 
-        compose.onNodeWithTag("weekStrip").performTouchInput { swipeLeft() }
+        compose.onNodeWithTag("weekPager").performTouchInput { swipeLeft() }
+        val next = settledHeaders()
+        assertEquals("lundi 17 mars 2025", next.first())
 
-        assertNotEquals(initial, selectedLabel())
-    }
+        compose.onNodeWithTag("weekPager").performTouchInput { swipeRight() }
+        compose.onNodeWithTag("weekPager").performTouchInput { swipeRight() }
+        assertEquals("lundi 3 mars 2025", settledHeaders().first())
 
-    @Test
-    fun tappingADayCardSelectsIt() {
-        val initial = selectedLabel()
-        val other = compose.onAllNodes(hasTestTag("dayChip") and SemanticsMatcher.expectValue(SemanticsProperties.Selected, false))
-            .fetchSemanticsNodes()
-            .first { it.boundsInRoot.left >= 0 }
-
-        compose.onNode(SemanticsMatcher("same node") { it.id == other.id }).performClick()
-
-        assertNotEquals(initial, selectedLabel())
+        compose.onNodeWithText("Aujourd'hui").performClick()
+        compose.waitUntil(5_000) { visibleHeaders() == initial }
+        assertNotEquals(next, settledHeaders())
     }
 }

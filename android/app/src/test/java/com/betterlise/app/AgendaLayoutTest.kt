@@ -4,6 +4,7 @@ import com.betterlise.app.data.api.CalendarEvent
 import com.betterlise.app.domain.AgendaLayout
 import com.betterlise.app.domain.PARIS
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
@@ -84,5 +85,29 @@ class AgendaLayoutTest {
         // 23:30 Paris on the 10th is still the 10th even though it is 22:30 UTC
         val events = listOf(event("Late", at(10, 23, 30), at(10, 23, 45)), event("Tue", at(11, 8), at(11, 9)))
         assertEquals(listOf("Late"), AgendaLayout.eventsOn(LocalDate.of(2025, 3, 10), events).map { it.title })
+    }
+
+    @Test
+    fun `event is past only once it has ended`() {
+        val course = event("Méca", at(10, 8), at(10, 10))
+        assertFalse(AgendaLayout.isPast(course, now = at(10, 7)))
+        assertFalse(AgendaLayout.isPast(course, now = at(10, 9, 59)))
+        assertTrue(AgendaLayout.isPast(course, now = at(10, 10)))
+        assertTrue(AgendaLayout.isPast(course, now = at(11, 8)))
+    }
+
+    @Test
+    fun `short time uses the hour label style`() {
+        assertEquals("8h", AgendaLayout.shortTime(at(10, 8)))
+        assertEquals("13h30", AgendaLayout.shortTime(at(10, 13, 30)))
+        assertEquals("9h05", AgendaLayout.shortTime(at(10, 9, 5)))
+    }
+
+    @Test
+    fun `hour labels near the current time give way`() {
+        assertTrue(AgendaLayout.isHourLabelNearNow(21, at(10, 20, 47)))
+        assertTrue(AgendaLayout.isHourLabelNearNow(10, at(10, 10, 14)))
+        assertFalse(AgendaLayout.isHourLabelNearNow(10, at(10, 10, 15)))
+        assertFalse(AgendaLayout.isHourLabelNearNow(21, at(10, 20, 45)))
     }
 }

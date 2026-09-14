@@ -82,4 +82,25 @@ struct AgendaLayoutTests {
         let events = [event("Mon", date(10, 8), date(10, 9)), event("Tue", date(11, 8), date(11, 9))]
         #expect(AgendaLayout.events(on: date(11, 0), from: events).map(\.title) == ["Tue"])
     }
+
+    @Test func eventIsPastOnlyOnceItHasEnded() {
+        let course = event("Méca", date(10, 8), date(10, 10))
+        #expect(!AgendaLayout.isPast(course, now: date(10, 7)))
+        #expect(!AgendaLayout.isPast(course, now: date(10, 9, 59)))
+        #expect(AgendaLayout.isPast(course, now: date(10, 10)))
+        #expect(AgendaLayout.isPast(course, now: date(11, 8)))
+    }
+
+    @Test func shortTimeUsesTheHourLabelStyle() {
+        #expect(AgendaLayout.shortTime(date(10, 8)) == "8h")
+        #expect(AgendaLayout.shortTime(date(10, 13, 30)) == "13h30")
+        #expect(AgendaLayout.shortTime(date(10, 9, 5)) == "9h05")
+    }
+
+    @Test func hourLabelsNearTheCurrentTimeGiveWay() {
+        #expect(AgendaLayout.isHourLabelNearNow(21, now: date(10, 20, 47)))
+        #expect(AgendaLayout.isHourLabelNearNow(10, now: date(10, 10, 14)))
+        #expect(!AgendaLayout.isHourLabelNearNow(10, now: date(10, 10, 15)))
+        #expect(!AgendaLayout.isHourLabelNearNow(21, now: date(10, 20, 45)))
+    }
 }

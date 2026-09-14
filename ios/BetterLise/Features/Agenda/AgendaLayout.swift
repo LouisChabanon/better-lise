@@ -76,6 +76,25 @@ enum AgendaLayout {
             .mapValues { $0.sorted { $0.startDate < $1.startDate } }
     }
 
+    /// An event is past once it has ended; the week view dims those.
+    static func isPast(_ event: CalendarEvent, now: Date) -> Bool {
+        event.endDate <= now
+    }
+
+    /// Whether the hour label of `hour` would collide with the current time shown in the gutter.
+    static func isHourLabelNearNow(_ hour: Int, now: Date, calendar: Calendar = .paris) -> Bool {
+        let components = calendar.dateComponents([.hour, .minute], from: now)
+        let minutes = (components.hour ?? 0) * 60 + (components.minute ?? 0)
+        return abs(minutes - hour * 60) < 15
+    }
+
+    /// Paris time in the style of the hour gutter: "8h", "13h30".
+    static func shortTime(_ date: Date, calendar: Calendar = .paris) -> String {
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        let minute = components.minute ?? 0
+        return "\(components.hour ?? 0)h" + (minute == 0 ? "" : String(format: "%02d", minute))
+    }
+
     static func events(on day: Date, from events: [CalendarEvent], calendar: Calendar = .paris) -> [CalendarEvent] {
         events.filter { calendar.isDate($0.startDate, inSameDayAs: day) }
     }

@@ -65,81 +65,66 @@ class AgendaViewModelTest {
     private val state get() = model.state.value
 
     @Test
-    fun `opens on today and its week`() {
-        assertEquals(state.todayIndex, state.selectedIndex)
-        assertEquals(state.todayIndex / 5, state.visibleWeek)
-        assertEquals(wednesday, state.selectedDay)
-        assertTrue(state.isShowingToday)
-        assertNull(state.pagerRequest)
-        assertNull(state.stripRequest)
-    }
-
-    @Test
-    fun `swiping within the week only moves the highlight`() {
-        model.pagerDidScroll(state.todayIndex + 1)
-
-        assertEquals(state.todayIndex + 1, state.selectedIndex)
-        assertEquals(state.todayIndex / 5, state.visibleWeek)
-        assertNull(state.stripRequest)
+    fun `opens on the current week`() {
+        assertEquals(state.todayIndex / 5, state.currentWeek)
+        assertEquals(state.currentWeek, state.visibleWeek)
+        assertEquals(LocalDate.of(2025, 3, 10), state.visibleWeekStart)
+        assertTrue(state.isShowingCurrentWeek)
         assertNull(state.pagerRequest)
     }
 
     @Test
-    fun `swiping past friday asks the week strip to follow`() {
-        model.pagerDidScroll(state.todayIndex + 3)
+    fun `swiping changes the visible week`() {
+        model.pagerDidScroll(state.currentWeek + 1)
 
-        assertEquals(state.todayIndex / 5 + 1, state.visibleWeek)
-        assertEquals(state.todayIndex / 5 + 1, state.stripRequest?.target)
+        assertEquals(state.currentWeek + 1, state.visibleWeek)
+        assertEquals(LocalDate.of(2025, 3, 17), state.visibleWeekStart)
+        assertEquals(DayOfWeek.MONDAY, state.visibleWeekStart.dayOfWeek)
+        assertFalse(state.isShowingCurrentWeek)
         assertNull(state.pagerRequest)
-        assertEquals(DayOfWeek.MONDAY, state.selectedDay.dayOfWeek)
-        assertFalse(state.isShowingToday)
     }
 
     @Test
-    fun `swiping the week strip keeps the weekday and moves the pager`() {
-        model.stripDidScroll(state.visibleWeek - 1)
+    fun `reports for the week already shown or out of range are ignored`() {
+        model.pagerDidScroll(state.currentWeek + 1)
 
-        assertEquals(state.todayIndex - 5, state.selectedIndex)
-        assertEquals(state.todayIndex - 5, state.pagerRequest?.target)
-        assertNull(state.stripRequest)
-        assertEquals(DayOfWeek.WEDNESDAY, state.selectedDay.dayOfWeek)
-    }
+        model.pagerDidScroll(state.visibleWeek)
+        model.pagerDidScroll(-1)
+        model.pagerDidScroll(state.weekCount)
 
-    @Test
-    fun `reports matching the current position are ignored`() {
-        model.pagerDidScroll(state.todayIndex + 3)
-        val request = state.stripRequest
-
-        model.stripDidScroll(state.visibleWeek)
-
-        assertEquals(request, state.stripRequest)
+        assertEquals(state.currentWeek + 1, state.visibleWeek)
         assertNull(state.pagerRequest)
-        assertEquals(state.todayIndex + 3, state.selectedIndex)
     }
 
     @Test
-    fun `tapping a day and going back to today move both pagers when needed`() {
-        model.select(state.todayIndex - 2)
-        assertEquals(state.todayIndex - 2, state.pagerRequest?.target)
-        assertNull(state.stripRequest)
+    fun `going back to today scrolls to the current week`() {
+        model.pagerDidScroll(0)
 
         model.goToToday()
-        assertEquals(state.todayIndex, state.selectedIndex)
-        assertEquals(state.todayIndex, state.pagerRequest?.target)
 
-        model.select(0)
-        assertEquals(0, state.visibleWeek)
-        assertEquals(0, state.stripRequest?.target)
+        assertEquals(state.currentWeek, state.visibleWeek)
+        assertEquals(state.currentWeek, state.pagerRequest?.target)
+        assertTrue(state.isShowingCurrentWeek)
     }
 
     @Test
     fun `repeated requests to the same target are distinct`() {
-        model.select(state.todayIndex + 1)
+        model.pagerDidScroll(0)
+        model.goToToday()
         val first = state.pagerRequest
-        model.pagerDidScroll(state.todayIndex)
-        model.select(state.todayIndex + 1)
+        model.pagerDidScroll(1)
+        model.goToToday()
 
         assertEquals(first?.target, state.pagerRequest?.target)
         assertNotEquals(first, state.pagerRequest)
+    }
+
+    @Test
+    fun `weeks expose their five school days`() {
+        val days = state.indicesInWeek(state.currentWeek).map { state.days[it] }
+
+        assertEquals(5, days.size)
+        assertTrue(wednesday in days)
+        assertFalse(state.hasAllDayEvents(state.currentWeek))
     }
 }

@@ -30,21 +30,21 @@ data class AgendaUiState(
     val events: Loadable<List<CalendarEvent>> = Loadable.Idle,
     val eventsByDay: Map<LocalDate, List<CalendarEvent>> = emptyMap(),
     val days: List<LocalDate>,
+    val today: LocalDate,
     val todayIndex: Int,
-    val selectedIndex: Int = todayIndex,
     val visibleWeek: Int = todayIndex / 5,
-    /** Programmatic scroll the day pager must perform. */
+    /** Programmatic scroll the week pager must perform ("Aujourd'hui"). */
     val pagerRequest: ScrollRequest? = null,
-    /** Programmatic scroll the week strip must perform. */
-    val stripRequest: ScrollRequest? = null,
 ) {
-    val selectedDay: LocalDate get() = days[selectedIndex]
     val weekCount: Int get() = days.size / 5
-    val isShowingToday: Boolean get() = selectedIndex == todayIndex
+    /** Week of today, or the upcoming one on weekends. */
+    val currentWeek: Int get() = todayIndex / 5
+    val isShowingCurrentWeek: Boolean get() = visibleWeek == currentWeek
     val visibleWeekStart: LocalDate get() = days[(visibleWeek * 5).coerceAtMost(days.lastIndex)]
 
     fun eventsOn(day: LocalDate): List<CalendarEvent> = eventsByDay[day].orEmpty()
     fun indicesInWeek(week: Int): IntRange = (week * 5) until minOf(week * 5 + 5, days.size)
+    fun hasAllDayEvents(week: Int): Boolean = indicesInWeek(week).any { index -> eventsOn(days[index]).any { it.isAllDay } }
 }
 
 class AgendaViewModel(
@@ -59,8 +59,9 @@ class AgendaViewModel(
     private var requestCounter = 0L
 
     init {
-        val days = AgendaLayout.schoolDays(today(), WEEKS_AROUND, WEEKS_AROUND)
-        _state = MutableStateFlow(AgendaUiState(days = days, todayIndex = AgendaLayout.initialIndex(days, today())))
+        val now = today()
+        val days = AgendaLayout.schoolDays(now, WEEKS_AROUND, WEEKS_AROUND)
+        _state = MutableStateFlow(AgendaUiState(days = days, today = now, todayIndex = AgendaLayout.initialIndex(days, now)))
         state = _state.asStateFlow()
 
         viewModelScope.launch {
@@ -75,39 +76,14 @@ class AgendaViewModel(
         }
     }
 
-    // Scroll coordination: each pager reports user scrolls; the other one gets an explicit request.
-
-    /** The user swiped the day pager. */
-    fun pagerDidScroll(index: Int) = _state.update { current ->
-        if (index !in current.days.indices || index == current.selectedIndex) return@update current
-        val week = index / 5
-        if (week == current.visibleWeek) {
-            current.copy(selectedIndex = index)
-        } else {
-            current.copy(selectedIndex = index, visibleWeek = week, stripRequest = nextRequest(week))
-        }
+    /** The user swiped the week pager. */
+    fun pagerDidScroll(week: Int) = _state.update { current ->
+        if (week !in 0 until current.weekCount || week == current.visibleWeek) current else current.copy(visibleWeek = week)
     }
 
-    /** The user swiped the week strip: keep the same weekday in the new week. */
-    fun stripDidScroll(week: Int) = _state.update { current ->
-        if (week !in 0 until current.weekCount || week == current.visibleWeek) return@update current
-        val index = (week * 5 + current.selectedIndex % 5).coerceAtMost(current.days.lastIndex)
-        current.copy(visibleWeek = week, selectedIndex = index, pagerRequest = nextRequest(index))
+    fun goToToday() = _state.update { current ->
+        current.copy(visibleWeek = current.currentWeek, pagerRequest = nextRequest(current.currentWeek))
     }
-
-    /** A day card was tapped (or "Aujourd'hui"): both pagers follow. */
-    fun select(index: Int) = _state.update { current ->
-        if (index !in current.days.indices) return@update current
-        val week = index / 5
-        current.copy(
-            selectedIndex = index,
-            pagerRequest = nextRequest(index),
-            visibleWeek = week,
-            stripRequest = if (week != current.visibleWeek) nextRequest(week) else current.stripRequest,
-        )
-    }
-
-    fun goToToday() = select(_state.value.todayIndex)
 
     private fun nextRequest(target: Int) = ScrollRequest(target, ++requestCounter)
 

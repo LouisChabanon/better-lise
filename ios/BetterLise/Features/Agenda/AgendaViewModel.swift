@@ -11,17 +11,14 @@ final class AgendaViewModel {
     private(set) var eventsByDay: [Date: [CalendarEvent]] = [:]
 
     let days: [Date]
+    let today: Date
     let todayIndex: Int
 
-    /// Day shown by the pager.
-    private(set) var selectedIndex: Int
-    /// Week shown by the strip.
+    /// Week shown by the pager.
     private(set) var visibleWeek: Int
 
-    /// Programmatic scroll the pager must perform (the other scroll view or a tap moved the selection).
+    /// Programmatic scroll the pager must perform ("Aujourd'hui").
     private(set) var pagerRequest: ScrollRequest?
-    /// Programmatic scroll the week strip must perform (the pager crossed into another week).
-    private(set) var stripRequest: ScrollRequest?
 
     private let session: SessionStore
     private let settings: SettingsStore
@@ -31,61 +28,29 @@ final class AgendaViewModel {
         self.session = session
         self.settings = settings
         self.cache = cache
-        let today = now()
+        today = now()
         days = AgendaLayout.schoolDays(around: today, weeksBefore: Self.weeksAround, weeksAfter: Self.weeksAround)
         todayIndex = AgendaLayout.initialIndex(in: days, today: today)
-        selectedIndex = todayIndex
         visibleWeek = todayIndex / 5
     }
 
-    var selectedDay: Date { days[selectedIndex] }
     var weekCount: Int { days.count / 5 }
-    var isShowingToday: Bool { selectedIndex == todayIndex }
+    /// Week of today, or the upcoming one on weekends.
+    var currentWeek: Int { todayIndex / 5 }
+    var isShowingCurrentWeek: Bool { visibleWeek == currentWeek }
 
-    /// Monday of the week currently shown in the strip, used for the title.
+    /// Monday of the week currently shown, used for the title.
     var visibleWeekStart: Date { days[min(visibleWeek * 5, days.count - 1)] }
 
-    // MARK: Scroll coordination
-    //
-    // SwiftUI ignores `scrollPosition` changes made while another scroll view is being dragged, so
-    // user scrolls are reported here and the other scroll view receives an explicit request.
-
-    /// The user swiped the day pager.
-    func pagerDidScroll(to index: Int) {
-        guard days.indices.contains(index), index != selectedIndex else { return }
-        selectedIndex = index
-        let week = index / 5
-        if week != visibleWeek {
-            visibleWeek = week
-            stripRequest = ScrollRequest(target: week)
-        }
-    }
-
-    /// The user swiped the week strip: keep the same weekday in the new week.
-    func stripDidScroll(to week: Int) {
+    /// The user swiped the pager.
+    func pagerDidScroll(toWeek week: Int) {
         guard (0..<weekCount).contains(week), week != visibleWeek else { return }
         visibleWeek = week
-        let index = min(week * 5 + selectedIndex % 5, days.count - 1)
-        if index != selectedIndex {
-            selectedIndex = index
-            pagerRequest = ScrollRequest(target: index)
-        }
-    }
-
-    /// A day card was tapped (or "Aujourd'hui"): both scroll views follow.
-    func select(_ index: Int) {
-        guard days.indices.contains(index) else { return }
-        selectedIndex = index
-        pagerRequest = ScrollRequest(target: index)
-        let week = index / 5
-        if week != visibleWeek {
-            visibleWeek = week
-            stripRequest = ScrollRequest(target: week)
-        }
     }
 
     func goToToday() {
-        select(todayIndex)
+        visibleWeek = currentWeek
+        pagerRequest = ScrollRequest(target: currentWeek)
     }
 
     func days(inWeek week: Int) -> ArraySlice<Date> {
@@ -95,6 +60,10 @@ final class AgendaViewModel {
 
     func events(on day: Date) -> [CalendarEvent] {
         eventsByDay[Calendar.paris.startOfDay(for: day)] ?? []
+    }
+
+    func hasAllDayEvents(inWeek week: Int) -> Bool {
+        days(inWeek: week).contains { day in events(on: day).contains(where: \.isAllDay) }
     }
 
     private var cacheKey: String { "agenda-\(settings.liseId)-\(settings.campus.rawValue)-\(settings.showRU)" }
