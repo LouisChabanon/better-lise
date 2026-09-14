@@ -16,11 +16,11 @@ enum ReelMotion: Equatable {
     case landed(RollRequest)
 }
 
-/// The lootbox reel. The strip is a static SwiftUI row moved by a Core Animation animation, so the roll
+/// The reveal reel. The strip is a static SwiftUI row moved by a Core Animation animation, so the roll
 /// runs on the render server at up to 120 Hz whatever the main thread is doing (sounds, haptics, SwiftUI).
 struct ReelView: UIViewRepresentable {
-    let items: [LootItem]
-    let highlightsWinner: Bool
+    let items: [RevealItem]
+    let highlightsTarget: Bool
     let motion: ReelMotion
     /// Throttled tick for sound (haptics are handled internally).
     let onSoundTick: () -> Void
@@ -34,7 +34,7 @@ struct ReelView: UIViewRepresentable {
     func updateUIView(_ view: ReelContainerView, context: Context) {
         view.onSoundTick = onSoundTick
         view.onFinish = onFinish
-        view.setHighlightsWinner(highlightsWinner)
+        view.setHighlightsTarget(highlightsTarget)
         view.apply(motion)
     }
 
@@ -47,9 +47,9 @@ final class ReelContainerView: UIView {
     var onSoundTick: () -> Void = {}
     var onFinish: () -> Void = {}
 
-    private let items: [LootItem]
+    private let items: [RevealItem]
     private let host: UIHostingController<ReelRow>
-    private var highlightsWinner = false
+    private var highlightsTarget = false
     private var pendingMotion: ReelMotion = .idle
     private var handledRollID: UUID?
 
@@ -68,11 +68,11 @@ final class ReelContainerView: UIView {
     /// Plain view carrying the roll transform. The hosting view lives inside it: SwiftUI resets its own
     /// view's transform when the row re-renders (e.g. winner highlight), which snapped the reel back to 0.
     private let strip = UIView()
-    private var stripWidth: CGFloat { LootBox.itemWidth * CGFloat(items.count) }
+    private var stripWidth: CGFloat { GradeReveal.itemWidth * CGFloat(items.count) }
 
-    init(items: [LootItem]) {
+    init(items: [RevealItem]) {
         self.items = items
-        host = UIHostingController(rootView: ReelRow(items: items, highlightsWinner: false))
+        host = UIHostingController(rootView: ReelRow(items: items, highlightsTarget: false))
         super.init(frame: .zero)
         clipsToBounds = true
         isUserInteractionEnabled = false
@@ -86,7 +86,7 @@ final class ReelContainerView: UIView {
         // tell a running roll from a landed one (element frames only reflect the final model position)
         isAccessibilityElement = true
         accessibilityIdentifier = "reel"
-        accessibilityLabel = "Caisse"
+        accessibilityLabel = "Défilement des notes"
     }
 
     required init?(coder: NSCoder) { nil }
@@ -100,10 +100,10 @@ final class ReelContainerView: UIView {
         applyPendingMotionIfPossible()
     }
 
-    func setHighlightsWinner(_ value: Bool) {
-        guard value != highlightsWinner else { return }
-        highlightsWinner = value
-        host.rootView = ReelRow(items: items, highlightsWinner: value)
+    func setHighlightsTarget(_ value: Bool) {
+        guard value != highlightsTarget else { return }
+        highlightsTarget = value
+        host.rootView = ReelRow(items: items, highlightsTarget: value)
     }
 
     func apply(_ motion: ReelMotion) {
@@ -138,7 +138,7 @@ final class ReelContainerView: UIView {
             startRoll(roll)
         case .landed(let roll):
             handledRollID = roll.id
-            let stop = LootBox.stopOffset(containerWidth: bounds.width, jitterUnit: roll.jitterUnit)
+            let stop = GradeReveal.stopOffset(containerWidth: bounds.width, jitterUnit: roll.jitterUnit)
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             strip.layer.setValue(stop, forKeyPath: "transform.translation.x")
@@ -148,15 +148,15 @@ final class ReelContainerView: UIView {
     }
 
     private func markLanded() {
-        accessibilityValue = "Arrêtée sur \(items[LootBox.winningIndex].label)"
+        accessibilityValue = "Arrêtée sur \(items[GradeReveal.targetIndex].label)"
     }
 
     private func startRoll(_ roll: RollRequest) {
         rollStartCount += 1
-        accessibilityValue = "Ouverture en cours"
-        let stop = LootBox.stopOffset(containerWidth: bounds.width, jitterUnit: roll.jitterUnit)
+        accessibilityValue = "Défilement en cours"
+        let stop = GradeReveal.stopOffset(containerWidth: bounds.width, jitterUnit: roll.jitterUnit)
         haptics.prepare()
-        lastIndex = LootBox.centeredIndex(offset: 0, containerWidth: bounds.width)
+        lastIndex = GradeReveal.centeredIndex(offset: 0, containerWidth: bounds.width)
 
         CATransaction.begin()
         CATransaction.setCompletionBlock { [weak self] in
@@ -169,7 +169,7 @@ final class ReelContainerView: UIView {
         animation.fromValue = 0
         animation.toValue = stop
         animation.duration = roll.duration
-        animation.timingFunction = LootBox.timingFunction
+        animation.timingFunction = GradeReveal.timingFunction
         animation.preferredFrameRateRange = CAFrameRateRange(minimum: 80, maximum: 120, preferred: 120)
         // Model value first, so the strip stays exactly where the animation lands
         strip.layer.setValue(stop, forKeyPath: "transform.translation.x")
@@ -190,7 +190,7 @@ final class ReelContainerView: UIView {
     /// Reads what is actually on screen, so ticks line up with the visuals.
     fileprivate func step(_ link: CADisplayLink) {
         guard let offset = strip.layer.presentation()?.value(forKeyPath: "transform.translation.x") as? CGFloat else { return }
-        let index = LootBox.centeredIndex(offset: offset, containerWidth: bounds.width)
+        let index = GradeReveal.centeredIndex(offset: offset, containerWidth: bounds.width)
         guard index != lastIndex else { return }
         lastIndex = index
 
@@ -223,34 +223,34 @@ private final class DisplayLinkProxy: NSObject {
 
 /// The static row of grades rendered once into the moving layer.
 struct ReelRow: View {
-    let items: [LootItem]
-    let highlightsWinner: Bool
+    let items: [RevealItem]
+    let highlightsTarget: Bool
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(items) { item in
-                ReelItem(item: item, isWinner: highlightsWinner && item.id == LootBox.winningIndex)
+                ReelItem(item: item, isTarget: highlightsTarget && item.id == GradeReveal.targetIndex)
             }
         }
     }
 }
 
 private struct ReelItem: View {
-    let item: LootItem
-    let isWinner: Bool
+    let item: RevealItem
+    let isTarget: Bool
 
     var body: some View {
         let color = item.rarity.color
         let tile = Text(item.label)
             .font(.system(size: 26, weight: .heavy, design: .rounded).monospacedDigit())
             .foregroundStyle(.white)
-            .frame(width: LootBox.itemWidth)
+            .frame(width: GradeReveal.itemWidth)
             .frame(maxHeight: .infinity)
             .background(color)
             .overlay(alignment: .trailing) { Color.black.opacity(0.25).frame(width: 2) }
-            .accessibilityHidden(!isWinner)
+            .accessibilityHidden(!isTarget)
 
-        if isWinner {
+        if isTarget {
             tile
                 .overlay { Rectangle().strokeBorder(.white.opacity(0.85), lineWidth: 3) }
                 .scaleEffect(1.06)

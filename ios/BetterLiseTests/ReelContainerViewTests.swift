@@ -5,7 +5,7 @@ import UIKit
 @MainActor
 struct ReelContainerViewTests {
     private func makeView() -> ReelContainerView {
-        let view = ReelContainerView(items: LootBox.makeReel(winning: 18.5) { 0.3 })
+        let view = ReelContainerView(items: GradeReveal.makeReel(target: 18.5) { 0.3 })
         view.frame = CGRect(x: 0, y: 0, width: 400, height: 140)
         return view
     }
@@ -23,7 +23,7 @@ struct ReelContainerViewTests {
 
         #expect(view.rollStartCount == 1)
         #expect(view.isAnimatingRoll)
-        #expect(view.accessibilityValue == "Ouverture en cours")
+        #expect(view.accessibilityValue == "Défilement en cours")
     }
 
     @Test func aRecreatedReelShowsTheLandedPositionWithoutRollingAgain() {
@@ -36,7 +36,7 @@ struct ReelContainerViewTests {
         #expect(view.rollStartCount == 0)
         #expect(!view.isAnimatingRoll)
         #expect(view.accessibilityValue == "Arrêtée sur 18,50")
-        let stop = LootBox.stopOffset(containerWidth: 400, jitterUnit: request.jitterUnit)
+        let stop = GradeReveal.stopOffset(containerWidth: 400, jitterUnit: request.jitterUnit)
         #expect(abs(view.stripTranslation - stop) < 0.001)
     }
 
@@ -48,7 +48,7 @@ struct ReelContainerViewTests {
         view.apply(.landed(request))
 
         #expect(view.rollStartCount == 1)
-        let stop = LootBox.stopOffset(containerWidth: 400, jitterUnit: request.jitterUnit)
+        let stop = GradeReveal.stopOffset(containerWidth: 400, jitterUnit: request.jitterUnit)
         #expect(abs(view.stripTranslation - stop) < 0.001)
     }
 }

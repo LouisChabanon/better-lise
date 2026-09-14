@@ -74,7 +74,7 @@ final class GradesViewModel {
         }
     }
 
-    /// Casino mode replay: hides the grade behind the lootbox again, rolling back if the server fails.
+    /// Reveal mode replay: hides the grade again, rolling back if the server fails.
     func markNew(_ grade: Grade) async {
         // The caller may hold a stale copy (e.g. taken before the reveal): trust the current list
         guard let grades = state.value, grades.contains(where: { $0.code == grade.code && !$0.isUnread }) else { return }

@@ -5,9 +5,9 @@ struct GradesView: View {
     @Environment(SettingsStore.self) private var settings
     @State private var model: GradesViewModel
     @State private var selectedGrade: Grade?
-    /// Casino mode: new grade currently shown in the lootbox.
+    /// Reveal mode: new grade currently being revealed.
     @State private var gradeToReveal: Grade?
-    /// Set when the lootbox finished, so the detail opens once its sheet is gone.
+    /// Set when the reveal finished, so the detail opens once its sheet is gone.
     @State private var revealedGrade: Grade?
     @Binding var isLoginPresented: Bool
 
@@ -57,7 +57,7 @@ struct GradesView: View {
                     self.revealedGrade = nil
                 }
             }) { grade in
-                LootBoxSheet(
+                GradeRevealSheet(
                     grade: grade,
                     onReveal: { Task { await model.markOpened(grade) } },
                     onComplete: {
@@ -119,7 +119,7 @@ struct GradesView: View {
     }
 
     private func row(_ grade: Grade) -> some View {
-        let hidesNote = settings.casinoMode && grade.isUnread
+        let hidesNote = settings.revealMode && grade.isUnread
         return Button {
             if hidesNote { gradeToReveal = grade } else { selectedGrade = grade }
         } label: {
@@ -132,7 +132,7 @@ struct GradesView: View {
 
 struct GradeRow: View {
     let grade: Grade
-    /// Casino mode keeps new grades behind a "?" until they are revealed.
+    /// Reveal mode keeps new grades behind a "?" until they are revealed.
     var hidesNote = false
 
     var body: some View {

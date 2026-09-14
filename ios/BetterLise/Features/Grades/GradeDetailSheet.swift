@@ -4,7 +4,7 @@ import SwiftUI
 struct GradeDetailSheet: View {
     let grade: Grade
     let loadStats: () async throws -> GradeStats
-    /// Puts the grade back to "new" (replays the casino reveal).
+    /// Puts the grade back to "new" (replays the grade reveal).
     var onMarkAsNew: (() -> Void)?
 
     @State private var stats: Loadable<GradeStats> = .idle
@@ -118,7 +118,7 @@ struct GradeDetailSheet: View {
                 AxisMarks { _ in AxisValueLabel().font(.caption2) }
             }
             .frame(height: 180)
-            Text("Ta tranche est mise en évidence. Statistiques calculées à partir des utilisateurs de Better Lise.")
+            Text("Statistiques calculées à partir des utilisateurs de Better Lise.")
                 .font(.caption)
                 .foregroundStyle(Theme.textTertiary)
         }

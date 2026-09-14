@@ -123,18 +123,18 @@ class GradesViewModelTest {
         assertFalse(second.grades.value!!.isEmpty())
     }
 
-    private val casinoJson = """{"grades":[{"date":"02/02/2025","code":"MATA","libelle":"DS Matériaux","note":18.5,"isNew":true}]}"""
+    private val revealJson = """{"grades":[{"date":"02/02/2025","code":"MATA","libelle":"DS Matériaux","note":18.5,"isNew":true}]}"""
     private val statsJson = """{"avg":12,"min":2,"max":19,"count":3,"median":12,"stdDeviation":3,"distribution":{"labels":[],"counts":[]}}"""
 
     @Test
-    fun `casino mode sends new grades to the lootbox and opens the detail afterwards`() = runTest {
-        server.enqueue(Responses.success(casinoJson))
+    fun `reveal mode sends new grades to the reveal and opens the detail afterwards`() = runTest {
+        server.enqueue(Responses.success(revealJson))
         server.enqueue(Responses.success("""{"updated":1}"""))
         server.enqueue(Responses.success(statsJson))
         val viewModel = track(GradesViewModel(session, ResponseCache(tmp.root), health))
         val grade = viewModel.awaitLoaded().grades.value!!.single()
 
-        viewModel.onGradeTapped(grade, casinoMode = true)
+        viewModel.onGradeTapped(grade, revealMode = true)
         assertEquals("MATA", viewModel.state.value.revealing?.code)
         assertEquals(null, viewModel.state.value.selected)
         assertTrue("Still hidden until the reel stops", viewModel.state.value.grades.value!!.single().isUnread)
@@ -148,14 +148,14 @@ class GradesViewModelTest {
     }
 
     @Test
-    fun `without casino mode a tap opens the detail directly`() = runTest {
-        server.enqueue(Responses.success(casinoJson))
+    fun `without reveal mode a tap opens the detail directly`() = runTest {
+        server.enqueue(Responses.success(revealJson))
         server.enqueue(Responses.success(statsJson))
         server.enqueue(Responses.success("""{"updated":1}"""))
         val viewModel = track(GradesViewModel(session, ResponseCache(tmp.root), health))
         val grade = viewModel.awaitLoaded().grades.value!!.single()
 
-        viewModel.onGradeTapped(grade, casinoMode = false)
+        viewModel.onGradeTapped(grade, revealMode = false)
 
         assertEquals(null, viewModel.state.value.revealing)
         assertEquals("MATA", viewModel.state.value.selected?.code)

@@ -36,7 +36,7 @@ class SettingsViewModel(
 
     fun setLiseId(value: String) = viewModelScope.launch { repository.setLiseId(value) }
     fun setShowRu(value: Boolean) = viewModelScope.launch { repository.setShowRu(value) }
-    fun setCasinoMode(value: Boolean) = viewModelScope.launch { repository.setCasinoMode(value) }
+    fun setRevealMode(value: Boolean) = viewModelScope.launch { repository.setRevealMode(value) }
 
     fun setCampus(value: Campus) = viewModelScope.launch {
         repository.setCampus(value)
