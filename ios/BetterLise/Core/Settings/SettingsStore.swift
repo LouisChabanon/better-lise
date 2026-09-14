@@ -9,14 +9,14 @@ enum Campus: String, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .chalons: "Châlons"
-        case .boquette: "Aix-en-Provence (Boquette)"
-        case .cluny: "Cluny"
-        case .birse: "Angers (Birse)"
-        case .p3: "Paris (P3)"
-        case .kin: "Lille (KIN)"
-        case .bordels: "Bordeaux (Bordels)"
-        case .sibers: "Metz (Sibers)"
+        case .chalons: "Chalons"
+        case .boquette: "Boquette"
+        case .cluny: "Cluns"
+        case .birse: "Birse"
+        case .p3: "P3"
+        case .kin: "KIN"
+        case .bordels: "Bordels"
+        case .sibers: "Sibers"
         case .rabat: "Rabat"
         }
     }
