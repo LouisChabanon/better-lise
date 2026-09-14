@@ -70,6 +70,19 @@ object AgendaLayout {
     fun groupByDay(events: List<CalendarEvent>): Map<LocalDate, List<CalendarEvent>> =
         events.groupBy { it.startDate.atZone(PARIS).toLocalDate() }.mapValues { (_, dayEvents) -> dayEvents.sortedBy { it.startDate } }
 
+    /** An event is past once it has ended; the week view dims those. */
+    fun isPast(event: CalendarEvent, now: Instant): Boolean = event.endDate <= now
+
+    /** Whether the hour label of [hour] would collide with the current time shown in the gutter. */
+    fun isHourLabelNearNow(hour: Int, now: Instant): Boolean = now.atZone(PARIS).let { time ->
+        kotlin.math.abs(time.hour * 60 + time.minute - hour * 60) < 15
+    }
+
+    /** Paris time in the style of the hour gutter: "8h", "13h30". */
+    fun shortTime(instant: Instant): String = instant.atZone(PARIS).let { time ->
+        "${time.hour}h" + if (time.minute == 0) "" else "%02d".format(time.minute)
+    }
+
     fun eventsOn(day: LocalDate, events: List<CalendarEvent>): List<CalendarEvent> =
         events.filter { it.startDate.atZone(PARIS).toLocalDate() == day }
 }

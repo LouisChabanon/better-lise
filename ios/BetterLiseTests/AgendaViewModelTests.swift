@@ -17,89 +17,79 @@ struct AgendaViewModelTests {
 
     private let wednesday = Calendar.paris.date(from: DateComponents(year: 2025, month: 3, day: 12, hour: 9))!
 
-    @Test func opensOnTodayAndItsWeek() {
+    private let saturday = Calendar.paris.date(from: DateComponents(year: 2025, month: 3, day: 15, hour: 9))!
+
+    @Test func opensOnTheCurrentWeek() {
         let model = makeModel(today: wednesday)
 
-        #expect(model.selectedIndex == model.todayIndex)
-        #expect(model.visibleWeek == model.todayIndex / 5)
-        #expect(Calendar.paris.isDate(model.selectedDay, inSameDayAs: wednesday))
-        #expect(model.isShowingToday)
-        #expect(model.pagerRequest == nil)
-        #expect(model.stripRequest == nil)
-    }
-
-    @Test func swipingWithinTheWeekOnlyMovesTheHighlight() {
-        let model = makeModel(today: wednesday)
-
-        model.pagerDidScroll(to: model.todayIndex + 1)
-
-        #expect(model.selectedIndex == model.todayIndex + 1)
-        #expect(model.visibleWeek == model.todayIndex / 5)
-        #expect(model.stripRequest == nil)
+        #expect(model.visibleWeek == model.currentWeek)
+        #expect(model.currentWeek == model.todayIndex / 5)
+        #expect(Calendar.paris.component(.weekday, from: model.visibleWeekStart) == 2) // Monday
+        #expect(Calendar.paris.component(.day, from: model.visibleWeekStart) == 10)
+        #expect(model.isShowingCurrentWeek)
         #expect(model.pagerRequest == nil)
     }
 
-    @Test func swipingPastFridayAsksTheWeekStripToFollow() {
+    @Test func opensOnTheNextWeekOnWeekends() {
+        let model = makeModel(today: saturday)
+
+        #expect(Calendar.paris.component(.day, from: model.visibleWeekStart) == 17)
+        #expect(model.isShowingCurrentWeek)
+    }
+
+    @Test func swipingChangesTheVisibleWeek() {
         let model = makeModel(today: wednesday)
-        let nextMonday = model.todayIndex + 3
 
-        model.pagerDidScroll(to: nextMonday)
+        model.pagerDidScroll(toWeek: model.currentWeek + 1)
 
-        #expect(model.visibleWeek == model.todayIndex / 5 + 1)
-        #expect(model.stripRequest?.target == model.todayIndex / 5 + 1)
+        #expect(model.visibleWeek == model.currentWeek + 1)
+        #expect(Calendar.paris.component(.day, from: model.visibleWeekStart) == 17)
+        #expect(!model.isShowingCurrentWeek)
         #expect(model.pagerRequest == nil)
-        #expect(Calendar.paris.component(.weekday, from: model.selectedDay) == 2) // Monday
-        #expect(!model.isShowingToday)
     }
 
-    @Test func swipingTheWeekStripKeepsTheWeekdayAndMovesThePager() {
+    @Test func reportsForTheWeekAlreadyShownOrOutOfRangeAreIgnored() {
         let model = makeModel(today: wednesday)
+        model.pagerDidScroll(toWeek: model.currentWeek + 1)
 
-        model.stripDidScroll(to: model.visibleWeek - 1)
+        model.pagerDidScroll(toWeek: model.visibleWeek)
+        model.pagerDidScroll(toWeek: -1)
+        model.pagerDidScroll(toWeek: model.weekCount)
 
-        #expect(model.selectedIndex == model.todayIndex - 5)
-        #expect(model.pagerRequest?.target == model.todayIndex - 5)
-        #expect(model.stripRequest == nil)
-        #expect(Calendar.paris.component(.weekday, from: model.selectedDay) == 4) // Wednesday
-    }
-
-    @Test func reportsFromTheScrollViewsWeAlreadyMatchAreIgnored() {
-        let model = makeModel(today: wednesday)
-        model.pagerDidScroll(to: model.todayIndex + 3)
-        let request = model.stripRequest
-
-        // The strip reports the week it was asked to show: nothing else must move
-        model.stripDidScroll(to: model.visibleWeek)
-
-        #expect(model.stripRequest == request)
+        #expect(model.visibleWeek == model.currentWeek + 1)
         #expect(model.pagerRequest == nil)
-        #expect(model.selectedIndex == model.todayIndex + 3)
     }
 
-    @Test func tappingADayMovesThePagerAndTheStripWhenNeeded() {
+    @Test func goingBackToTodayScrollsToTheCurrentWeek() {
         let model = makeModel(today: wednesday)
-
-        model.select(model.todayIndex - 2)
-        #expect(model.pagerRequest?.target == model.todayIndex - 2)
-        #expect(model.stripRequest == nil)
+        model.pagerDidScroll(toWeek: 0)
 
         model.goToToday()
-        #expect(model.selectedIndex == model.todayIndex)
-        #expect(model.pagerRequest?.target == model.todayIndex)
 
-        model.select(0)
-        #expect(model.visibleWeek == 0)
-        #expect(model.stripRequest?.target == 0)
+        #expect(model.visibleWeek == model.currentWeek)
+        #expect(model.pagerRequest?.target == model.currentWeek)
+        #expect(model.isShowingCurrentWeek)
     }
 
     @Test func repeatedRequestsToTheSameTargetAreDistinct() {
         let model = makeModel(today: wednesday)
-        model.select(model.todayIndex + 1)
+        model.pagerDidScroll(toWeek: 0)
+        model.goToToday()
         let first = model.pagerRequest
-        model.pagerDidScroll(to: model.todayIndex)
-        model.select(model.todayIndex + 1)
+        model.pagerDidScroll(toWeek: 1)
+        model.goToToday()
 
         #expect(model.pagerRequest?.target == first?.target)
         #expect(model.pagerRequest != first)
+    }
+
+    @Test func weeksExposeTheirFiveSchoolDays() {
+        let model = makeModel(today: wednesday)
+
+        let days = model.days(inWeek: model.currentWeek)
+
+        #expect(days.count == 5)
+        #expect(days.contains { Calendar.paris.isDate($0, inSameDayAs: wednesday) })
+        #expect(!model.hasAllDayEvents(inWeek: model.currentWeek))
     }
 }

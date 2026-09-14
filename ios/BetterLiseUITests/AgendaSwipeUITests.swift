@@ -16,110 +16,117 @@ final class AgendaSwipeUITests: XCTestCase {
         return app
     }
 
-    private func selectedChip(in app: XCUIApplication) -> XCUIElement {
-        app.buttons.matching(NSPredicate(format: "identifier == 'dayChip' AND selected == true")).firstMatch
+    /// Labels of the day headers fully on screen, i.e. the week currently shown.
+    /// Reads one snapshot of the hierarchy: querying each header separately takes seconds per week.
+    private func visibleHeaders(in app: XCUIApplication) -> [String] {
+        guard let root = try? app.snapshot() else { return [] }
+        let screen = root.frame
+        var headers: [(x: CGFloat, label: String)] = []
+        var pending = [root]
+        while let element = pending.popLast() {
+            if element.identifier == "dayHeader", screen.contains(element.frame) {
+                headers.append((element.frame.minX, element.label))
+            }
+            pending += element.children
+        }
+        return headers.sorted { $0.x < $1.x }.map(\.label)
     }
 
-    private func waitForSelectedLabel(in app: XCUIApplication, differentFrom previous: String) -> String {
-        let deadline = Date().addingTimeInterval(3)
+    private func waitForVisibleWeek(
+        in app: XCUIApplication,
+        differentFrom previous: [String],
+        timeout: TimeInterval = 3
+    ) -> [String] {
+        let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            let chip = selectedChip(in: app)
-            if chip.exists, chip.label != previous { return chip.label }
+            let headers = visibleHeaders(in: app)
+            if headers.count == 5, headers != previous { return headers }
             RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
-        let page = (0..<265).first { pageIsOnScreen($0, in: app) }.map(String.init) ?? "none"
-        XCTFail("The highlighted day card is still \(previous) (page on screen: \(page))")
+        XCTFail("The visible week is still \(previous)")
         return previous
     }
 
+    private func waitForFullWeek(in app: XCUIApplication) -> [String] {
+        let deadline = Date().addingTimeInterval(10)
+        while Date() < deadline {
+            let headers = visibleHeaders(in: app)
+            if headers.count == 5 { return headers }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        XCTFail("Five day headers should be on screen")
+        return []
+    }
+
     /// A fast, strictly horizontal flick across most of the pager. `swipeLeft()` starts at the element center
-    /// and is occasionally captured by the day's vertical scroll view, which made the tests flaky.
+    /// and is occasionally captured by the week's vertical scroll view, which made the tests flaky.
     private func flick(_ element: XCUIElement, towards direction: CGFloat) {
         let start = element.coordinate(withNormalizedOffset: CGVector(dx: direction < 0 ? 0.85 : 0.15, dy: 0.3))
         let end = element.coordinate(withNormalizedOffset: CGVector(dx: direction < 0 ? 0.15 : 0.85, dy: 0.3))
         start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .fast, thenHoldForDuration: 0)
     }
 
-    private func pageIsOnScreen(_ index: Int, in app: XCUIApplication) -> Bool {
-        let page = app.scrollViews["dayPage-\(index)"]
-        let screen = app.windows.firstMatch.frame
-        return page.exists && abs(page.frame.minX - screen.minX) < 2
+    func testOpensOnTheWholeCurrentWeek() {
+        let app = launchApp()
+
+        let headers = waitForFullWeek(in: app)
+
+        XCTAssertEqual(headers.count, 5)
+        let today = app.otherElements.matching(NSPredicate(format: "identifier == 'dayHeader' AND selected == true"))
+        // On weekends the app opens on the upcoming week, where no day is today
+        let weekday = Calendar.current.component(.weekday, from: Date())
+        if (2...6).contains(weekday) {
+            XCTAssertTrue(today.firstMatch.exists, "Today is highlighted")
+        }
+        XCTAssertFalse(app.buttons["Aujourd'hui"].exists)
     }
 
-    private func waitUntilOnScreen(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
+    func testSwipingChangesTheWeekAndTodayBringsItBack() {
+        let app = launchApp()
+        let initial = waitForFullWeek(in: app)
+        let pager = app.scrollViews["weekPager"]
+
+        flick(pager, towards: -1)
+        let next = waitForVisibleWeek(in: app, differentFrom: initial)
+        XCTAssertNotEqual(next, initial)
+        XCTAssertTrue(app.buttons["Aujourd'hui"].waitForExistence(timeout: 2))
+
+        flick(pager, towards: -1)
+        _ = waitForVisibleWeek(in: app, differentFrom: next)
+
+        app.buttons["Aujourd'hui"].tap()
         let deadline = Date().addingTimeInterval(3)
-        while Date() < deadline {
-            if element.exists, app.windows.firstMatch.frame.contains(element.frame) { return true }
+        while visibleHeaders(in: app) != initial, Date() < deadline {
             RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
-        return false
-    }
-
-    func testSwipingTheWeekStripMovesTheCalendar() {
-        let app = launchApp()
-        XCTAssertTrue(selectedChip(in: app).waitForExistence(timeout: 10))
-        let initial = selectedChip(in: app).label
-        let strip = app.scrollViews["weekStrip"]
-
-        flick(strip, towards: -1)
-
-        let label = waitForSelectedLabel(in: app, differentFrom: initial)
-        XCTAssertTrue(waitUntilOnScreen(selectedChip(in: app), in: app), "\(label) should be visible in the week strip")
-    }
-
-    func testSwipingDaysUpdatesTheHighlightedDayCard() {
-        let app = launchApp()
-        XCTAssertTrue(selectedChip(in: app).waitForExistence(timeout: 10))
-        var label = selectedChip(in: app).label
-        let pager = app.scrollViews["dayPager"]
-        XCTAssertTrue(pager.waitForExistence(timeout: 5))
-        // Let launch animations settle so the first swipe is not swallowed
-        _ = app.buttons["Aujourd'hui"].waitForExistence(timeout: 1)
-        XCTAssertTrue(waitUntilOnScreen(selectedChip(in: app), in: app))
-
-        // Five swipes cross into the next week: the strip must follow
-        for _ in 0..<6 {
-            flick(pager, towards: -1)
-            label = waitForSelectedLabel(in: app, differentFrom: label)
-            XCTAssertTrue(waitUntilOnScreen(selectedChip(in: app), in: app), "\(label) should be visible in the week strip")
-        }
-
-        // Swiping back across the week boundary brings the previous week back too
-        for _ in 0..<2 {
-            flick(pager, towards: 1)
-            label = waitForSelectedLabel(in: app, differentFrom: label)
-            XCTAssertTrue(waitUntilOnScreen(selectedChip(in: app), in: app), "\(label) should be visible in the week strip")
-        }
+        XCTAssertEqual(visibleHeaders(in: app), initial)
     }
 
     /// A swipe made while the agenda is still loading must survive the data arriving.
     func testSwipeIsKeptWhenTheAgendaFinishesLoading() {
-        let app = launchApp(agendaDelay: 3)
-        XCTAssertTrue(selectedChip(in: app).waitForExistence(timeout: 10))
-        let initial = selectedChip(in: app).label
-        let pager = app.scrollViews["dayPager"]
+        let app = launchApp(agendaDelay: 5)
+        let initial = waitForFullWeek(in: app)
 
-        flick(pager, towards: -1)
-        let swiped = waitForSelectedLabel(in: app, differentFrom: initial)
+        flick(app.scrollViews["weekPager"], towards: -1)
+        let swiped = waitForVisibleWeek(in: app, differentFrom: initial)
 
         // Wait for the delayed agenda response, then make sure the pager did not jump back
-        XCTAssertTrue(app.staticTexts["Mécanique"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons.matching(identifier: "eventBlock").firstMatch.waitForExistence(timeout: 10))
         RunLoop.current.run(until: Date().addingTimeInterval(1))
-        XCTAssertEqual(selectedChip(in: app).label, swiped)
-        let visible = (0..<265).first { pageIsOnScreen($0, in: app) }
-        XCTAssertNotNil(visible, "A day page fills the screen")
+        XCTAssertEqual(visibleHeaders(in: app), swiped)
     }
 
-    func testTappingADayCardMovesThePager() {
+    func testTappingAnEventOpensItsDetails() {
         let app = launchApp()
-        XCTAssertTrue(selectedChip(in: app).waitForExistence(timeout: 10))
-        let initial = selectedChip(in: app).label
+        _ = waitForFullWeek(in: app)
         let screen = app.windows.firstMatch.frame
-        let other = app.buttons.matching(NSPredicate(format: "identifier == 'dayChip' AND selected == false"))
-            .allElementsBoundByIndex
-            .first { screen.contains($0.frame) }!
-        let target = other.label
-        other.tap()
-        XCTAssertEqual(waitForSelectedLabel(in: app, differentFrom: initial), target)
+        let block = app.buttons.matching(identifier: "eventBlock").allElementsBoundByIndex
+            .first { screen.contains($0.frame) }
+
+        guard let block else { return XCTFail("An event of the current week is on screen") }
+        let title = block.label.components(separatedBy: ",").first ?? block.label
+        block.tap()
+
+        XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 3))
     }
 }
