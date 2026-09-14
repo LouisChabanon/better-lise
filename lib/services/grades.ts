@@ -4,6 +4,7 @@ import PostHogClient from "@/lib/posthog-server";
 import { GradeType, PromoCode, tbk } from "@/lib/types";
 import { parseGradesTable } from "@/lib/parsers/grades";
 import { notifyClassmates } from "@/actions/PushNotification";
+import { demoGrades, isDemoUsername } from "./demo";
 import { failure, LiseCredentials, ServiceResult, success } from "./result";
 import { LISE_MENUS, openLisePage } from "./lise-session";
 
@@ -30,6 +31,18 @@ const toGradeType = (g: DbGrade): GradeType => ({
 	comment: g.comment,
 	teachers: g.teachers,
 	isNew: !g.opened,
+});
+
+const toDbGrade = (g: GradeType, userId: number, opened: boolean) => ({
+	name: g.libelle,
+	code: g.code,
+	grade: g.note,
+	date: g.date,
+	absence: g.absence,
+	comment: g.comment,
+	teachers: g.teachers,
+	userId,
+	opened,
 });
 
 export type GradeDiff = {
@@ -105,17 +118,7 @@ async function persistDiff(userId: number, diff: GradeDiff, isFirstSync: boolean
 			: Promise.resolve(),
 		diff.toCreate.length > 0
 			? prisma.grade.createMany({
-					data: diff.toCreate.map((g) => ({
-						name: g.libelle,
-						code: g.code,
-						grade: g.note,
-						date: g.date,
-						absence: g.absence,
-						comment: g.comment,
-						teachers: g.teachers,
-						userId,
-						opened: isFirstSync,
-					})),
+					data: diff.toCreate.map((g) => toDbGrade(g, userId, isFirstSync)),
 				})
 			: Promise.resolve(),
 	]);
@@ -141,6 +144,21 @@ async function maybeNotifyClassmates(user: DbUser, created: GradeType[]) {
 	).catch((e) => logger.error("Notification failed", { error: e }));
 }
 
+/** Review account: fixture grades seeded after each sign-in, never scraped or shared with classmates. */
+async function syncDemoGrades(
+	userId: number,
+	dbGrades: DbGrade[]
+): Promise<ServiceResult<GradeType[]>> {
+	if (dbGrades.length > 0) {
+		return success(dbGrades.map(toGradeType));
+	}
+	await prisma.grade.createMany({
+		data: demoGrades(new Date()).map((g) => toDbGrade(g, userId, !g.isNew)),
+	});
+	const seeded = await prisma.grade.findMany({ where: { userId } });
+	return success(seeded.map(toGradeType));
+}
+
 /**
  * Returns the user's grades. When `reload` is true (or no grades are cached),
  * scrapes Lise and synchronises the DB first.
@@ -162,6 +180,10 @@ export async function syncGrades(
 
 	const dbGrades = await prisma.grade.findMany({ where: { userId: user.id } });
 	const isFirstSync = dbGrades.length === 0;
+
+	if (isDemoUsername(user.username)) {
+		return syncDemoGrades(user.id, dbGrades);
+	}
 
 	if (!reload && !isFirstSync) {
 		return success(dbGrades.map(toGradeType));

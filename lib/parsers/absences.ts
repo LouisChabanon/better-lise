@@ -42,12 +42,12 @@ const scoreCourse = (course: CourseWeight, normalizedCours: string) =>
 			}
 			return { score: acc.score - 5, matches: acc.matches };
 		},
-		{ score: 0, matches: 0 }
+		{ score: 0, matches: 0 },
 	);
 
 export function matchCourse(
 	cours: string,
-	courseWeights: CourseWeight[]
+	courseWeights: CourseWeight[],
 ): CourseWeight | null {
 	const normalizedCours = normalize(cours);
 	let best: CourseWeight | null = null;
@@ -77,7 +77,7 @@ export const isUnjustified = (motif: string) => {
 /** Parses Lise's "Mes absences" page (#form:table) and computes per-UE stats. */
 export function parseAbsencesPage(
 	$page: CheerioAPI,
-	courseWeights: CourseWeight[]
+	courseWeights: CourseWeight[],
 ): ParsedAbsences {
 	const nbText = $page("#form\\:nbrAbs").text();
 	const dureeText = $page("#form\\:dureeAbs").text();
@@ -85,7 +85,6 @@ export function parseAbsencesPage(
 	const dureeTotaleAbsences = dureeText !== "" ? dureeText : "00h00";
 
 	const absences: AbsenceType[] = [];
-	const hoursMap: Record<string, { totalHours: number; name: string }> = {};
 
 	$page("#form\\:table_data > tr").each((_, element) => {
 		const cells = $page(element).find("td");
@@ -103,18 +102,31 @@ export function parseAbsencesPage(
 
 		if (row.date === NO_ABSENCE_ROW) return;
 		absences.push(row);
+	});
 
+	const stats = computeAbsenceStats(absences, courseWeights);
+	return { nbTotalAbsences, dureeTotaleAbsences, absences, stats };
+}
+
+/** Unjustified hours per UE, as a share of the UE's face-to-face hours (highest first). */
+export function computeAbsenceStats(
+	absences: AbsenceType[],
+	courseWeights: CourseWeight[],
+): AbsenceStatType[] {
+	const hoursMap: Record<string, { totalHours: number; name: string }> = {};
+
+	for (const row of absences) {
 		const match = matchCourse(row.cours, courseWeights);
-		if (!match || !isUnjustified(row.motif)) return;
+		if (!match || !isUnjustified(row.motif)) continue;
 
 		const previous = hoursMap[match.Code];
 		hoursMap[match.Code] = {
 			totalHours: (previous?.totalHours ?? 0) + parseDurationToHours(row.duree),
 			name: previous?.name ?? row.matiere,
 		};
-	});
+	}
 
-	const stats: AbsenceStatType[] = Object.entries(hoursMap)
+	return Object.entries(hoursMap)
 		.flatMap(([code, accumulated]) => {
 			const ref = courseWeights.find((c) => c.Code === code);
 			if (!ref) return [];
@@ -129,6 +141,4 @@ export function parseAbsencesPage(
 			];
 		})
 		.sort((a, b) => b.percentage - a.percentage);
-
-	return { nbTotalAbsences, dureeTotaleAbsences, absences, stats };
 }

@@ -1,6 +1,7 @@
 import logger from "@/lib/logger";
 import courseData from "@/ue_data.json";
 import { parseAbsencesPage, ParsedAbsences } from "@/lib/parsers/absences";
+import { demoAbsences, isDemoUsername } from "./demo";
 import { failure, LiseCredentials, ServiceResult, success } from "./result";
 import { LISE_MENUS, openLisePage } from "./lise-session";
 
@@ -8,6 +9,9 @@ import { LISE_MENUS, openLisePage } from "./lise-session";
 export async function fetchAbsences(
 	credentials: LiseCredentials
 ): Promise<ServiceResult<ParsedAbsences>> {
+	if (isDemoUsername(credentials.username)) {
+		return success(demoAbsences(new Date()));
+	}
 	logger.info("Fetching absences from Lise", { username: credentials.username });
 
 	try {
