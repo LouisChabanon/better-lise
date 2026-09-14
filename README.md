@@ -67,7 +67,7 @@ Les deux applications consomment l'API REST `/api/v1` exposée par le serveur Ne
 | Méthode | Route | Auth |
 | :--- | :--- | :--- |
 | `POST` | `/auth/login` · `/auth/logout` | – · Bearer |
-| `GET` / `PATCH` | `/me` | Bearer |
+| `GET` / `PATCH` / `DELETE` | `/me` | Bearer |
 | `GET` | `/agenda?liseId=&tbk=&ru=` | publique |
 | `GET` | `/grades?refresh=` · `/grades/{code}/stats` | Bearer |
 | `POST` | `/grades/{code}/opened` · `/grades/opened` · `/grades/{code}/new` | Bearer |
@@ -75,6 +75,8 @@ Les deux applications consomment l'API REST `/api/v1` exposée par le serveur Ne
 | `GET` | `/health` | publique |
 
 Réponses : `{ success, data, error: { code, message } | null }`.
+
+`DELETE /me` supprime le compte **Better Lise** et toutes les données qu'il stocke (notes enregistrées, absences, succès, votes de coefficients, abonnements aux notifications), puis ferme la session Lise en cours. Le compte **Lise de l'ENSAM n'est ni supprimé ni modifié** : se reconnecter recrée simplement un compte Better Lise vide. Les apps iOS et Android l'exposent dans *Réglages → Supprimer mon compte Better Lise*.
 
 ## 📲 Développement mobile
 
