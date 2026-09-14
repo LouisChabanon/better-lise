@@ -23,7 +23,7 @@ La documentation technique et les guides utilisateurs ont été déplacés sur l
   - **Absences :** Suivi et estimation du taux d'absence par UE.
   - **Simulateur :** Calcul des futures moyennes en utilisant des coefficients communautaires.
   - **Notifications :** Reception d'alerte dès qu'une nouvelle note est détectée par la communauté.
-  - **Applications natives :** Apps iOS (SwiftUI) et Android (Jetpack Compose), en plus de la PWA, avec le Mode Casino (révélation des notes façon caisse CS:GO, sons et vibrations).
+  - **Applications natives :** Apps iOS (SwiftUI) et Android (Jetpack Compose), en plus de la PWA, avec le Mode Révélation (révélation animée des nouvelles notes, sons et vibrations).
 
 ## Quick Start (Développement)
 
@@ -70,11 +70,21 @@ Les deux applications consomment l'API REST `/api/v1` exposée par le serveur Ne
 | `GET` / `PATCH` | `/me` | Bearer |
 | `GET` | `/agenda?liseId=&tbk=&ru=` | publique |
 | `GET` | `/grades?refresh=` · `/grades/{code}/stats` | Bearer |
-| `POST` | `/grades/{code}/opened` · `/grades/opened` | Bearer |
+| `POST` | `/grades/{code}/opened` · `/grades/opened` · `/grades/{code}/new` | Bearer |
 | `GET` | `/absences` | Bearer |
 | `GET` | `/health` | publique |
 
 Réponses : `{ success, data, error: { code, message } | null }`.
+
+## 📲 Développement mobile
+
+### Prérequis
+
+| | iOS | Android |
+| :--- | :--- | :--- |
+| **Outils** | macOS, Xcode 26, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`) | JDK 17, SDK Android 36 (Android Studio conseillé) |
+| **Ouvrir le projet** | `ios/BetterLise.xcodeproj` | dossier `android/` |
+| **Backend** | `npm run dev` (port 3000) | `npm run dev` (port 3000) |
 
 ### Lancer les apps en local
 
@@ -83,17 +93,65 @@ Réponses : `{ success, data, error: { code, message } | null }`.
 npm run dev
 npm test               # tests de l'API (vitest)
 
-# iOS — nécessite Xcode 26 et XcodeGen (brew install xcodegen)
+# iOS
 cd ios && xcodegen generate
 xcodebuild test -scheme BetterLise -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 # Debug → http://localhost:3000, Release → https://www.better-lise.com (ios/BetterLise/Config/*.xcconfig)
 
-# Android — nécessite JDK 17 et le SDK Android 36
+# Android
 cd android && ./gradlew testDebugUnitTest assembleDebug
+./gradlew installDebug  # installe sur l'émulateur / l'appareil connecté
 # Debug → http://10.0.2.2:3000 (émulateur), Release → https://www.better-lise.com
 ```
 
-#### Tester sur un vrai téléphone
+> **iOS :** le projet Xcode est généré à partir de `ios/project.yml`. Ajoutez/supprimez les fichiers sur le disque puis relancez `xcodegen generate` plutôt que de modifier le `.xcodeproj` à la main (les réglages de build se font dans `project.yml` ou les `.xcconfig`).
+
+### Architecture
+
+Les deux apps suivent la même organisation, pour qu'une fonctionnalité se porte facilement de l'une à l'autre :
+
+| Rôle | iOS (`ios/BetterLise/`) | Android (`android/app/src/main/java/com/betterlise/app/`) |
+| :--- | :--- | :--- |
+| Point d'entrée & injection | `App/` (`AppEnvironment`) | `BetterLiseApplication`, `AppContainer`, `MainActivity` |
+| Client API, DTOs, endpoints | `Core/API/` | `data/api/` |
+| Session & stockage sécurisé | `Core/Auth/` | `data/auth/` |
+| Cache hors-ligne des réponses | `Core/Cache/` | `data/cache/` |
+| Préférences | `Core/Settings/` | `data/settings/` |
+| Logique pure (tri, agenda…) | dans `Features/` | `domain/` |
+| Écrans + ViewModels | `Features/<Écran>/` | `ui/<écran>/` |
+| Thème & composants communs | `Design/` | `ui/theme/`, `ui/components/` |
+| Sons (Mode Révélation) | `Resources/Sounds/` | `res/raw/` |
+
+- Les ViewModels sont `@MainActor @Observable` côté iOS et exposent un `StateFlow` côté Android.
+- Swift 6 est compilé en concurrence stricte (`SWIFT_STRICT_CONCURRENCY: complete`) : pas de warning toléré.
+- Les DTOs reflètent exactement les réponses de `/api/v1` : toute modification d'une route doit être répercutée dans `Core/API/DTOs.swift` **et** `data/api/Dto.kt`.
+
+### Tests
+
+| | Unitaires | UI |
+| :--- | :--- | :--- |
+| **iOS** | `ios/BetterLiseTests/` — réseau simulé via `StubURLProtocol` | `ios/BetterLiseUITests/` — l'argument de lancement `-uiTestStubAPI YES` remplace l'API par des réponses figées et une session connectée (`App/UITestSupport.swift`, compilé en Debug uniquement) |
+| **Android** | `android/app/src/test/` — JUnit + `MockWebServer` | Tests Compose exécutés sur la JVM avec Robolectric (`*UiTest.kt`), aucun émulateur requis |
+
+```bash
+# iOS : un seul fichier de tests
+xcodebuild test -scheme BetterLise -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -only-testing:BetterLiseTests/GradesViewModelTests
+
+# Android : une seule classe de tests
+./gradlew testDebugUnitTest --tests 'com.betterlise.app.GradesViewModelTest'
+```
+
+Aucun test mobile ne dépend d'un vrai serveur ni d'un compte Lise.
+
+### Ajouter une fonctionnalité
+
+1. **Backend** : créer la route dans `app/api/v1/…/route.ts` en s'appuyant sur `lib/api/` (`withAuth`, `fail`/`fromResult`, schémas `zod` de `validation.ts`), puis la tester dans `__tests__/routes.test.ts`.
+2. **Contrat** : ajouter l'endpoint et ses DTOs dans les deux apps (`Endpoint.swift` / `Endpoints.kt`) et mettre à jour le tableau des endpoints ci-dessus.
+3. **iOS puis Android** : implémenter l'écran et son ViewModel en gardant la même structure et les mêmes libellés (en français) sur les deux plateformes.
+4. **Tests** : couvrir le ViewModel et la logique pure sur chaque plateforme ; si le parcours est derrière la connexion, compléter le stub d'API des tests UI.
+
+### Tester sur un vrai téléphone
 
 Sur un appareil physique, `localhost` désigne le téléphone lui-même. Le plus simple est d'exposer le serveur de dev en HTTPS sur votre tailnet [Tailscale](https://tailscale.com) (certificat valide, aucune exception réseau à ajouter) :
 
@@ -105,6 +163,20 @@ Puis indiquez cette URL, uniquement pour vos builds de debug (fichiers ignorés 
 
 - **iOS** : copiez `ios/BetterLise/Config/Local.xcconfig.example` vers `Local.xcconfig` et renseignez `API_BASE_URL` et votre `DEVELOPMENT_TEAM`.
 - **Android** : ajoutez `betterlise.apiBaseUrl=https://<votre-mac>.<tailnet>.ts.net` dans `android/local.properties`.
+
+### Compte de démonstration (review App Store / Play Store)
+
+Les équipes de review ont besoin d'un compte fonctionnel sans accès à Lise. L'identifiant **`0000-0000`** se connecte avec le mot de passe défini dans la variable d'environnement `DEMO_ACCOUNT_PASSWORD` (compte désactivé si elle est absente) :
+
+```bash
+# .env (et variables d'environnement de production)
+DEMO_ACCOUNT_PASSWORD=<mot-de-passe-long-et-aléatoire>
+```
+
+- Aucune requête n'est envoyée à Lise : notes, statistiques, absences et emploi du temps viennent des données fictives de `lib/services/demo.ts` (dates recalculées par rapport au jour courant).
+- Chaque connexion remet les notes à zéro : deux notes non ouvertes permettent de montrer le Mode Révélation.
+- Les codes des notes commencent par `DEMO_` : elles n'apparaissent jamais dans les statistiques des vrais étudiants, et le compte ne reçoit jamais de notification de nouvelle note.
+- Renseignez l'identifiant et le mot de passe dans *App Store Connect → App Review Information* et *Play Console → Accès à l'application*.
 
 ## 🛠 Technologies
 
