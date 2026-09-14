@@ -39,6 +39,9 @@ data class LoginResponse(
 data class LogoutResponse(val loggedOut: Boolean)
 
 @Serializable
+data class AccountDeletionResponse(val deleted: Boolean)
+
+@Serializable
 data class Profile(
     val username: String,
     @SerialName("class") val promo: String? = null,

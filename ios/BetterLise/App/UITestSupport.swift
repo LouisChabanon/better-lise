@@ -33,6 +33,8 @@ final class UITestAPIStub: URLProtocol, @unchecked Sendable {
         let path = request.url?.path ?? ""
         let data: String = Self.lock.withLock {
             switch true {
+            case request.httpMethod == "DELETE" && path.hasSuffix("/me"):
+                return #"{"deleted":true}"#
             case path.hasSuffix("/grades/MATA/opened"):
                 Self.mataIsNew = false
                 return #"{"updated":1}"#

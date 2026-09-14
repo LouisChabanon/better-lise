@@ -19,9 +19,11 @@ struct RootTabView: View {
             AbsencesView(model: environment.absences, isLoginPresented: $isLoginPresented)
                 .tabItem { Label("Absences", systemImage: "clock.badge.exclamationmark") }
                 .tag(AppTab.absences)
-            SettingsView(isLoginPresented: $isLoginPresented) {
-                Task { await environment.signOut() }
-            }
+            SettingsView(
+                isLoginPresented: $isLoginPresented,
+                onSignOut: { Task { await environment.signOut() } },
+                onDeleteAccount: { try await environment.deleteAccount() }
+            )
             .tabItem { Label("Réglages", systemImage: "gearshape") }
             .tag(AppTab.settings)
         }

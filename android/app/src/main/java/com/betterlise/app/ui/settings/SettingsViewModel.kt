@@ -21,6 +21,14 @@ data class SettingsUiState(
     val settings: UserSettings = UserSettings(),
     val username: String? = null,
     val syncError: String? = null,
+    val deletion: AccountDeletionState = AccountDeletionState(),
+)
+
+data class AccountDeletionState(
+    val isDeleting: Boolean = false,
+    val error: String? = null,
+    /** Shown after a deletion until the user signs in again. */
+    val isDone: Boolean = false,
 )
 
 class SettingsViewModel(
@@ -29,10 +37,13 @@ class SettingsViewModel(
     private val cache: ResponseCache,
 ) : ViewModel() {
     private val syncError = MutableStateFlow<String?>(null)
+    private val deletion = MutableStateFlow(AccountDeletionState())
 
-    val state: StateFlow<SettingsUiState> = combine(repository.settings, session.state, syncError) { settings, sessionState, error ->
-        SettingsUiState(settings, (sessionState as? SessionState.SignedIn)?.username, error)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
+    val state: StateFlow<SettingsUiState> =
+        combine(repository.settings, session.state, syncError, deletion) { settings, sessionState, error, deletion ->
+            val username = (sessionState as? SessionState.SignedIn)?.username
+            SettingsUiState(settings, username, error, if (username != null) deletion.copy(isDone = false) else deletion)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
     fun setLiseId(value: String) = viewModelScope.launch { repository.setLiseId(value) }
     fun setShowRu(value: Boolean) = viewModelScope.launch { repository.setShowRu(value) }
@@ -49,8 +60,20 @@ class SettingsViewModel(
     }
 
     fun signOut() = viewModelScope.launch {
+        deletion.value = AccountDeletionState()
         session.signOut()
         cache.clear()
+    }
+
+    fun deleteAccount() = viewModelScope.launch {
+        deletion.value = AccountDeletionState(isDeleting = true)
+        deletion.value = runCatching { session.deleteAccount() }.fold(
+            onSuccess = {
+                cache.clear()
+                AccountDeletionState(isDone = true)
+            },
+            onFailure = { AccountDeletionState(error = "Suppression impossible : ${it.message}") },
+        )
     }
 
     /** Campus and promo are also stored server-side for new-grade notifications. */

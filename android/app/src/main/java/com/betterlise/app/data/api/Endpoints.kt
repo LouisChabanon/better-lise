@@ -3,7 +3,7 @@ package com.betterlise.app.data.api
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
-enum class HttpMethod { GET, POST, PATCH }
+enum class HttpMethod { GET, POST, PATCH, DELETE }
 
 data class Endpoint<T>(
     val method: HttpMethod,
@@ -35,6 +35,9 @@ object Endpoints {
         serializer = Profile.serializer(),
         jsonBody = json.encodeToString(ProfilePatch.serializer(), ProfilePatch(promo, tbk)),
     )
+
+    /** Deletes the Better Lise account and its stored data. The Lise account is not affected. */
+    fun deleteAccount() = Endpoint(HttpMethod.DELETE, "me", AccountDeletionResponse.serializer())
 
     fun agenda(liseId: String, tbk: String, includeRu: Boolean) = Endpoint(
         method = HttpMethod.GET,

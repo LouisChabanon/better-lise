@@ -4,6 +4,7 @@ enum HTTPMethod: String, Sendable {
     case get = "GET"
     case post = "POST"
     case patch = "PATCH"
+    case delete = "DELETE"
 }
 
 struct Endpoint<Response: Decodable>: Sendable {
@@ -36,6 +37,11 @@ enum Endpoints {
 
     static func updateProfile(promo: String? = nil, tbk: String? = nil) -> Endpoint<Profile> {
         Endpoint(method: .patch, path: "me", body: try? encoder.encode(ProfilePatch(promo: promo, tbk: tbk)))
+    }
+
+    /// Deletes the Better Lise account and its stored data. The Lise account is not affected.
+    static func deleteAccount() -> Endpoint<AccountDeletionResponse> {
+        Endpoint(method: .delete, path: "me")
     }
 
     static func agenda(liseId: String, tbk: String, includeRU: Bool) -> Endpoint<AgendaResponse> {

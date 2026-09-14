@@ -163,6 +163,10 @@ struct LogoutResponse: Codable, Sendable {
     let loggedOut: Bool
 }
 
+struct AccountDeletionResponse: Codable, Sendable {
+    let deleted: Bool
+}
+
 /// Recent scraper performance measured by the server (`avgDuration` in milliseconds).
 struct LiseHealth: Codable, Equatable, Sendable {
     let avgDuration: Double
