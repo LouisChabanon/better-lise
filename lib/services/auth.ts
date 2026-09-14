@@ -5,6 +5,7 @@ import { differenceInCalendarDays } from "date-fns";
 import prisma from "@/lib/db";
 import logger from "@/lib/logger";
 import { liseIdChecker } from "@/lib/validators";
+import { DEMO_SESSION_ID, DEMO_USERNAME, isDemoPasswordValid, isDemoUsername } from "./demo";
 import { failure, ServiceResult, success } from "./result";
 
 const LISE_URI = process.env.LISE_URI || "https://lise.ensam.eu";
@@ -72,6 +73,27 @@ async function upsertUser(username: string) {
 	});
 }
 
+/** Store review account: checked against DEMO_ACCOUNT_PASSWORD, never sent to Lise. */
+async function authenticateDemo(password: string): Promise<ServiceResult<AuthenticatedUser>> {
+	if (!isDemoPasswordValid(password)) {
+		logger.warn("Demo sign-in rejected");
+		return failure("INVALID_CREDENTIALS", "Identifiant ou mot de passe invalide");
+	}
+
+	try {
+		const user = await upsertUser(DEMO_USERNAME);
+		// Each review starts from the same state: fixture grades are reseeded on the next sync
+		await prisma.grade.deleteMany({ where: { userId: user.id } });
+		logger.info("Demo sign-in successful", { userId: user.id });
+		return success({ userId: user.id, username: user.username, jsessionId: DEMO_SESSION_ID });
+	} catch (error) {
+		logger.error("Unhandled error during demo sign-in", {
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return failure("INTERNAL", "Erreur interne. Veuillez réessayer plus tard.");
+	}
+}
+
 /** Validates credentials against Lise and records the login in the DB. */
 export async function authenticate(
 	username: string,
@@ -79,6 +101,9 @@ export async function authenticate(
 ): Promise<ServiceResult<AuthenticatedUser>> {
 	if (!liseIdChecker(username) || !password) {
 		return failure("INVALID_CREDENTIALS", "Identifiant ou mot de passe invalide");
+	}
+	if (isDemoUsername(username)) {
+		return authenticateDemo(password);
 	}
 
 	const jar = new CookieJar();
@@ -126,6 +151,7 @@ export async function authenticate(
 
 /** Best-effort invalidation of the Lise session. */
 export async function logoutFromLise(jsessionId: string): Promise<boolean> {
+	if (jsessionId === DEMO_SESSION_ID) return true;
 	try {
 		const jar = new CookieJar();
 		jar.setCookieSync(`JSESSIONID=${jsessionId}`, LISE_URI);
