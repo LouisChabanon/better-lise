@@ -13,13 +13,13 @@ struct StoresTests {
         #expect(settings.campus == .sibers)
         #expect(settings.showRU)
         #expect(!settings.hasValidLiseId)
-        #expect(!settings.casinoMode)
+        #expect(!settings.revealMode)
 
         settings.liseId = "2023-1234"
         settings.campus = .cluny
         settings.promo = .gim2
         settings.showRU = false
-        settings.casinoMode = true
+        settings.revealMode = true
 
         let reloaded = SettingsStore(defaults: defaults)
         #expect(reloaded.liseId == "2023-1234")
@@ -27,7 +27,7 @@ struct StoresTests {
         #expect(reloaded.campus == .cluny)
         #expect(reloaded.promo == .gim2)
         #expect(!reloaded.showRU)
-        #expect(reloaded.casinoMode)
+        #expect(reloaded.revealMode)
     }
 
     @Test func liseIdValidation() {

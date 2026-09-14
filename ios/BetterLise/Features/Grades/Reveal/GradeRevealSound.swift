@@ -1,16 +1,16 @@
 import AVFoundation
 
-/// The web lootbox sounds, played through an `AVAudioEngine` whose scheduling happens on a background
+/// The web reveal sounds, played through an `AVAudioEngine` whose scheduling happens on a background
 /// queue: triggering a sound never blocks the main thread (and so never costs an animation frame).
 /// Uses the ambient session: silent when the ring/silent switch is on, mixed with other audio.
-final class LootBoxSound: @unchecked Sendable {
+final class GradeRevealSound: @unchecked Sendable {
     private enum Sound: CaseIterable {
         case open, tick, reveal
 
         var resource: String {
             switch self {
-            case .open: "crate_open"
-            case .tick: "crate_item_scroll"
+            case .open: "reveal_start"
+            case .tick: "reveal_tick"
             case .reveal: "item_reveal"
             }
         }
@@ -23,7 +23,7 @@ final class LootBoxSound: @unchecked Sendable {
         }
     }
 
-    private let queue = DispatchQueue(label: "com.betterlise.lootbox.sound", qos: .userInteractive)
+    private let queue = DispatchQueue(label: "com.betterlise.reveal.sound", qos: .userInteractive)
     private let engine = AVAudioEngine()
     private var buffers: [Sound: AVAudioPCMBuffer] = [:]
     private var nodes: [Sound: [AVAudioPlayerNode]] = [:]

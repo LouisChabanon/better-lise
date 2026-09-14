@@ -48,7 +48,7 @@ fun GradeDetailSheet(
     stats: Loadable<GradeStats>,
     onRetry: () -> Unit,
     onDismiss: () -> Unit,
-    /** Puts the grade back to "new" (replays the casino reveal). */
+    /** Puts the grade back to "new" (replays the grade reveal). */
     onMarkAsNew: (() -> Unit)? = null,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.background) {
@@ -178,7 +178,7 @@ private fun Distribution(stats: GradeStats, grade: Grade) {
             }
         }
         Text(
-            "Ta tranche est mise en évidence. Statistiques calculées à partir des utilisateurs de Better Lise.",
+            "Statistiques calculées à partir des utilisateurs de Better Lise.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp),

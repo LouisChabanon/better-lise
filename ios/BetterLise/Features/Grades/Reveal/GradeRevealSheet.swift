@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Native port of the web casino reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx).
-struct LootBoxSheet: View {
+/// Native port of the web grade reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx).
+struct GradeRevealSheet: View {
     let grade: Grade
     /// The reel stopped on the grade: mark it as opened.
     let onReveal: () -> Void
@@ -13,12 +13,12 @@ struct LootBoxSheet: View {
     }
 
     @State private var phase: Phase = .ready
-    @State private var reel: [LootItem] = []
-    @State private var sound: LootBoxSound?
+    @State private var reel: [RevealItem] = []
+    @State private var sound: GradeRevealSound?
     @State private var roll: RollRequest?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var rarity: LootRarity { LootRarity(grade: grade.note) }
+    private var rarity: GradeRarity { GradeRarity(grade: grade.note) }
     private var isRevealed: Bool { phase == .revealed }
     private var isRolling: Bool { phase == .rolling }
 
@@ -36,7 +36,7 @@ struct LootBoxSheet: View {
                 } else {
                     ReelView(
                         items: reel,
-                        highlightsWinner: isRevealed,
+                        highlightsTarget: isRevealed,
                         motion: reelMotion,
                         onSoundTick: { sound?.playTick() },
                         onFinish: reveal
@@ -60,7 +60,7 @@ struct LootBoxSheet: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Theme.backgroundPrimary.ignoresSafeArea())
         .overlay {
-            if isRevealed, LootBox.shouldCelebrate(grade.note), !reduceMotion {
+            if isRevealed, GradeReveal.shouldCelebrate(grade.note), !reduceMotion {
                 ConfettiView().ignoresSafeArea().allowsHitTesting(false)
             }
         }
@@ -68,13 +68,13 @@ struct LootBoxSheet: View {
         .sensoryFeedback(.success, trigger: isRevealed) { _, revealed in revealed }
         .task(id: phase) {
             guard phase == .revealed else { return }
-            try? await Task.sleep(for: .seconds(LootBox.revealHoldDuration))
+            try? await Task.sleep(for: .seconds(GradeReveal.revealHoldDuration))
             guard !Task.isCancelled else { return }
             onComplete()
         }
         .onAppear {
-            if reel.isEmpty { reel = LootBox.makeReel(winning: grade.note) }
-            if sound == nil { sound = LootBoxSound() }
+            if reel.isEmpty { reel = GradeReveal.makeReel(target: grade.note) }
+            if sound == nil { sound = GradeRevealSound() }
         }
     }
 
@@ -117,7 +117,7 @@ struct LootBoxSheet: View {
         case .ready:
             Button {
                 sound?.playOpen()
-                roll = RollRequest(duration: LootBox.rollDuration, jitterUnit: Double.random(in: 0..<1))
+                roll = RollRequest(duration: GradeReveal.rollDuration, jitterUnit: Double.random(in: 0..<1))
                 phase = .rolling
             } label: {
                 Text("Voir la note")
@@ -129,21 +129,18 @@ struct LootBoxSheet: View {
             .tint(Theme.primary)
             .controlSize(.large)
         case .rolling:
-            Text("Ouverture de la caisse…")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Theme.textTertiary)
-                .frame(maxWidth: .infinity)
+            rollingStatus
         case .revealed:
-            Text(rarity.label.uppercased())
-                .font(.system(.headline, design: .rounded, weight: .heavy))
-                .tracking(3)
-                .foregroundStyle(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(rarity.color, in: Capsule())
-                .frame(maxWidth: .infinity)
-                .transition(.scale.combined(with: .opacity))
+            // Keeps the footer height so the sheet does not jump when the reel stops
+            rollingStatus.hidden()
         }
+    }
+
+    private var rollingStatus: some View {
+        Text("Révélation en cours…")
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(Theme.textTertiary)
+            .frame(maxWidth: .infinity)
     }
 
     /// Center marker and edge fades, drawn above the reel.

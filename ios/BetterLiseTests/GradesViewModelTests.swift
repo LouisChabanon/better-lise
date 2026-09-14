@@ -42,7 +42,7 @@ struct GradesViewModelTests {
         ])
         let model = makeModel()
         await model.load()
-        // Copy captured while the grade was still new (before the casino reveal marked it opened)
+        // Copy captured while the grade was still new (before the reveal marked it opened)
         let stale = Grade(copying: try #require(model.state.value?.first), isNew: true)
 
         await model.markNew(stale)

@@ -48,7 +48,7 @@ import com.betterlise.app.data.health.LiseHealthMonitor
 import com.betterlise.app.ui.loading.SyncAwareContent
 import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.ui.components.isLoading
-import com.betterlise.app.ui.grades.lootbox.LootBoxSheet
+import com.betterlise.app.ui.grades.reveal.GradeRevealSheet
 import com.betterlise.app.ui.theme.AppTheme
 import com.betterlise.app.ui.theme.NumberStyle
 import java.text.NumberFormat
@@ -59,7 +59,7 @@ internal fun formatNote(value: Double): String =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GradesScreen(viewModel: GradesViewModel, casinoMode: Boolean, onSignIn: () -> Unit) {
+fun GradesScreen(viewModel: GradesViewModel, revealMode: Boolean, onSignIn: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -84,7 +84,7 @@ fun GradesScreen(viewModel: GradesViewModel, casinoMode: Boolean, onSignIn: () -
             ) {
                 // The pill reports sync progress, so the pull indicator only acknowledges the gesture
                 PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh) {
-                    GradeList(state, viewModel, casinoMode)
+                    GradeList(state, viewModel, revealMode)
                 }
             }
         }
@@ -101,7 +101,7 @@ fun GradesScreen(viewModel: GradesViewModel, casinoMode: Boolean, onSignIn: () -
     }
 
     state.revealing?.let { grade ->
-        LootBoxSheet(
+        GradeRevealSheet(
             grade = grade,
             onRevealed = viewModel::onRevealed,
             onComplete = viewModel::finishReveal,
@@ -111,7 +111,7 @@ fun GradesScreen(viewModel: GradesViewModel, casinoMode: Boolean, onSignIn: () -
 }
 
 @Composable
-private fun GradeList(state: GradesUiState, viewModel: GradesViewModel, casinoMode: Boolean) {
+private fun GradeList(state: GradesUiState, viewModel: GradesViewModel, revealMode: Boolean) {
     val grades = state.visibleGrades
     val unread = grades.filter { it.isUnread }
     val read = grades.filterNot { it.isUnread }
@@ -143,12 +143,12 @@ private fun GradeList(state: GradesUiState, viewModel: GradesViewModel, casinoMo
         if (unread.isNotEmpty()) {
             item { SectionTitle("Nouvelles notes") }
             items(unread, key = { "new-${it.code}" }) {
-                GradeRow(it, hidesNote = casinoMode) { viewModel.onGradeTapped(it, casinoMode) }
+                GradeRow(it, hidesNote = revealMode) { viewModel.onGradeTapped(it, revealMode) }
             }
         }
         if (read.isNotEmpty()) {
             item { SectionTitle(if (unread.isEmpty()) "Toutes les notes" else "Déjà consultées") }
-            items(read, key = { it.code }) { GradeRow(it, hidesNote = false) { viewModel.onGradeTapped(it, casinoMode) } }
+            items(read, key = { it.code }) { GradeRow(it, hidesNote = false) { viewModel.onGradeTapped(it, revealMode) } }
         }
         if (grades.isEmpty() && state.sync == SyncState.Idle && state.grades.errorMessage == null) {
             item { EmptyState("Aucune note", if (state.query.isBlank()) "Tes notes apparaîtront ici." else "Aucun résultat pour « ${state.query} ».") }

@@ -1,4 +1,4 @@
-package com.betterlise.app.ui.grades.lootbox
+package com.betterlise.app.ui.grades.reveal
 
 import android.content.Context
 import android.media.AudioAttributes
@@ -6,8 +6,8 @@ import android.media.AudioManager
 import android.media.SoundPool
 import com.betterlise.app.R
 
-/** The web lootbox sounds. Played only when the ringer is in normal mode (silent/vibrate stay quiet). */
-class LootBoxSound(context: Context) {
+/** The web reveal sounds. Played only when the ringer is in normal mode (silent/vibrate stay quiet). */
+class GradeRevealSound(context: Context) {
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val pool = SoundPool.Builder()
         .setMaxStreams(6)
@@ -19,8 +19,8 @@ class LootBoxSound(context: Context) {
         )
         .build()
 
-    private val open = pool.load(context, R.raw.crate_open, 1)
-    private val tick = pool.load(context, R.raw.crate_item_scroll, 1)
+    private val open = pool.load(context, R.raw.reveal_start, 1)
+    private val tick = pool.load(context, R.raw.reveal_tick, 1)
     private val reveal = pool.load(context, R.raw.item_reveal, 1)
 
     fun playOpen() = play(open, 0.3f)

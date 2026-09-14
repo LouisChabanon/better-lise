@@ -29,10 +29,10 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
-/** JVM UI test (Robolectric): a new grade goes through the lootbox before its detail opens. */
+/** JVM UI test (Robolectric): a new grade goes through the reveal before its detail opens. */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [35])
-class CasinoModeUiTest {
+class RevealModeUiTest {
     @get:Rule val compose = createComposeRule()
     @get:Rule val tmp = TemporaryFolder()
     private val server = MockWebServer()
@@ -65,14 +65,14 @@ class CasinoModeUiTest {
             ResponseCache(tmp.newFolder("cache")),
             LiseHealthMonitor(fetch = { LiseHealth(1_500.0, 10) }),
         )
-        compose.setContent { BetterLiseTheme { GradesScreen(viewModel, casinoMode = true, onSignIn = {}) } }
+        compose.setContent { BetterLiseTheme { GradesScreen(viewModel, revealMode = true, onSignIn = {}) } }
     }
 
     @After
     fun tearDown() = server.shutdown()
 
     @Test
-    fun newGradeIsRevealedThroughTheLootboxThenCanBeReplayed() {
+    fun newGradeIsRevealedThroughTheReelThenCanBeReplayed() {
         compose.waitUntil(10_000) { compose.onAllNodes(hasTestTag("hiddenGrade")).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithTag("hiddenGrade").performClick()
 
@@ -81,11 +81,10 @@ class CasinoModeUiTest {
         compose.mainClock.autoAdvance = false
         compose.onNodeWithText("Voir la note").performClick()
         compose.mainClock.advanceTimeBy(4_000)
-        compose.onNodeWithText("Ouverture de la caisse…").assertExists()
-        compose.onAllNodes(androidx.compose.ui.test.hasText("LEGENDARY")).assertCountEquals(0)
+        compose.onNodeWithText("Révélation en cours…").assertExists()
 
         compose.mainClock.advanceTimeBy(4_800)
-        compose.onNodeWithText("LEGENDARY").assertExists()
+        compose.onAllNodes(androidx.compose.ui.test.hasText("Révélation en cours…")).assertCountEquals(0)
 
         compose.mainClock.advanceTimeBy(3_500)
         compose.mainClock.autoAdvance = true

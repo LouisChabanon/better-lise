@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Rarity tiers of the web casino mode (lib/utils/game-utils.ts `getRarity`).
-enum LootRarity: CaseIterable, Equatable, Sendable {
+/// Grade tiers of the web reveal (lib/utils/game-utils.ts `getRarity`). Internal only: picks the reveal color.
+enum GradeRarity: CaseIterable, Equatable, Sendable {
     case poor, basic, common, epic, legendary
 
     init(grade: Double) {
@@ -11,16 +11,6 @@ enum LootRarity: CaseIterable, Equatable, Sendable {
         case 10...: self = .common
         case 7...: self = .basic
         default: self = .poor
-        }
-    }
-
-    var label: String {
-        switch self {
-        case .poor: "Poor"
-        case .basic: "Basic"
-        case .common: "Common"
-        case .epic: "Epic"
-        case .legendary: "Legendary"
         }
     }
 
@@ -38,7 +28,7 @@ enum LootRarity: CaseIterable, Equatable, Sendable {
     var color: Color { Color(uiColor: UIColor(hex: hex)) }
 }
 
-struct LootItem: Identifiable, Equatable, Sendable {
+struct RevealItem: Identifiable, Equatable, Sendable {
     let id: Int
     let grade: Double
     /// Formatted once: formatting 50 labels every frame was a visible cost while rolling.
@@ -50,7 +40,7 @@ struct LootItem: Identifiable, Equatable, Sendable {
         label = grade.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "fr_FR")))
     }
 
-    var rarity: LootRarity { LootRarity(grade: grade) }
+    var rarity: GradeRarity { GradeRarity(grade: grade) }
 }
 
 /// Limits how often tick feedback fires. At full speed the reel crosses ~30 items per second, more than
@@ -71,9 +61,9 @@ struct TickThrottle: Sendable {
 }
 
 /// Port of the web reel (components/LootCase.tsx).
-enum LootBox {
+enum GradeReveal {
     static let reelSize = 50
-    static let winningIndex = 47
+    static let targetIndex = 47
     static let itemWidth: CGFloat = 120
     static let confettiThreshold = 10.0
     static let revealHoldDuration: TimeInterval = 3
@@ -87,27 +77,27 @@ enum LootBox {
 
     static var rollDuration: TimeInterval {
         #if DEBUG
-        // UI tests shorten the roll with `-lootBoxRollDuration <seconds>`
-        let override = UserDefaults.standard.double(forKey: "lootBoxRollDuration")
+        // UI tests shorten the roll with `-revealRollDuration <seconds>`
+        let override = UserDefaults.standard.double(forKey: "revealRollDuration")
         if override > 0 { return override }
         #endif
         return 8
     }
 
     /// Random grades (uniform 0–20, "more fun" than a bell curve on the web) with the real grade hidden
-    /// at the winning index. `random` returns values in 0..<1.
-    static func makeReel(winning grade: Double, random: () -> Double = { Double.random(in: 0..<1) }) -> [LootItem] {
+    /// at the target index. `random` returns values in 0..<1.
+    static func makeReel(target grade: Double, random: () -> Double = { Double.random(in: 0..<1) }) -> [RevealItem] {
         (0..<reelSize).map { index in
             let value = random() * 20
-            return LootItem(id: index, grade: index == winningIndex ? grade : value)
+            return RevealItem(id: index, grade: index == targetIndex ? grade : value)
         }
     }
 
-    /// Reel offset that centers the winning item, shifted by up to ±20 % of an item (`jitterUnit` in 0..<1).
+    /// Reel offset that centers the target item, shifted by up to ±20 % of an item (`jitterUnit` in 0..<1).
     static func stopOffset(containerWidth: CGFloat, itemWidth: CGFloat = itemWidth, jitterUnit: Double) -> CGFloat {
         let centerOffset = containerWidth / 2 - itemWidth / 2
         let jitter = (jitterUnit - 0.5) * itemWidth * 0.4
-        return -(CGFloat(winningIndex) * itemWidth) + centerOffset + jitter
+        return -(CGFloat(targetIndex) * itemWidth) + centerOffset + jitter
     }
 
     static func offset(elapsed: TimeInterval, stop: CGFloat, duration: TimeInterval) -> CGFloat {

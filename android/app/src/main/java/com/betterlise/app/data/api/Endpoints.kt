@@ -63,7 +63,7 @@ object Endpoints {
         serializer = MarkOpenedResponse.serializer(),
     )
 
-    /** Casino mode replay: puts the grade back behind the lootbox. */
+    /** Reveal mode replay: hides the grade again until it is revealed. */
     fun markGradeNew(code: String) = Endpoint(
         method = HttpMethod.POST,
         path = "grades/${encodeSegment(code)}/new",

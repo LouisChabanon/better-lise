@@ -1,4 +1,4 @@
-package com.betterlise.app.ui.grades.lootbox
+package com.betterlise.app.ui.grades.reveal
 
 import android.provider.Settings
 import androidx.compose.animation.AnimatedContent
@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -77,10 +77,10 @@ import kotlin.random.Random
 
 private enum class Phase { Ready, Rolling, Revealed }
 
-/** Native port of the web casino reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx). */
+/** Native port of the web grade reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LootBoxSheet(
+fun GradeRevealSheet(
     grade: Grade,
     /** The reel stopped on the grade: mark it as opened. */
     onRevealed: () -> Unit,
@@ -95,14 +95,13 @@ fun LootBoxSheet(
         confirmValueChange = { it != SheetValue.Hidden || phase != Phase.Rolling },
     )
     val context = LocalContext.current
-    val sound = remember { LootBoxSound(context) }
+    val sound = remember { GradeRevealSound(context) }
     DisposableEffect(Unit) { onDispose { sound.release() } }
     val animationsEnabled = remember {
         Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
     }
-    val reel = remember(grade.code) { LootBox.makeReel(winning = grade.note) }
-    val rarity = LootRarity.of(grade.note)
-    val rarityColor = Color(rarity.argb)
+    val reel = remember(grade.code) { GradeReveal.makeReel(target = grade.note) }
+    val rarityColor = Color(GradeRarity.of(grade.note).argb)
 
     ModalBottomSheet(
         onDismissRequest = { if (phase != Phase.Rolling) onDismiss() },
@@ -151,28 +150,14 @@ fun LootBoxSheet(
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth().height(52.dp),
                         ) { Text("Voir la note", fontWeight = FontWeight.SemiBold) }
-                        Phase.Rolling -> Text(
-                            "Ouverture de la caisse…",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().wrapContentWidth(),
-                        )
-                        Phase.Revealed -> Text(
-                            rarity.label.uppercase(),
-                            color = Color.White,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 3.sp,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentWidth()
-                                .background(rarityColor, CircleShape)
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                        )
+                        Phase.Rolling -> RollingStatus()
+                        // Keeps the footer height so the sheet does not jump when the reel stops
+                        Phase.Revealed -> RollingStatus(Modifier.alpha(0f).clearAndSetSemantics {})
                     }
                 }
             }
 
-            if (phase == Phase.Revealed && LootBox.shouldCelebrate(grade.note) && animationsEnabled) {
+            if (phase == Phase.Revealed && GradeReveal.shouldCelebrate(grade.note) && animationsEnabled) {
                 Confetti(Modifier.matchParentSize())
             }
         }
@@ -181,15 +166,25 @@ fun LootBoxSheet(
     val latestOnComplete by rememberUpdatedState(onComplete)
     LaunchedEffect(phase) {
         if (phase == Phase.Revealed) {
-            delay(LootBox.REVEAL_HOLD_MS)
+            delay(GradeReveal.REVEAL_HOLD_MS)
             latestOnComplete()
         }
     }
 }
 
 @Composable
+private fun RollingStatus(modifier: Modifier = Modifier) {
+    Text(
+        "Révélation en cours…",
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.fillMaxWidth().wrapContentWidth(),
+    )
+}
+
+@Composable
 private fun Reel(
-    reel: List<LootItem>,
+    reel: List<RevealItem>,
     phase: Phase,
     rarityColor: Color,
     animationsEnabled: Boolean,
@@ -222,13 +217,13 @@ private fun Reel(
 
         LaunchedEffect(phase == Phase.Ready) {
             if (phase != Phase.Rolling) return@LaunchedEffect
-            val stop = LootBox.stopOffset(containerWidth = containerWidth, jitterUnit = Random.nextDouble())
-            offset.animateTo(stop, tween(LootBox.ROLL_DURATION_MS, easing = LootBox.Easing))
+            val stop = GradeReveal.stopOffset(containerWidth = containerWidth, jitterUnit = Random.nextDouble())
+            offset.animateTo(stop, tween(GradeReveal.ROLL_DURATION_MS, easing = GradeReveal.Easing))
             haptics.performHapticFeedback(HapticFeedbackType.Confirm)
             latestOnStopped()
         }
         LaunchedEffect(Unit) {
-            snapshotFlow { LootBox.centeredIndex(offset.value, containerWidth) }
+            snapshotFlow { GradeReveal.centeredIndex(offset.value, containerWidth) }
                 .distinctUntilChanged()
                 .drop(1)
                 .collect {
@@ -238,10 +233,10 @@ private fun Reel(
         }
 
         if (phase == Phase.Ready) {
-            ReadyCase(animationsEnabled)
+            ReadyPrompt(animationsEnabled)
         } else {
             // The row is ~50 items wide: anchor it at the start and let it overflow to the right
-            val rowWidth = (LootBox.ITEM_WIDTH * reel.size).dp
+            val rowWidth = (GradeReveal.ITEM_WIDTH * reel.size).dp
             val containerWidthDp = maxWidth
             Row(
                 Modifier
@@ -251,7 +246,7 @@ private fun Reel(
                     .offset { IntOffset((offset.value.dp + (rowWidth - containerWidthDp) / 2).roundToPx(), 0) },
             ) {
                 reel.forEach { item ->
-                    ReelItem(item, isWinner = phase == Phase.Revealed && item.id == LootBox.WINNING_INDEX, width = LootBox.ITEM_WIDTH.dp)
+                    ReelItem(item, isTarget = phase == Phase.Revealed && item.id == GradeReveal.TARGET_INDEX, width = GradeReveal.ITEM_WIDTH.dp)
                 }
             }
             ReelChrome()
@@ -260,7 +255,7 @@ private fun Reel(
 }
 
 @Composable
-private fun ReadyCase(animationsEnabled: Boolean) {
+private fun ReadyPrompt(animationsEnabled: Boolean) {
     val pulse = if (animationsEnabled) {
         rememberInfiniteTransition(label = "gift").animateFloat(1f, 0.75f, infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "pulse").value
     } else {
@@ -278,18 +273,18 @@ private fun ReadyCase(animationsEnabled: Boolean) {
 }
 
 @Composable
-private fun ReelItem(item: LootItem, isWinner: Boolean, width: Dp) {
+private fun ReelItem(item: RevealItem, isTarget: Boolean, width: Dp) {
     val color = Color(item.rarity.argb)
-    val pop by animateFloatAsState(if (isWinner) 1.06f else 1f, spring(dampingRatio = 0.4f), label = "pop")
+    val pop by animateFloatAsState(if (isTarget) 1.06f else 1f, spring(dampingRatio = 0.4f), label = "pop")
     Box(
         Modifier
             .width(width)
             .fillMaxHeight()
-            .zIndex(if (isWinner) 1f else 0f)
+            .zIndex(if (isTarget) 1f else 0f)
             .scale(pop)
-            .shadow(if (isWinner) 16.dp else 0.dp, ambientColor = color, spotColor = color)
+            .shadow(if (isTarget) 16.dp else 0.dp, ambientColor = color, spotColor = color)
             .background(color)
-            .border(3.dp, if (isWinner) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.25f)),
+            .border(3.dp, if (isTarget) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.25f)),
         contentAlignment = Alignment.Center,
     ) {
         Text(

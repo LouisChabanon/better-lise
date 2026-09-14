@@ -1,7 +1,7 @@
 import XCTest
 
 @MainActor
-final class CasinoModeUITests: XCTestCase {
+final class RevealModeUITests: XCTestCase {
     private func launchApp() -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
@@ -9,7 +9,7 @@ final class CasinoModeUITests: XCTestCase {
         app.launchArguments += [
             "-uiTestStubAPI", "YES", // DEBUG-only canned API with a signed-in session
             "-settings.liseId", "2023-1234",
-            "-settings.casinoMode", "YES",
+            "-settings.revealMode", "YES",
         ]
         app.launch()
         return app
@@ -17,24 +17,24 @@ final class CasinoModeUITests: XCTestCase {
 
 
 
-    func testNewGradeIsRevealedThroughTheLootbox() {
+    func testNewGradeIsRevealedThroughTheReel() {
         let app = launchApp()
         app.tabBars.buttons["Notes"].tap()
 
         let hidden = app.buttons.matching(identifier: "hiddenGrade").firstMatch
-        XCTAssertTrue(hidden.waitForExistence(timeout: 10), "New grades hide their note in casino mode")
+        XCTAssertTrue(hidden.waitForExistence(timeout: 10), "New grades hide their note in reveal mode")
         hidden.tap()
 
         let open = app.buttons["Voir la note"]
         XCTAssertTrue(open.waitForExistence(timeout: 5))
         open.tap()
 
-        XCTAssertTrue(app.staticTexts["LEGENDARY"].waitForExistence(timeout: 14), "The rarity is announced on reveal")
         // The reel lands on the real grade, and stays landed: the glow starting after the reveal used to
         // rebuild the reel, which rolled again
         let reel = app.otherElements["reel"]
         XCTAssertTrue(reel.waitForExistence(timeout: 3))
-        XCTAssertEqual(reel.value as? String, "Arrêtée sur 18,50")
+        let landed = NSPredicate(format: "value == %@", "Arrêtée sur 18,50")
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation(for: landed, evaluatedWith: reel)], timeout: 14), .completed, "The reel lands on the grade")
         RunLoop.current.run(until: Date().addingTimeInterval(1))
         XCTAssertEqual(reel.value as? String, "Arrêtée sur 18,50", "The reel must not roll again after the reveal")
         XCTAssertTrue(app.staticTexts["Moyenne"].waitForExistence(timeout: 8), "The grade detail opens after the reveal")

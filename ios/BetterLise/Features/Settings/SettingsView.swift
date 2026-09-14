@@ -47,10 +47,10 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Toggle(isOn: $settings.casinoMode) {
+                    Toggle(isOn: $settings.revealMode) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Mode Casino")
-                            Text("Animations « Loot Box » pour les notes")
+                            Text("Mode Révélation")
+                            Text("Révélation animée des nouvelles notes")
                                 .font(.caption)
                                 .foregroundStyle(Theme.textTertiary)
                         }
@@ -58,8 +58,6 @@ struct SettingsView: View {
                     .tint(Theme.primary)
                 } header: {
                     Text("Interface")
-                } footer: {
-                    Text("Au lieu de voir tes notes directement, elles sont cachées derrière un mini-jeu type caisse CS:GO. Désactive-le pour un affichage instantané et classique de tes notes.")
                 }
 
                 Section("À propos") {

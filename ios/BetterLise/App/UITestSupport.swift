@@ -2,7 +2,7 @@
 import Foundation
 
 /// DEBUG-only hooks for UI tests: `-uiTestStubAPI YES` swaps the network for canned responses and a
-/// signed-in session, so flows behind login (casino mode) can run without a backend. Never compiled in Release.
+/// signed-in session, so flows behind login (reveal mode) can run without a backend. Never compiled in Release.
 enum UITestSupport {
     static var isStubbingAPI: Bool {
         UserDefaults.standard.bool(forKey: "uiTestStubAPI")

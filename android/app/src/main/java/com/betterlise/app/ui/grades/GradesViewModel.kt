@@ -30,7 +30,7 @@ data class GradesUiState(
     val selected: Grade? = null,
     val stats: Loadable<GradeStats> = Loadable.Idle,
     val sync: SyncState = SyncState.Idle,
-    /** Casino mode: new grade currently shown in the lootbox. */
+    /** Reveal mode: new grade currently being revealed. */
     val revealing: Grade? = null,
 ) {
     val visibleGrades: List<Grade>
@@ -97,9 +97,9 @@ class GradesViewModel(
 
     fun onQueryChange(query: String) = _state.update { it.copy(query = query) }
 
-    /** Casino mode hides new grades behind the lootbox; otherwise the detail opens right away. */
-    fun onGradeTapped(grade: Grade, casinoMode: Boolean) {
-        if (casinoMode && grade.isUnread) {
+    /** Reveal mode hides new grades until they are revealed; otherwise the detail opens right away. */
+    fun onGradeTapped(grade: Grade, revealMode: Boolean) {
+        if (revealMode && grade.isUnread) {
             _state.update { it.copy(revealing = grade) }
         } else {
             open(grade)
@@ -120,7 +120,7 @@ class GradesViewModel(
 
     fun dismissReveal() = _state.update { it.copy(revealing = null) }
 
-    /** Casino mode replay: hides the grade behind the lootbox again, rolling back if the server fails. */
+    /** Reveal mode replay: hides the grade again, rolling back if the server fails. */
     fun markNew(grade: Grade) {
         val previous = _state.value.grades.value ?: return
         // The caller may hold a stale copy: trust the current list

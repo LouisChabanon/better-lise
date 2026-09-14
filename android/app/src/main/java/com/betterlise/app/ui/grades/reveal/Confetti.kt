@@ -1,4 +1,4 @@
-package com.betterlise.app.ui.grades.lootbox
+package com.betterlise.app.ui.grades.reveal
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
