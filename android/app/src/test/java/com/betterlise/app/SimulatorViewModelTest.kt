@@ -123,7 +123,8 @@ class SimulatorViewModelTest {
     fun `persists simulations per account`() = runTest {
         val viewModel = makeViewModel()
         viewModel.await { it.weights.isNotEmpty() }
-        viewModel.addSimulation("  ", grade = 25.0, coeff = 2.0, classCode = "MATA")
+        viewModel.addSimulation("  ", grade = 25.0, coeff = 1.33, classCode = "MATA")
+        viewModel.addSimulation("Invalide", grade = 12.0, coeff = 0.0, classCode = "MATA")
         viewModel.setLocalCoeff("FITE_S7_MATA_DS", 0.0)
         viewModel.setLocalCoeff("FITE_S7_MATA_DS", 4.0)
 
@@ -131,6 +132,7 @@ class SimulatorViewModelTest {
         val simulation = data.simulations.single()
         assertEquals("Simu.", simulation.name)
         assertEquals(20.0, simulation.grade, 0.0)
+        assertEquals(1.33, simulation.coeff, 0.0)
         assertEquals(mapOf("FITE_S7_MATA_DS" to 4.0), data.localCoeffs)
 
         withContext(Dispatchers.Default) { withTimeout(5_000) { while (localState.simulator("2023-1234") != data) delay(10) } }

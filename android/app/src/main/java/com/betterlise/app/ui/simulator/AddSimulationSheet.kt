@@ -27,7 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +40,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.betterlise.app.domain.ClassCodeParser
+import com.betterlise.app.domain.CoefficientInput
 import com.betterlise.app.ui.grades.formatNote
 import com.betterlise.app.ui.theme.AppTheme
 import com.betterlise.app.ui.theme.NumberStyle
@@ -51,7 +55,8 @@ internal fun AddSimulationSheet(
     var classCode by remember { mutableStateOf(classes.firstOrNull() ?: ClassCodeParser.UNASSIGNED) }
     var name by remember { mutableStateOf("") }
     var grade by remember { mutableDoubleStateOf(10.0) }
-    var coeff by remember { mutableDoubleStateOf(1.0) }
+    var coeffText by remember { mutableStateOf(formatNote(1.0)) }
+    val coeff = CoefficientInput.parse(coeffText)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
@@ -89,26 +94,39 @@ internal fun AddSimulationSheet(
                     modifier = Modifier.widthIn(min = 56.dp),
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("Coefficient", style = MaterialTheme.typography.titleSmall)
-                    Text("Retrouvez-le sur Savoir.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                FilledTonalIconButton(onClick = { coeff = (coeff - 0.5).coerceAtLeast(0.5) }) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Coefficient", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                FilledTonalIconButton(onClick = { coeffText = formatNote(CoefficientInput.stepped(coeff, -CoefficientInput.STEP)) }) {
                     Icon(Icons.Rounded.Remove, contentDescription = "Diminuer le coefficient")
                 }
-                Text(
-                    formatNote(coeff),
-                    style = MaterialTheme.typography.titleMedium.merge(NumberStyle),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.widthIn(min = 44.dp),
+                OutlinedTextField(
+                    value = coeffText,
+                    onValueChange = { coeffText = it },
+                    singleLine = true,
+                    isError = coeff == null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    textStyle = MaterialTheme.typography.titleMedium.merge(NumberStyle).copy(textAlign = TextAlign.Center),
+                    modifier = Modifier.width(88.dp).testTag("simulationCoeff"),
                 )
-                FilledTonalIconButton(onClick = { coeff = (coeff + 0.5).coerceAtMost(20.0) }) {
+                FilledTonalIconButton(onClick = { coeffText = formatNote(CoefficientInput.stepped(coeff, CoefficientInput.STEP)) }) {
                     Icon(Icons.Rounded.Add, contentDescription = "Augmenter le coefficient")
                 }
             }
+            Text(
+                if (coeff == null) {
+                    "Coefficient invalide : un nombre entre 0 et ${CoefficientInput.MAXIMUM.toInt()}, par exemple 1,33."
+                } else {
+                    "Retrouvez les coefficients de vos épreuves sur Savoir (ex : 1,33)."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = if (coeff == null) AppTheme.colors.danger.foreground else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Button(
-                onClick = { onAdd(name, grade, coeff, classCode); onDismiss() },
+                onClick = {
+                    coeff?.let { onAdd(name, grade, it, classCode) }
+                    onDismiss()
+                },
+                enabled = coeff != null,
                 modifier = Modifier.fillMaxWidth().testTag("confirmSimulation"),
             ) { Text("Ajouter la note simulée") }
         }

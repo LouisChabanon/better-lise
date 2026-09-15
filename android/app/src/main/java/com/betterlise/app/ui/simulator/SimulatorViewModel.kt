@@ -9,6 +9,7 @@ import com.betterlise.app.data.auth.SessionState
 import com.betterlise.app.data.cache.ResponseCache
 import com.betterlise.app.data.local.LocalStateRepository
 import com.betterlise.app.domain.ClassCodeParser
+import com.betterlise.app.domain.CoefficientInput
 import com.betterlise.app.domain.SimulatedGrade
 import com.betterlise.app.domain.SimulatorData
 import com.betterlise.app.domain.SimulatorGrouping
@@ -98,10 +99,11 @@ class SimulatorViewModel(
     fun selectSemester(semester: String) = editable.update { it.copy(selectedSemester = semester) }
 
     fun addSimulation(name: String, grade: Double, coeff: Double, classCode: String) {
+        if (!CoefficientInput.isValid(coeff)) return
         val simulation = SimulatedGrade(
             name = name.trim().ifEmpty { "Simu." },
             grade = grade.coerceIn(0.0, 20.0),
-            coeff = coeff.coerceAtLeast(0.01),
+            coeff = coeff,
             classCode = classCode,
         )
         updateData { it.copy(simulations = it.simulations + simulation) }
@@ -114,7 +116,7 @@ class SimulatorViewModel(
     }
 
     fun setLocalCoeff(code: String, value: Double) {
-        if (value <= 0 || !value.isFinite()) return
+        if (!CoefficientInput.isValid(value)) return
         updateData { it.copy(localCoeffs = it.localCoeffs + (code to value)) }
     }
 
