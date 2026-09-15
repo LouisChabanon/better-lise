@@ -10,6 +10,7 @@
 		02900F2394BA538C5E3EFE21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336F9EB868AB3D647A9B6D2B /* SettingsView.swift */; };
 		0369555B921400DE8B8C557C /* WeekTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F91EA7C858F85DB225F06E6B /* WeekTimelineView.swift */; };
 		0884D463920EC2C59B799D96 /* GradesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA747C4397038A2F51580983 /* GradesView.swift */; };
+		0DB2E77AB74FB0F02ED14056 /* CoefficientInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721BA6BFB55FFEA61D5DEEF3 /* CoefficientInputTests.swift */; };
 		0DDABAB94BFCC3AE450E4FC8 /* ScraperLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A64BF92D652629883D3B71 /* ScraperLoadingView.swift */; };
 		0F31FA1132379448556FEC7C /* ClassCodeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0329AC90C46B5AE1E12AEA7D /* ClassCodeParser.swift */; };
 		0F601BF04AC19160E16CA398 /* Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487E85E813B73462C0FEE385 /* Endpoint.swift */; };
@@ -47,6 +48,7 @@
 		8718E9508A8EEFE9E9C4B3B4 /* StubURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84158B32C2A465D7C14E573B /* StubURLProtocol.swift */; };
 		884BAC1DB902CFB00B5E778A /* GradeRevealSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFAEBCA0C3E305CD3D12CAA /* GradeRevealSheet.swift */; };
 		887BAD1591825BDBFE34F9B9 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 908C1ED9BFF2D28404565922 /* ConfettiView.swift */; };
+		94086A8476A4DB49117A0CB4 /* CoefficientInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = D040A3E5DE40C8E742916705 /* CoefficientInput.swift */; };
 		97E6E832C236FE8C8FFA5318 /* ClassCodeParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C802C078F8641C90B44825 /* ClassCodeParserTests.swift */; };
 		9A9B3B7A2F5F0241F87D701A /* EventDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7972040E4806287D8870226B /* EventDetailSheet.swift */; };
 		9C43EC8A32707CF886DEE412 /* GradeSortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36725FE02C0934E7D6962E2 /* GradeSortingTests.swift */; };
@@ -143,6 +145,7 @@
 		6DC8A9E9FBC1D3CD173F0A43 /* UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
 		7040616F21B9349D1274D0E3 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		70597FE59891B98B3B139CB4 /* UITestNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestNavigation.swift; sourceTree = "<group>"; };
+		721BA6BFB55FFEA61D5DEEF3 /* CoefficientInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoefficientInputTests.swift; sourceTree = "<group>"; };
 		727F21BE8F669FDDAA00BB88 /* BetterLiseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterLiseApp.swift; sourceTree = "<group>"; };
 		7972040E4806287D8870226B /* EventDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailSheet.swift; sourceTree = "<group>"; };
 		7F57BC2D9F05E33130BB2CD4 /* RevealModeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealModeUITests.swift; sourceTree = "<group>"; };
@@ -168,6 +171,7 @@
 		BAAB772168D8FE90F01BA5BE /* BetterLiseUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BetterLiseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBFAEBCA0C3E305CD3D12CAA /* GradeRevealSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeRevealSheet.swift; sourceTree = "<group>"; };
 		CBF0637A5ACE0FBF8178156B /* SimulatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorViewModel.swift; sourceTree = "<group>"; };
+		D040A3E5DE40C8E742916705 /* CoefficientInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoefficientInput.swift; sourceTree = "<group>"; };
 		D2C37ED73B0A592B4226488E /* ReelContainerViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelContainerViewTests.swift; sourceTree = "<group>"; };
 		D2E93A91491FB48FD589FB6D /* SimulatorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorStore.swift; sourceTree = "<group>"; };
 		D82E0C066D43B626EEF4E645 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
@@ -267,6 +271,7 @@
 			children = (
 				24A69371D98A880A8F88F020 /* AddSimulationSheet.swift */,
 				0329AC90C46B5AE1E12AEA7D /* ClassCodeParser.swift */,
+				D040A3E5DE40C8E742916705 /* CoefficientInput.swift */,
 				2EE86D1CAC442545C9016385 /* SimulatorGrouping.swift */,
 				6D213F4538BFEDD2DEDDE36B /* SimulatorRows.swift */,
 				D2E93A91491FB48FD589FB6D /* SimulatorStore.swift */,
@@ -284,6 +289,7 @@
 				11443F31D86885A93225A723 /* AgendaViewModelTests.swift */,
 				7040616F21B9349D1274D0E3 /* APIClientTests.swift */,
 				07C802C078F8641C90B44825 /* ClassCodeParserTests.swift */,
+				721BA6BFB55FFEA61D5DEEF3 /* CoefficientInputTests.swift */,
 				1D74620D779D71F625F0F49C /* GradeRevealLogicTests.swift */,
 				2B3DCE793AF8CA980E859138 /* GradeRevealSoundTests.swift */,
 				E36725FE02C0934E7D6962E2 /* GradeSortingTests.swift */,
@@ -597,6 +603,7 @@
 				E48318CD2D2C9E04B9DC8211 /* AgendaLayoutTests.swift in Sources */,
 				CF977DC89B23237384C3DA26 /* AgendaViewModelTests.swift in Sources */,
 				97E6E832C236FE8C8FFA5318 /* ClassCodeParserTests.swift in Sources */,
+				0DB2E77AB74FB0F02ED14056 /* CoefficientInputTests.swift in Sources */,
 				7AB4D28643629506DC0AC10E /* GradeRevealLogicTests.swift in Sources */,
 				A33845CCB53433444F56E36D /* GradeRevealSoundTests.swift in Sources */,
 				9C43EC8A32707CF886DEE412 /* GradeSortingTests.swift in Sources */,
@@ -631,6 +638,7 @@
 				4C799A9DD74657A6AE67935E /* AppEnvironment.swift in Sources */,
 				A968CA04428AA8FAC007495A /* BetterLiseApp.swift in Sources */,
 				0F31FA1132379448556FEC7C /* ClassCodeParser.swift in Sources */,
+				94086A8476A4DB49117A0CB4 /* CoefficientInput.swift in Sources */,
 				887BAD1591825BDBFE34F9B9 /* ConfettiView.swift in Sources */,
 				F94E1386009BC041EFFCAD80 /* DTOs.swift in Sources */,
 				0F601BF04AC19160E16CA398 /* Endpoint.swift in Sources */,

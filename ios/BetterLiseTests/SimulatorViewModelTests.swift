@@ -44,13 +44,16 @@ struct SimulatorViewModelTests {
         StubURLProtocol.reset([])
         let (_, simulator) = makeModels(defaults: defaults)
         simulator.activate(username: "2023-1234")
-        simulator.addSimulation(name: "  ", grade: 25, coeff: 2, classCode: "MATA")
+        simulator.addSimulation(name: "  ", grade: 25, coeff: 1.33, classCode: "MATA")
+        simulator.addSimulation(name: "Invalide", grade: 12, coeff: 0, classCode: "MATA")
         simulator.setLocalCoeff(code: "FITE_S7_MATA_DS", to: 0)
         simulator.setLocalCoeff(code: "FITE_S7_MATA_DS", to: 4)
 
         let simulation = try #require(simulator.data.simulations.first)
         #expect(simulation.name == "Simu.")
         #expect(simulation.grade == 20)
+        #expect(simulation.coeff == 1.33)
+        #expect(simulator.data.simulations.count == 1)
         #expect(simulator.data.localCoeffs == ["FITE_S7_MATA_DS": 4])
 
         let (_, reloaded) = makeModels(defaults: defaults)

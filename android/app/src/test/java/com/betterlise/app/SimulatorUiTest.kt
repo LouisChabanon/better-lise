@@ -5,7 +5,9 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performScrollTo
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -94,11 +96,15 @@ class SimulatorUiTest {
 
         compose.onNodeWithTag("addSimulation").performClick()
         compose.waitUntil(5_000) { compose.onAllNodes(hasTestTag("confirmSimulation")).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("simulationCoeff").performScrollTo().performTextReplacement("abc")
+        compose.onNodeWithTag("confirmSimulation").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("simulationCoeff").performTextReplacement("1,33")
         compose.onNodeWithTag("confirmSimulation").performScrollTo().performClick()
 
         // The UE summary merges its texts for accessibility, so look the delta up in the unmerged tree
         compose.waitUntil(5_000) { compose.onAllNodes(hasTestTag("projectionDelta"), useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
-        // 12 (coeff 1) and a simulated 10 (coeff 1): the average drops by one point
-        compose.onNodeWithText("-1,00", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("coeff. 1,33", useUnmergedTree = true).assertExists()
+        // 12 (coeff 1) and a simulated 10 (coeff 1,33): (12 + 13,3) / 2,33 = 10,86, so -1,14
+        compose.onNodeWithText("-1,14", useUnmergedTree = true).assertExists()
     }
 }

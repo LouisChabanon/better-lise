@@ -2,12 +2,14 @@ package com.betterlise.app
 
 import com.betterlise.app.data.api.Grade
 import com.betterlise.app.domain.ClassCodeParser
+import com.betterlise.app.domain.CoefficientInput
 import com.betterlise.app.domain.ParsedClassCode
 import com.betterlise.app.domain.SimulatedGrade
 import com.betterlise.app.domain.SimulatorData
 import com.betterlise.app.domain.SimulatorGrouping
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -91,6 +93,24 @@ class SimulatorLogicTest {
         assertEquals((12.0 + 18 + 8 + 40) / 5, mata.projectedAverage, 1e-9)
         assertEquals(SimulatorGrouping.SIMULATED_SEMESTER, groups[1].semester)
         assertEquals(0.0, groups[1].currentAverage, 0.0)
+    }
+
+    @Test
+    fun `coefficients accept any positive decimal up to the API maximum`() {
+        assertEquals(1.33, CoefficientInput.parse("1,33")!!, 0.0)
+        assertEquals(1.33, CoefficientInput.parse(" 1.33 ")!!, 0.0)
+        assertEquals(0.25, CoefficientInput.parse("0,25")!!, 0.0)
+        assertEquals(100.0, CoefficientInput.parse("100")!!, 0.0)
+        listOf("", "abc", "0", "-1", "100,01", "1,2,3", "NaN").forEach { assertNull(it, CoefficientInput.parse(it)) }
+    }
+
+    @Test
+    fun `stepping keeps hundredths and stays in range`() {
+        assertEquals(1.83, CoefficientInput.stepped(1.33, CoefficientInput.STEP), 0.0)
+        assertEquals(0.83, CoefficientInput.stepped(1.33, -CoefficientInput.STEP), 0.0)
+        assertEquals(0.33, CoefficientInput.stepped(0.33, -CoefficientInput.STEP), 0.0)
+        assertEquals(100.0, CoefficientInput.stepped(100.0, CoefficientInput.STEP), 0.0)
+        assertEquals(1.5, CoefficientInput.stepped(null, CoefficientInput.STEP), 0.0)
     }
 
     @Test

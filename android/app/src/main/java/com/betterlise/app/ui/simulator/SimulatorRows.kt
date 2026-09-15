@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.betterlise.app.domain.ClassCodeParser
+import com.betterlise.app.domain.CoefficientInput
 import com.betterlise.app.domain.SimulatedGrade
 import com.betterlise.app.domain.SimulatorRealGrade
 import com.betterlise.app.domain.UEGroup
@@ -63,9 +64,6 @@ internal fun formatAverage(value: Double): String =
     NumberFormat.getNumberInstance(Locale.FRENCH).apply { minimumFractionDigits = 2; maximumFractionDigits = 2 }.format(value)
 
 internal fun formatDelta(value: Double): String = (if (value >= 0) "+" else "") + formatAverage(value)
-
-/** Accepts "1,5" as well as "1.5". */
-internal fun parseDecimal(text: String): Double? = text.trim().replace(',', '.').toDoubleOrNull()
 
 @Composable
 internal fun UECard(
@@ -225,7 +223,7 @@ private fun CoeffField(grade: SimulatorRealGrade, onCoeffChange: (Double) -> Uni
     var text by remember { mutableStateOf(formatNote(grade.effectiveCoeff)) }
     // Follow outside changes (a shared coefficient becoming the community value) unless the text already matches
     LaunchedEffect(grade.effectiveCoeff) {
-        if (parseDecimal(text) != grade.effectiveCoeff) text = formatNote(grade.effectiveCoeff)
+        if (CoefficientInput.parse(text) != grade.effectiveCoeff) text = formatNote(grade.effectiveCoeff)
     }
     val accent = if (grade.isCommunity) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -233,7 +231,7 @@ private fun CoeffField(grade: SimulatorRealGrade, onCoeffChange: (Double) -> Uni
             value = text,
             onValueChange = { value ->
                 text = value
-                parseDecimal(value)?.let(onCoeffChange)
+                CoefficientInput.parse(value)?.let(onCoeffChange)
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),

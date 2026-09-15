@@ -64,11 +64,12 @@ final class SimulatorViewModel {
     }
 
     func addSimulation(name: String, grade: Double, coeff: Double, classCode: String) {
+        guard CoefficientInput.isValid(coeff) else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         let simulation = SimulatedGrade(
             name: trimmed.isEmpty ? "Simu." : trimmed,
             grade: min(max(grade, 0), 20),
-            coeff: max(coeff, 0.01),
+            coeff: coeff,
             classCode: classCode
         )
         update { $0.simulations.append(simulation) }
@@ -86,7 +87,7 @@ final class SimulatorViewModel {
     }
 
     func setLocalCoeff(code: String, to value: Double) {
-        guard value > 0, value.isFinite else { return }
+        guard CoefficientInput.isValid(value) else { return }
         update { $0.localCoeffs[code] = value }
     }
 
