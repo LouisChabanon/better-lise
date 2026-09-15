@@ -14,6 +14,9 @@ const mocks = vi.hoisted(() => ({
 	getAgenda: vi.fn(),
 	gradeDetails: vi.fn(),
 	liseHealth: vi.fn(),
+	syncAchievements: vi.fn(),
+	getCommunityWeights: vi.fn(),
+	submitWeightVote: vi.fn(),
 }));
 
 vi.mock("@/lib/services/auth", () => ({
@@ -31,6 +34,11 @@ vi.mock("@/lib/services/user", async (importOriginal) => ({
 	markGradeNew: mocks.markGradeNew,
 	deleteAccount: mocks.deleteAccount,
 }));
+vi.mock("@/lib/services/achievements", () => ({ syncAchievements: mocks.syncAchievements }));
+vi.mock("@/lib/services/weights", () => ({
+	getCommunityWeights: mocks.getCommunityWeights,
+	submitWeightVote: mocks.submitWeightVote,
+}));
 vi.mock("@/lib/db", () => ({ default: {} }));
 vi.mock("@/actions/GetGradeDetails", () => ({ default: mocks.gradeDetails }));
 vi.mock("@/actions/GetLiseHealth", () => ({ getLiseHealth: mocks.liseHealth }));
@@ -46,6 +54,9 @@ import { POST as markNew } from "@/app/api/v1/grades/[code]/new/route";
 import { GET as getAbsences } from "@/app/api/v1/absences/route";
 import { GET as getAgenda } from "@/app/api/v1/agenda/route";
 import { GET as getHealth } from "@/app/api/v1/health/route";
+import { GET as getAchievements } from "@/app/api/v1/achievements/route";
+import { GET as getWeights } from "@/app/api/v1/grades/weights/route";
+import { PUT as voteWeight } from "@/app/api/v1/grades/[code]/weight/route";
 import { signSession, verifyToken } from "@/lib/jwt";
 import { resetRateLimits } from "@/lib/rate-limit";
 import { failure, success } from "@/lib/services/result";
@@ -240,6 +251,41 @@ describe("authenticated routes", () => {
 		expect(mocks.logoutFromLise).not.toHaveBeenCalled();
 	});
 
+	it("GET /achievements unlocks and lists achievements", async () => {
+		mocks.syncAchievements.mockResolvedValue(
+			success({ achievements: [{ code: "FIRST_LOGIN" }], newlyUnlocked: ["FIRST_LOGIN"] })
+		);
+		const res = await getAchievements(req("/achievements"), noParams);
+		expect(await res.json()).toMatchObject({ data: { newlyUnlocked: ["FIRST_LOGIN"] } });
+		expect(mocks.syncAchievements).toHaveBeenCalledWith("2023-1234");
+
+		expect((await getAchievements(req("/achievements", { auth: false }), noParams)).status).toBe(401);
+	});
+
+	it("GET /grades/weights wraps community weights", async () => {
+		mocks.getCommunityWeights.mockResolvedValue(success({ FITE_S7_X: 2 }));
+		const res = await getWeights(req("/grades/weights"), noParams);
+		expect(await res.json()).toMatchObject({ data: { weights: { FITE_S7_X: 2 } } });
+
+		expect((await getWeights(req("/grades/weights", { auth: false }), noParams)).status).toBe(401);
+	});
+
+	it("PUT /grades/:code/weight validates and records the vote", async () => {
+		mocks.submitWeightVote.mockResolvedValue(success({ code: "ABC", weight: 2 }));
+		const res = await voteWeight(req("/grades/ABC/weight", { method: "PUT", body: { weight: 2 } }), codeParams("ABC"));
+		expect(res.status).toBe(200);
+		expect(mocks.submitWeightVote).toHaveBeenCalledWith("2023-1234", "ABC", 2);
+
+		for (const body of [{ weight: 0 }, { weight: "2" }, { weight: 101 }, {}, { weight: 1, extra: true }]) {
+			const invalid = await voteWeight(req("/grades/ABC/weight", { method: "PUT", body }), codeParams("ABC"));
+			expect(invalid.status).toBe(400);
+		}
+		expect(mocks.submitWeightVote).toHaveBeenCalledTimes(1);
+
+		const anonymous = await voteWeight(req("/grades/ABC/weight", { method: "PUT", body: { weight: 2 }, auth: false }), codeParams("ABC"));
+		expect(anonymous.status).toBe(401);
+	});
+
 	it("DELETE /me requires a session", async () => {
 		const res = await deleteMe(req("/me", { method: "DELETE", auth: false }), noParams);
 		expect(res.status).toBe(401);
@@ -259,8 +305,8 @@ describe("public routes", () => {
 	});
 
 	it("GET /health reports scraper health or an error", async () => {
-		mocks.liseHealth.mockResolvedValueOnce({ avgDuration: 900, count: 4 });
-		expect(await (await getHealth()).json()).toMatchObject({ data: { count: 4 } });
+		mocks.liseHealth.mockResolvedValueOnce({ avgDuration: 900, count: 4, status: "ok", hourly: [] });
+		expect(await (await getHealth()).json()).toMatchObject({ data: { count: 4, status: "ok", hourly: [] } });
 		mocks.liseHealth.mockRejectedValueOnce(new Error("db"));
 		expect((await getHealth()).status).toBe(500);
 	});
