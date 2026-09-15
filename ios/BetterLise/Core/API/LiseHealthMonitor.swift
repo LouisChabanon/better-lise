@@ -30,6 +30,12 @@ final class LiseHealthMonitor {
         }
     }
 
+    /// Always fetches, for the health screen; throws so it can show the failure.
+    func refresh(now: Date = Date()) async throws {
+        health = try await session.sendPublic(Endpoints.health())
+        fetchedAt = now
+    }
+
     nonisolated static func expectedDuration(for health: LiseHealth?) -> TimeInterval {
         guard let health, health.count >= minimumSamples, health.avgDuration > 0 else { return defaultDuration }
         return min(max(health.avgDuration / 1000, 3), 60)

@@ -171,4 +171,73 @@ struct AccountDeletionResponse: Codable, Sendable {
 struct LiseHealth: Codable, Equatable, Sendable {
     let avgDuration: Double
     let count: Int
+    /// `unknown`, `ok`, `slow` or `very_slow`; missing from older servers.
+    var status: String? = nil
+    /// Last 24 hours, oldest first; missing from older servers.
+    var hourly: [HealthBucket]? = nil
+
+    var liseStatus: LiseHealthStatus { status.flatMap(LiseHealthStatus.init(rawValue:)) ?? .unknown }
+}
+
+enum LiseHealthStatus: String, Sendable {
+    case unknown
+    case ok
+    case slow
+    case verySlow = "very_slow"
+}
+
+struct HealthBucket: Codable, Equatable, Identifiable, Sendable {
+    let hour: Date
+    /// Average successful sync duration in milliseconds, 0 without any.
+    let avgDuration: Double
+    let count: Int
+    let failures: Int
+
+    var id: Date { hour }
+}
+
+enum AchievementRarity: String, Codable, Sendable {
+    case common = "Common"
+    case rare = "Rare"
+    case legendary = "Legendary"
+
+    init(from decoder: Decoder) throws {
+        self = AchievementRarity(rawValue: try String(from: decoder)) ?? .common
+    }
+}
+
+struct Achievement: Codable, Hashable, Identifiable, Sendable {
+    let code: String
+    /// "???" while a secret achievement is locked.
+    let title: String
+    let description: String?
+    let snark: String?
+    let icon: String?
+    let rarity: AchievementRarity
+    let isSecret: Bool
+    let unlockedAt: Date?
+
+    var id: String { code }
+    var isUnlocked: Bool { unlockedAt != nil }
+    /// Locked secrets are masked by the server.
+    var isHidden: Bool { isSecret && !isUnlocked }
+}
+
+struct AchievementsResponse: Codable, Equatable, Sendable {
+    let achievements: [Achievement]
+    /// Codes unlocked by this very request.
+    let newlyUnlocked: [String]
+}
+
+struct CommunityWeightsResponse: Codable, Sendable {
+    let weights: [String: Double]
+}
+
+struct WeightVoteRequest: Codable, Sendable {
+    let weight: Double
+}
+
+struct WeightVoteResponse: Codable, Sendable {
+    let code: String
+    let weight: Double
 }

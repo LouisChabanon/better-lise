@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(SessionStore.self) private var session
     @Environment(SettingsStore.self) private var settings
+    let achievements: AchievementsViewModel
+    let health: LiseHealthMonitor
     @Binding var isLoginPresented: Bool
     let onSignOut: () -> Void
     let onDeleteAccount: () async throws -> Void
@@ -63,6 +65,21 @@ struct SettingsView: View {
                     .tint(Theme.primary)
                 } header: {
                     Text("Interface")
+                }
+
+                Section("Extras") {
+                    if session.isSignedIn {
+                        NavigationLink {
+                            AchievementsView(model: achievements)
+                        } label: {
+                            Label("Succès", systemImage: "trophy")
+                        }
+                    }
+                    NavigationLink {
+                        LiseHealthView(monitor: health)
+                    } label: {
+                        Label("Statut de Lise", systemImage: "waveform.path.ecg")
+                    }
                 }
 
                 Section("À propos") {

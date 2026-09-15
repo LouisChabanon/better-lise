@@ -4,6 +4,10 @@ struct GradesView: View {
     @Environment(SessionStore.self) private var session
     @Environment(SettingsStore.self) private var settings
     @State private var model: GradesViewModel
+    private let simulator: SimulatorViewModel
+    private let achievements: AchievementsViewModel
+    @State private var mode: Mode = .grades
+    @State private var isAchievementsPresented = false
     @State private var selectedGrade: Grade?
     /// Reveal mode: new grade currently being revealed.
     @State private var gradeToReveal: Grade?
@@ -11,8 +15,12 @@ struct GradesView: View {
     @State private var revealedGrade: Grade?
     @Binding var isLoginPresented: Bool
 
-    init(model: GradesViewModel, isLoginPresented: Binding<Bool>) {
+    enum Mode: Hashable { case grades, simulator }
+
+    init(model: GradesViewModel, simulator: SimulatorViewModel, achievements: AchievementsViewModel, isLoginPresented: Binding<Bool>) {
         _model = State(initialValue: model)
+        self.simulator = simulator
+        self.achievements = achievements
         _isLoginPresented = isLoginPresented
     }
 
@@ -29,7 +37,7 @@ struct GradesView: View {
                         )
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
                     } else {
-                        list
+                        content
                             .transition(.opacity)
                     }
                 } else {
@@ -38,7 +46,17 @@ struct GradesView: View {
             }
             .animation(.smooth(duration: 0.4), value: model.syncState.showsFullLoader)
             .background(Theme.backgroundSecondary.ignoresSafeArea())
-            .navigationTitle("Notes")
+            .navigationTitle(mode == .grades ? "Notes" : "Moyennes")
+            .toolbar {
+                if session.isSignedIn {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Succès", systemImage: "trophy") { isAchievementsPresented = true }
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $isAchievementsPresented) {
+                AchievementsView(model: achievements)
+            }
             .sheet(item: $selectedGrade) { grade in
                 GradeDetailSheet(
                     grade: grade,
@@ -70,6 +88,23 @@ struct GradesView: View {
             }
             .task(id: session.username) {
                 if session.isSignedIn { await model.load() } else { model.reset() }
+            }
+        }
+    }
+
+    private var content: some View {
+        VStack(spacing: 0) {
+            Picker("Affichage", selection: $mode) {
+                Text("Notes").tag(Mode.grades)
+                Text("Moyennes").tag(Mode.simulator)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+
+            switch mode {
+            case .grades: list
+            case .simulator: SimulatorView(model: simulator)
             }
         }
     }
