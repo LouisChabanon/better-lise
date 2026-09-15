@@ -111,7 +111,7 @@ private struct HealthStatusCard: View {
                     status == .unknown ? "–" : seconds(health.avgDuration),
                     "par synchro (2 h)"
                 )
-                figure("\(health.count)", "synchros réussies (2 h)")
+                figure("\(health.count)", "réussies (2 h)")
                 if let hourly = health.hourly {
                     figure("\(hourly.reduce(0) { $0 + $1.failures })", "échecs (24 h)")
                 }
