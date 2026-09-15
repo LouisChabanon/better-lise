@@ -3,6 +3,7 @@ import Foundation
 enum HTTPMethod: String, Sendable {
     case get = "GET"
     case post = "POST"
+    case put = "PUT"
     case patch = "PATCH"
     case delete = "DELETE"
 }
@@ -67,6 +68,25 @@ enum Endpoints {
 
     static func markGradeOpened(code: String) -> Endpoint<MarkOpenedResponse> {
         Endpoint(method: .post, path: "grades/\(encodePathSegment(code))/opened")
+    }
+
+    /// Unlocks earned achievements, then lists all of them.
+    static func achievements() -> Endpoint<AchievementsResponse> {
+        Endpoint(method: .get, path: "achievements")
+    }
+
+    /// Community coefficients used by the grade simulator.
+    static func communityWeights() -> Endpoint<CommunityWeightsResponse> {
+        Endpoint(method: .get, path: "grades/weights")
+    }
+
+    /// Shares the user's coefficient for a grade with the community.
+    static func voteWeight(code: String, weight: Double) -> Endpoint<WeightVoteResponse> {
+        Endpoint(
+            method: .put,
+            path: "grades/\(encodePathSegment(code))/weight",
+            body: try? encoder.encode(WeightVoteRequest(weight: weight))
+        )
     }
 
     static func health() -> Endpoint<LiseHealth> {

@@ -14,6 +14,11 @@ enum UITestSupport {
         return URLSession(configuration: configuration)
     }
 
+    /// Simulations and celebrated achievements start empty on every launch.
+    static func makeEphemeralDefaults() -> UserDefaults {
+        UserDefaults(suiteName: "uiTest.\(UUID().uuidString)") ?? .standard
+    }
+
     static func makeSignedInStore() -> SecureStore {
         let store = InMemorySecureStore()
         store.set("ui-test-token", for: "session.token")
@@ -41,6 +46,12 @@ final class UITestAPIStub: URLProtocol, @unchecked Sendable {
             case path.hasSuffix("/grades/MATA/new"):
                 Self.mataIsNew = true
                 return #"{"updated":1}"#
+            case path.hasSuffix("/achievements"):
+                return Self.achievementsJSON
+            case path.hasSuffix("/grades/weights"):
+                return #"{"weights":{"MDSA":2}}"#
+            case request.httpMethod == "PUT" && path.hasSuffix("/weight"):
+                return #"{"code":"MDSA","weight":3}"#
             case path.hasSuffix("/stats"):
                 return #"{"avg":12.4,"min":3,"max":19.5,"count":42,"median":12,"stdDeviation":3.2,"distribution":{"labels":["0-2","2-4","4-6","6-8","8-10","10-12","12-14","14-16","16-18","18-20"],"counts":[0,1,2,4,6,9,8,6,4,2]}}"#
             case path.hasSuffix("/grades"):
@@ -67,6 +78,8 @@ final class UITestAPIStub: URLProtocol, @unchecked Sendable {
     }
 
     override func stopLoading() {}
+
+    private static let achievementsJSON = #"{"achievements":[{"code":"FIRST_LOGIN","title":"Sal'ss!","description":"Connectez-vous pour la première fois.","snark":null,"icon":"rocket","rarity":"Common","isSecret":false,"unlockedAt":"2025-01-02T10:00:00.000Z"},{"code":"DIEU_MATA","title":"Dieu des matériaux","description":"Obtenir plus de 18/20 à un DS de MATA","snark":"Même l'archi Morel n'est pas autant un maxeur","icon":"experiment","rarity":"Legendary","isSecret":false,"unlockedAt":"2025-02-02T10:00:00.000Z"},{"code":"SACQUE","title":"???","description":null,"snark":null,"icon":null,"rarity":"Legendary","isSecret":true,"unlockedAt":null}],"newlyUnlocked":[]}"#
 
     /// One class per school day of the current and next week, so pages have content to render.
     private static func agendaJSON() -> String {

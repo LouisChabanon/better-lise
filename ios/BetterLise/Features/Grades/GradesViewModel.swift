@@ -7,6 +7,8 @@ final class GradesViewModel {
     private(set) var state: Loadable<[Grade]> = .idle
     private(set) var syncState: SyncState = .idle
     var searchText = ""
+    /// Runs after each successful load (achievements are re-evaluated then).
+    var onLoaded: (@MainActor () async -> Void)?
 
     let health: LiseHealthMonitor
     private let session: SessionStore
@@ -44,6 +46,7 @@ final class GradesViewModel {
             cache.save(sorted, key: cacheKey)
             state = .loaded(sorted)
             completeSync(startedAt: startedAt, hasContent: hasContent)
+            if let onLoaded { Task { await onLoaded() } }
         } catch {
             syncState = .idle
             state = .failed(message: error.localizedDescription, cached: cached)
