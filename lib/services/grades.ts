@@ -240,6 +240,9 @@ export async function syncGrades(
 		logger.error("Error fetching grades", {
 			error: error instanceof Error ? error.message : String(error),
 		});
+		await prisma.scraperLog
+			.create({ data: { duration: Date.now() - start, endpoint: "grades", status: "error" } })
+			.catch((e) => logger.error("Failed to log scraper status", { error: e }));
 		return failure("LISE_UNAVAILABLE", "Error fetching grades");
 	} finally {
 		await posthog?.shutdown();

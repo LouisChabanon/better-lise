@@ -23,7 +23,7 @@ La documentation technique et les guides utilisateurs ont été déplacés sur l
   - **Absences :** Suivi et estimation du taux d'absence par UE.
   - **Simulateur :** Calcul des futures moyennes en utilisant des coefficients communautaires.
   - **Notifications :** Reception d'alerte dès qu'une nouvelle note est détectée par la communauté.
-  - **Applications natives :** Apps iOS (SwiftUI) et Android (Jetpack Compose), en plus de la PWA, avec le Mode Révélation (révélation animée des nouvelles notes, sons et vibrations).
+  - **Applications natives :** Apps iOS (SwiftUI) et Android (Jetpack Compose), en plus de la PWA, avec le Mode Révélation (révélation animée des nouvelles notes, sons et vibrations), le simulateur de moyennes, les succès et le statut de Lise.
 
 ## Quick Start (Développement)
 
@@ -71,10 +71,16 @@ Les deux applications consomment l'API REST `/api/v1` exposée par le serveur Ne
 | `GET` | `/agenda?liseId=&tbk=&ru=` | publique |
 | `GET` | `/grades?refresh=` · `/grades/{code}/stats` | Bearer |
 | `POST` | `/grades/{code}/opened` · `/grades/opened` · `/grades/{code}/new` | Bearer |
+| `GET` / `PUT` | `/grades/weights` · `/grades/{code}/weight` | Bearer |
+| `GET` | `/achievements` | Bearer |
 | `GET` | `/absences` | Bearer |
 | `GET` | `/health` | publique |
 
 Réponses : `{ success, data, error: { code, message } | null }`.
+
+- `GET /achievements` débloque les succès mérités puis renvoie la liste complète (`newlyUnlocked` ne contient que les succès débloqués par cet appel). Les succès secrets encore verrouillés sont masqués (`title: "???"`).
+- `GET /grades/weights` renvoie les coefficients communautaires (`{ weights: { code: coeff } }`) ; `PUT /grades/{code}/weight` avec `{ "weight": 2 }` enregistre le vote de l'utilisateur (le compte de démonstration n'enregistre jamais de vote).
+- `GET /health` renvoie la moyenne des deux dernières heures (`avgDuration`, `count`), un `status` (`unknown`, `ok`, `slow`, `very_slow`) et l'historique `hourly` des 24 dernières heures.
 
 `DELETE /me` supprime le compte **Better Lise** et toutes les données qu'il stocke (notes enregistrées, absences, succès, votes de coefficients, abonnements aux notifications), puis ferme la session Lise en cours. Le compte **Lise de l'ENSAM n'est ni supprimé ni modifié** : se reconnecter recrée simplement un compte Better Lise vide. Les apps iOS et Android l'exposent dans *Réglages → Supprimer mon compte Better Lise*.
 

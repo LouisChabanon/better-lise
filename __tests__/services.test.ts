@@ -242,6 +242,9 @@ describe("syncGrades", () => {
 		prismaMock.grade.findMany.mockResolvedValue([]);
 		openLisePageMock.mockRejectedValue(new Error("hidden fields missing"));
 		expect(await syncGrades(creds, true)).toMatchObject({ code: "LISE_UNAVAILABLE" });
+		expect(prismaMock.scraperLog.create).toHaveBeenCalledWith({
+			data: expect.objectContaining({ endpoint: "grades", status: "error" }),
+		});
 	});
 });
 

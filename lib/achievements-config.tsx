@@ -1,155 +1,37 @@
 import {
 	TrophyOutlined,
 	FallOutlined,
-	FrownOutlined,
 	RocketOutlined,
-	CoffeeOutlined,
 	FireOutlined,
 	ExperimentOutlined,
 	ReloadOutlined,
 	AimOutlined,
 	HeartOutlined,
-	TableOutlined,
 	FlagOutlined,
 } from "@ant-design/icons";
+import {
+	ACHIEVEMENTS,
+	AchievementDefinition,
+	AchievementIcon,
+} from "@/lib/achievements";
 
-export type AchievementDef = {
-	code: string;
-	title: string;
-	description: string;
-	snark: string;
+export type AchievementDef = Omit<AchievementDefinition, "icon"> & {
 	icon: React.ReactNode;
-	rarity: "Common" | "Rare" | "Legendary";
-	isSecret?: boolean;
 };
 
-{
-	/*
-Idées :
-- Classement ensam
-- Streak
-- Absences après 1ere semaine
-- Absence Dacunto
-- Absence ACV
-- 	
-*/
-}
+const ICONS: Record<AchievementIcon, React.ReactNode> = {
+	rocket: <RocketOutlined />,
+	trophy: <TrophyOutlined />,
+	fall: <FallOutlined />,
+	reload: <ReloadOutlined />,
+	fire: <FireOutlined />,
+	aim: <AimOutlined />,
+	heart: <HeartOutlined />,
+	experiment: <ExperimentOutlined />,
+	flag: <FlagOutlined />,
+};
 
-export const ACHIEVEMENTS_LIST: AchievementDef[] = [
-	{
-		code: "FIRST_LOGIN",
-		title: "Sal'ss!",
-		description: "Connectez-vous pour la première fois.",
-		snark: "",
-		icon: <RocketOutlined />,
-		rarity: "Common",
-	},
-	{
-		code: "ACADEMIC_GOAT",
-		title: "Birseur fou",
-		description: "Obtenez un 20/20",
-		snark: "",
-		icon: <TrophyOutlined />,
-		rarity: "Rare",
-	},
-	{
-		code: "WORST_CASE_SCENARIO",
-		title: "Il a eu 0/20",
-		description: "Obtenez 0/20 à une épreuve",
-		snark: "C'est probablement la faute du prof",
-		icon: <FallOutlined />,
-		rarity: "Rare",
-	},
-	{
-		code: "REVAL",
-		title: "Reval",
-		description: "Aller au moins une fois en Reval",
-		snark:
-			"Pas besoin de réviser la reval, tu passeras au Jury de toute façon tkt",
-		icon: <RocketOutlined />,
-		rarity: "Rare",
-	},
-	{
-		code: "SACQUE",
-		title: "Ami Sacqué",
-		description: "Bienvenue au club",
-		snark:
-			"Ne pas sacqué une matiére c'est ne pas avoir eu la pleine expérience du TBK",
-		icon: <ReloadOutlined />,
-		rarity: "Legendary",
-		isSecret: true,
-	},
-	{
-		code: "CLUTCH",
-		title: "Clutcher fou",
-		description: "Avoir pile 10/20 à une reval",
-		snark: "On ne peux qu'aplaudir la perf",
-		icon: <FireOutlined />,
-		rarity: "Legendary",
-		isSecret: true,
-	},
-	{
-		code: "SUR_FIL",
-		title: "Sur le fil",
-		description: "Obtenir 10/20",
-		snark: "",
-		icon: <AimOutlined />,
-		rarity: "Common",
-	},
-	{
-		code: "PILLIER",
-		title: "Pilier du tabagn'ss",
-		description: "débloquer tous les succès",
-		snark: "Bienvenue dans l'élite",
-		icon: <HeartOutlined />,
-		rarity: "Legendary",
-	},
-	{
-		code: "DIEU_MATA",
-		title: "Dieu des matériaux",
-		description: "Obtenir plus de 18/20 à un DS de MATA",
-		snark: "Même l'archi Morel n'est pas autant un maxeur",
-		icon: <ExperimentOutlined />,
-		rarity: "Legendary",
-	},
-	{
-		code: "SPEAK_ENGLISH",
-		title: "Reval la LV1",
-		description: "Dur dur",
-		snark: "Dur dur",
-		icon: <FlagOutlined />,
-		rarity: "Rare",
-	},
-	{
-		code: "STREAK_5",
-		title: "Stréssé",
-		description: "5 jours de suite",
-		snark: "C'est un bon début",
-		icon: <FireOutlined />,
-		rarity: "Common",
-	},
-	{
-		code: "STREAK_10",
-		title: "Streak x10",
-		description: "Il mettra jamais les notes bro",
-		snark: "Tu n'as rien de mieux à faire ?",
-		icon: <FireOutlined />,
-		rarity: "Common",
-	},
-	{
-		code: "STREAK_30",
-		title: "Streak x30",
-		description: "C'est maladif là...",
-		snark: "C'est maladif là...",
-		icon: <FireOutlined />,
-		rarity: "Rare",
-	},
-	{
-		code: "STREAK_300",
-		title: "Chômeur",
-		description: "300 jours de suite",
-		snark: "Va toucher de l'herbe sérieusement",
-		icon: <TrophyOutlined />,
-		rarity: "Legendary",
-	},
-];
+export const ACHIEVEMENTS_LIST: AchievementDef[] = ACHIEVEMENTS.map((a) => ({
+	...a,
+	icon: ICONS[a.icon],
+}));
