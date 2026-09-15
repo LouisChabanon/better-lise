@@ -16,7 +16,10 @@ import com.betterlise.app.ui.components.Loadable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -54,6 +57,9 @@ class GradesViewModel(
     private val _state = MutableStateFlow(GradesUiState())
     val state: StateFlow<GradesUiState> = _state.asStateFlow()
     private var loadJob: Job? = null
+    private val _synced = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    /** Emits after each successful sync (achievements are re-evaluated then). */
+    val synced: SharedFlow<Unit> = _synced.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -79,6 +85,7 @@ class GradesViewModel(
                 val finished = SyncState.Finished(startedAt, hasContent)
                 _state.update { it.copy(grades = Loadable.Loaded(sorted), sync = finished) }
                 completeSync(finished)
+                _synced.tryEmit(Unit)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

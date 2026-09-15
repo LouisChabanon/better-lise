@@ -16,7 +16,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +57,8 @@ import com.betterlise.app.ui.loading.SyncAwareContent
 import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.ui.components.isLoading
 import com.betterlise.app.ui.grades.reveal.GradeRevealSheet
+import com.betterlise.app.ui.simulator.SimulatorContent
+import com.betterlise.app.ui.simulator.SimulatorViewModel
 import com.betterlise.app.ui.theme.AppTheme
 import com.betterlise.app.ui.theme.NumberStyle
 import java.text.NumberFormat
@@ -59,14 +69,28 @@ internal fun formatNote(value: Double): String =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GradesScreen(viewModel: GradesViewModel, revealMode: Boolean, onSignIn: () -> Unit) {
+fun GradesScreen(
+    viewModel: GradesViewModel,
+    revealMode: Boolean,
+    onSignIn: () -> Unit,
+    simulator: SimulatorViewModel? = null,
+    onOpenAchievements: (() -> Unit)? = null,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var showsSimulator by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Notes") },
+                title = { Text(if (showsSimulator) "Moyennes" else "Notes") },
+                actions = {
+                    if (state.isSignedIn && onOpenAchievements != null) {
+                        IconButton(onClick = onOpenAchievements) {
+                            Icon(Icons.Rounded.EmojiEvents, contentDescription = "Succès")
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
         },
@@ -82,9 +106,18 @@ fun GradesScreen(viewModel: GradesViewModel, revealMode: Boolean, onSignIn: () -
                 expectedSeconds = LiseHealthMonitor.expectedDurationSeconds(health),
                 slowNotice = LiseHealthMonitor.slowNotice(health),
             ) {
-                // The pill reports sync progress, so the pull indicator only acknowledges the gesture
-                PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh) {
-                    GradeList(state, viewModel, revealMode)
+                Column {
+                    if (simulator != null) {
+                        ModeSwitch(showsSimulator, onChange = { showsSimulator = it })
+                    }
+                    if (showsSimulator && simulator != null) {
+                        SimulatorContent(simulator)
+                    } else {
+                        // The pill reports sync progress, so the pull indicator only acknowledges the gesture
+                        PullToRefreshBox(isRefreshing = false, onRefresh = viewModel::refresh) {
+                            GradeList(state, viewModel, revealMode)
+                        }
+                    }
                 }
             }
         }
@@ -107,6 +140,20 @@ fun GradesScreen(viewModel: GradesViewModel, revealMode: Boolean, onSignIn: () -
             onComplete = viewModel::finishReveal,
             onDismiss = viewModel::dismissReveal,
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModeSwitch(showsSimulator: Boolean, onChange: (Boolean) -> Unit) {
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        listOf(false to "Notes", true to "Moyennes").forEachIndexed { index, (value, label) ->
+            SegmentedButton(
+                selected = showsSimulator == value,
+                onClick = { onChange(value) },
+                shape = SegmentedButtonDefaults.itemShape(index, 2),
+            ) { Text(label) }
+        }
     }
 }
 

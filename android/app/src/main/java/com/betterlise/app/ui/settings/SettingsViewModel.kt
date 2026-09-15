@@ -35,6 +35,8 @@ class SettingsViewModel(
     private val session: SessionRepository,
     private val repository: SettingsRepository,
     private val cache: ResponseCache,
+    /** Forgets what else the device keeps for the account (simulations, celebrations). */
+    private val onAccountCleared: suspend () -> Unit = {},
 ) : ViewModel() {
     private val syncError = MutableStateFlow<String?>(null)
     private val deletion = MutableStateFlow(AccountDeletionState())
@@ -63,6 +65,7 @@ class SettingsViewModel(
         deletion.value = AccountDeletionState()
         session.signOut()
         cache.clear()
+        onAccountCleared()
     }
 
     fun deleteAccount() = viewModelScope.launch {
@@ -70,6 +73,7 @@ class SettingsViewModel(
         deletion.value = runCatching { session.deleteAccount() }.fold(
             onSuccess = {
                 cache.clear()
+                onAccountCleared()
                 AccountDeletionState(isDone = true)
             },
             onFailure = { AccountDeletionState(error = "Suppression impossible : ${it.message}") },
