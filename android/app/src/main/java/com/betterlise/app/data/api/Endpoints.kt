@@ -3,7 +3,7 @@ package com.betterlise.app.data.api
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
-enum class HttpMethod { GET, POST, PATCH, DELETE }
+enum class HttpMethod { GET, POST, PUT, PATCH, DELETE }
 
 data class Endpoint<T>(
     val method: HttpMethod,
@@ -74,6 +74,20 @@ object Endpoints {
     )
 
     fun absences() = Endpoint(HttpMethod.GET, "absences", AbsencesResponse.serializer())
+
+    /** Unlocks earned achievements, then lists all of them. */
+    fun achievements() = Endpoint(HttpMethod.GET, "achievements", AchievementsResponse.serializer())
+
+    /** Community coefficients used by the grade simulator. */
+    fun communityWeights() = Endpoint(HttpMethod.GET, "grades/weights", CommunityWeightsResponse.serializer())
+
+    /** Shares the user's coefficient for a grade with the community. */
+    fun voteWeight(code: String, weight: Double) = Endpoint(
+        method = HttpMethod.PUT,
+        path = "grades/${encodeSegment(code)}/weight",
+        serializer = WeightVoteResponse.serializer(),
+        jsonBody = json.encodeToString(WeightVoteRequest.serializer(), WeightVoteRequest(weight)),
+    )
 
     fun health() = Endpoint(HttpMethod.GET, "health", LiseHealth.serializer(), requiresAuth = false)
 

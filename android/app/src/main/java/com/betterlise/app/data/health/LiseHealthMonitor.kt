@@ -29,6 +29,12 @@ class LiseHealthMonitor(
         }
     }
 
+    /** Always fetches, for the status screen; throws so it can show the failure. */
+    suspend fun refresh() {
+        _health.value = fetch()
+        fetchedAt = clock()
+    }
+
     companion object {
         const val DEFAULT_DURATION_SECONDS = 10.0
         private const val MINIMUM_SAMPLES = 4

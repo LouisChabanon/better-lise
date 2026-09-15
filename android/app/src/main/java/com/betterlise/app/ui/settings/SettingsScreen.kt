@@ -51,7 +51,12 @@ import com.betterlise.app.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel, onSignIn: () -> Unit) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onSignIn: () -> Unit,
+    onOpenAchievements: (() -> Unit)? = null,
+    onOpenLiseStatus: (() -> Unit)? = null,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var liseId by rememberSaveable { mutableStateOf("") }
     var picker by remember { mutableStateOf<Picker?>(null) }
@@ -132,6 +137,16 @@ fun SettingsScreen(viewModel: SettingsViewModel, onSignIn: () -> Unit) {
                         )
                     }
                     Switch(checked = state.settings.revealMode, onCheckedChange = viewModel::setRevealMode)
+                }
+            }
+
+            if (onOpenLiseStatus != null) {
+                Section("Extras") {
+                    if (state.username != null && onOpenAchievements != null) {
+                        ActionRow("Succès", color = MaterialTheme.colorScheme.onSurface, onClick = onOpenAchievements)
+                        HorizontalDivider()
+                    }
+                    ActionRow("Statut de Lise", color = MaterialTheme.colorScheme.onSurface, onClick = onOpenLiseStatus)
                 }
             }
 

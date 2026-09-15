@@ -162,4 +162,72 @@ data class MarkOpenedResponse(val updated: Int)
 
 /** Recent scraper performance measured by the server ([avgDuration] in milliseconds). */
 @Serializable
-data class LiseHealth(val avgDuration: Double, val count: Int)
+data class LiseHealth(
+    val avgDuration: Double,
+    val count: Int,
+    /** `unknown`, `ok`, `slow` or `very_slow`; missing from older servers. */
+    val status: String? = null,
+    /** Last 24 hours, oldest first; missing from older servers. */
+    val hourly: List<HealthBucket>? = null,
+) {
+    val liseStatus: LiseHealthStatus get() = LiseHealthStatus.from(status)
+}
+
+enum class LiseHealthStatus {
+    Unknown, Ok, Slow, VerySlow;
+
+    companion object {
+        fun from(raw: String?): LiseHealthStatus = when (raw) {
+            "ok" -> Ok
+            "slow" -> Slow
+            "very_slow" -> VerySlow
+            else -> Unknown
+        }
+    }
+}
+
+@Serializable
+data class HealthBucket(
+    @Serializable(with = InstantSerializer::class) val hour: Instant,
+    /** Average successful sync duration in milliseconds, 0 without any. */
+    val avgDuration: Double,
+    val count: Int,
+    val failures: Int,
+)
+
+@Serializable
+enum class AchievementRarity { Common, Rare, Legendary }
+
+@Serializable
+data class Achievement(
+    val code: String,
+    /** "???" while a secret achievement is locked. */
+    val title: String,
+    val description: String? = null,
+    val snark: String? = null,
+    val icon: String? = null,
+    // Unknown rarities fall back to Common (the client coerces input values)
+    val rarity: AchievementRarity = AchievementRarity.Common,
+    val isSecret: Boolean = false,
+    @Serializable(with = InstantSerializer::class) val unlockedAt: Instant? = null,
+) {
+    val isUnlocked: Boolean get() = unlockedAt != null
+    /** Locked secrets are masked by the server. */
+    val isHidden: Boolean get() = isSecret && !isUnlocked
+}
+
+@Serializable
+data class AchievementsResponse(
+    val achievements: List<Achievement>,
+    /** Codes unlocked by this very request. */
+    val newlyUnlocked: List<String> = emptyList(),
+)
+
+@Serializable
+data class CommunityWeightsResponse(val weights: Map<String, Double>)
+
+@Serializable
+data class WeightVoteRequest(val weight: Double)
+
+@Serializable
+data class WeightVoteResponse(val code: String, val weight: Double)

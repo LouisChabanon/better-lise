@@ -8,9 +8,11 @@ import com.betterlise.app.data.auth.KeystoreSecureStore
 import com.betterlise.app.data.auth.SessionRepository
 import com.betterlise.app.data.cache.ResponseCache
 import com.betterlise.app.data.health.LiseHealthMonitor
+import com.betterlise.app.data.local.LocalStateRepository
 import com.betterlise.app.data.settings.SettingsRepository
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
+private val Context.localStateDataStore by preferencesDataStore(name = "local_state")
 
 /** Composition root: builds the shared singletons once per process. */
 class AppContainer(context: Context) {
@@ -18,5 +20,6 @@ class AppContainer(context: Context) {
     val session = SessionRepository(apiClient, KeystoreSecureStore(context))
     val settings = SettingsRepository(context.settingsDataStore)
     val cache = ResponseCache(context.cacheDir)
+    val localState = LocalStateRepository(context.localStateDataStore)
     val health = LiseHealthMonitor(fetch = { session.sendPublic(Endpoints.health()) })
 }
