@@ -20,7 +20,12 @@ type DbGrade = {
 	opened: boolean;
 };
 
-type DbUser = { id: number; username: string; class: string | null; tbk: string | null };
+type DbUser = {
+	id: number;
+	username: string;
+	class: string | null;
+	tbk: string | null;
+};
 
 const toGradeType = (g: DbGrade): GradeType => ({
 	code: g.code,
@@ -60,7 +65,7 @@ export type GradeDiff = {
 export function diffGrades(
 	dbGrades: DbGrade[],
 	scraped: GradeType[],
-	isFirstSync: boolean
+	isFirstSync: boolean,
 ): GradeDiff {
 	const scrapedCodes = new Set(scraped.map((g) => g.code));
 	const toCreate: GradeType[] = [];
@@ -92,7 +97,7 @@ export function diffGrades(
 		.map((g) =>
 			updatedCodes.has(g.code)
 				? { ...g, note: updatedCodes.get(g.code)!, isNew: true }
-				: g
+				: g,
 		);
 	const created = toCreate.map((g) => ({ ...g, isNew: !isFirstSync }));
 
@@ -105,13 +110,17 @@ export function diffGrades(
 	};
 }
 
-async function persistDiff(userId: number, diff: GradeDiff, isFirstSync: boolean) {
+async function persistDiff(
+	userId: number,
+	diff: GradeDiff,
+	isFirstSync: boolean,
+) {
 	await Promise.all([
 		...diff.toUpdate.map((u) =>
 			prisma.grade.update({
 				where: { id: u.id, userId },
 				data: { grade: u.note },
-			})
+			}),
 		),
 		diff.idsToDelete.length > 0
 			? prisma.grade.deleteMany({ where: { id: { in: diff.idsToDelete } } })
@@ -125,7 +134,12 @@ async function persistDiff(userId: number, diff: GradeDiff, isFirstSync: boolean
 }
 
 async function maybeNotifyClassmates(user: DbUser, created: GradeType[]) {
-	if (created.length === 0 || !user.class || !user.tbk || user.class === "Autre") {
+	if (
+		created.length === 0 ||
+		!user.class ||
+		!user.tbk ||
+		user.class === "Autre"
+	) {
 		return;
 	}
 	const firstNew = created[0];
@@ -140,14 +154,14 @@ async function maybeNotifyClassmates(user: DbUser, created: GradeType[]) {
 		user.tbk as tbk,
 		user.id,
 		firstNew.code,
-		firstNew.libelle
+		firstNew.libelle,
 	).catch((e) => logger.error("Notification failed", { error: e }));
 }
 
 /** Review account: fixture grades seeded after each sign-in, never scraped or shared with classmates. */
 async function syncDemoGrades(
 	userId: number,
-	dbGrades: DbGrade[]
+	dbGrades: DbGrade[],
 ): Promise<ServiceResult<GradeType[]>> {
 	if (dbGrades.length > 0) {
 		return success(dbGrades.map(toGradeType));
@@ -165,7 +179,7 @@ async function syncDemoGrades(
  */
 export async function syncGrades(
 	credentials: LiseCredentials,
-	reload: boolean
+	reload: boolean,
 ): Promise<ServiceResult<GradeType[]>> {
 	const start = Date.now();
 	const user = await prisma.user.findUnique({
@@ -189,13 +203,18 @@ export async function syncGrades(
 		return success(dbGrades.map(toGradeType));
 	}
 
-	logger.info("Scraping grades started", { username: user.username, isFirstSync });
+	logger.info("Scraping grades started", {
+		username: user.username,
+		isFirstSync,
+	});
 	const posthog = PostHogClient();
 
 	try {
 		const page = await openLisePage(credentials.jsessionId, LISE_MENUS.grades);
 		if (!page.ok) {
-			logger.warn("User session has expired on LISE", { username: user.username });
+			logger.warn("User session has expired on LISE", {
+				username: user.username,
+			});
 			return page;
 		}
 
@@ -241,7 +260,13 @@ export async function syncGrades(
 			error: error instanceof Error ? error.message : String(error),
 		});
 		await prisma.scraperLog
-			.create({ data: { duration: Date.now() - start, endpoint: "grades", status: "error" } })
+			.create({
+				data: {
+					duration: Date.now() - start,
+					endpoint: "grades",
+					status: "error",
+				},
+			})
 			.catch((e) => logger.error("Failed to log scraper status", { error: e }));
 		return failure("LISE_UNAVAILABLE", "Error fetching grades");
 	} finally {

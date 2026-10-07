@@ -48,13 +48,15 @@ const isReval = (g: EvaluatedGrade) => {
 
 const isEnglish = (g: EvaluatedGrade) => {
 	const name = g.name.toLowerCase();
-	return name.includes("anglais") || name.includes("lv1") || g.code.includes("LV1");
+	return (
+		name.includes("anglais") || name.includes("lv1") || g.code.includes("LV1")
+	);
 };
 
 /** Returns the achievement codes the facts unlock that are not in `existingCodes`. */
 export function evaluateAchievements(
 	facts: AchievementFacts,
-	existingCodes: ReadonlySet<string>
+	existingCodes: ReadonlySet<string>,
 ): string[] {
 	const earned = new Set<string>(["FIRST_LOGIN"]);
 	const { grades, currentStreak } = facts;
@@ -85,12 +87,14 @@ export function evaluateAchievements(
 	}
 
 	return ACHIEVEMENTS.map((a) => a.code).filter(
-		(code) => earned.has(code) && !existingCodes.has(code)
+		(code) => earned.has(code) && !existingCodes.has(code),
 	);
 }
 
 /** Builds the API list; locked secrets are masked so the API never spoils them. */
-export function toAchievementItems(unlocked: Map<string, Date>): AchievementItem[] {
+export function toAchievementItems(
+	unlocked: Map<string, Date>,
+): AchievementItem[] {
 	return ACHIEVEMENTS.map((a) => {
 		const unlockedAt = unlocked.get(a.code) ?? null;
 		const isMasked = Boolean(a.isSecret) && unlockedAt === null;
@@ -115,14 +119,14 @@ async function captureUnlocks(username: string, codes: string[]) {
 			distinctId: username,
 			event: "achievement_unlocked",
 			properties: { code },
-		})
+		}),
 	);
 	await posthog.shutdown();
 }
 
 /** Unlocks whatever the user has earned, then returns every achievement with its state. */
 export async function syncAchievements(
-	username: string
+	username: string,
 ): Promise<ServiceResult<AchievementsPayload>> {
 	const user = await prisma.user.findUnique({
 		where: { username },
@@ -135,10 +139,12 @@ export async function syncAchievements(
 	});
 	if (!user) return failure("NOT_FOUND", "User not found");
 
-	const unlocked = new Map(user.achievements.map((a) => [a.code, a.unlockedAt]));
+	const unlocked = new Map(
+		user.achievements.map((a) => [a.code, a.unlockedAt]),
+	);
 	const newlyUnlocked = evaluateAchievements(
 		{ grades: user.grades, currentStreak: user.currentStreak },
-		new Set(unlocked.keys())
+		new Set(unlocked.keys()),
 	);
 
 	if (newlyUnlocked.length > 0) {
@@ -157,7 +163,7 @@ export async function syncAchievements(
 		const now = new Date();
 		newlyUnlocked.forEach((code) => unlocked.set(code, now));
 		await captureUnlocks(username, newlyUnlocked).catch((e) =>
-			logger.error("Failed to capture achievement unlocks", { error: e })
+			logger.error("Failed to capture achievement unlocks", { error: e }),
 		);
 	}
 

@@ -39,7 +39,10 @@ export const gradeCodeSchema = z.string().min(1).max(128);
 export const weightVoteSchema = z
 	.object({
 		weight: z
-			.number({ invalid_type_error: "Coefficient invalide", required_error: "Coefficient requis" })
+			.number({
+				invalid_type_error: "Coefficient invalide",
+				required_error: "Coefficient requis",
+			})
 			.positive("Le coefficient doit être positif")
 			.max(100, "Coefficient trop élevé"),
 	})
