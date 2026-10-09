@@ -5,7 +5,9 @@ import { GradeType } from "@/lib/types";
 import { Button } from "./Button";
 import useSound from "use-sound";
 import LootCase from "../LootCase";
+import SlotMachine from "../slot-machine/SlotMachine";
 import { getRarity } from "@/lib/utils/game-utils";
+import { readRevealAnimation } from "@/lib/utils/reveal-animation";
 
 interface GradeModalProps {
   grade: GradeType;
@@ -20,6 +22,8 @@ export default function GradeLootBoxModal({
 }: GradeModalProps) {
   const [isOpening, setIsOpening] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [animation] = useState(readRevealAnimation);
+  const RevealGame = animation === "slot" ? SlotMachine : LootCase;
 
   // --- Sound hooks ---
   const [playTick] = useSound("/sounds/crate_item_scroll.wav", {
@@ -80,7 +84,7 @@ export default function GradeLootBoxModal({
         <div className="lg:flex lg:flex-row lg:gap-8 justify-center">
 
           {isOpening ? (
-            <LootCase
+            <RevealGame
               grade={grade.note}
               onTick={playTick}
               onReveal={handleReveal}
@@ -91,7 +95,7 @@ export default function GradeLootBoxModal({
 
               <div className="relative w-full max-w-[600px] h-[160px] overflow-hidden border-4 border-backgroundTertiary rounded-xl bg-backgroundSecondary flex items-center justify-center">
                 <span className="text-6xl text-textTertiary animate-pulse">
-                  🎁
+                  {animation === "slot" ? "🎰" : "🎁"}
                 </span>
                 <p className="absolute bottom-4 text-textTertiary font-semibold">
                   Prêt à révéler ?
