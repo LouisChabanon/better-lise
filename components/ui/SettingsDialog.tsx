@@ -29,6 +29,13 @@ import {
 	ReadOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
+import {
+	DEFAULT_REVEAL_ANIMATION,
+	REVEAL_ANIMATION_KEY,
+	REVEAL_ANIMATION_OPTIONS,
+	RevealAnimation,
+	readRevealAnimation,
+} from "@/lib/utils/reveal-animation";
 
 interface SettingsDialogProps {
 	isOpen: boolean;
@@ -73,7 +80,7 @@ const TOOLTIP_CONTENT = {
 	casino: {
 		title: "Mode Casino",
 		description: [
-			"Au lieu de voir vos notes directement, elles seront cachées derrière un mini-jeu type caisse CS:GO.",
+			"Au lieu de voir vos notes directement, elles seront cachées derrière une animation : une caisse type CS:GO ou une machine à sous.",
 			"Désactivez-le pour un affichage instantané et classique de vos notes.",
 		],
 		videoSrc: "/videos/casino-demo.mp4",
@@ -151,6 +158,44 @@ const Switch = ({
             `}
 		/>
 	</button>
+);
+
+const SegmentedControl = <T extends string>({
+	label,
+	options,
+	value,
+	onChange,
+}: {
+	label: string;
+	options: { value: T; label: string }[];
+	value: T;
+	onChange: (v: T) => void;
+}) => (
+	<div
+		role="radiogroup"
+		aria-label={label}
+		className="inline-flex rounded-full bg-backgroundTertiary p-0.5"
+	>
+		{options.map((option) => {
+			const isActive = option.value === value;
+			return (
+				<button
+					key={option.value}
+					type="button"
+					role="radio"
+					aria-checked={isActive}
+					onClick={() => onChange(option.value)}
+					className={`rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+						isActive
+							? "bg-primary text-white shadow"
+							: "text-textTertiary hover:text-textPrimary"
+					}`}
+				>
+					{option.label}
+				</button>
+			);
+		})}
+	</div>
 );
 
 const SettingRow = ({
@@ -243,6 +288,9 @@ export default function SettingsDialog({
 	const [tbkValue, setTbkValue] = useState<tbk>("Sibers");
 	const [displayRUMenu, setDisplayRUMenu] = useState<boolean>(true);
 	const [isGambling, setIsGambling] = useState(false);
+	const [revealAnimation, setRevealAnimation] = useState<RevealAnimation>(
+		DEFAULT_REVEAL_ANIMATION,
+	);
 	const [isOptedOut, setIsOptedOut] = useState(false);
 	const [userClass, setUserClass] = useState("Autre");
 
@@ -267,6 +315,8 @@ export default function SettingsDialog({
 
 		const storedGambling = localStorage.getItem("gambling");
 		if (storedGambling) setIsGambling(storedGambling === "true");
+
+		setRevealAnimation(readRevealAnimation());
 
 		const storedDisplayRUMenu = localStorage.getItem("display_ru_menu");
 		if (storedDisplayRUMenu) setDisplayRUMenu(storedDisplayRUMenu === "true");
@@ -321,6 +371,7 @@ export default function SettingsDialog({
 		localStorage.setItem("tbk", tbkValue);
 		localStorage.setItem("user_class", userClass);
 		localStorage.setItem("gambling", isGambling.toString());
+		localStorage.setItem(REVEAL_ANIMATION_KEY, revealAnimation);
 		localStorage.setItem("display_ru_menu", displayRUMenu.toString());
 
 		if (isUserLoggedIn) {
@@ -333,6 +384,7 @@ export default function SettingsDialog({
 			posthog.people.set({
 				tbk: tbkValue,
 				gambling: isGambling,
+				reveal_animation: revealAnimation,
 				class: userClass,
 			});
 		}
@@ -533,6 +585,20 @@ export default function SettingsDialog({
 									<Switch checked={isGambling} onChange={setIsGambling} />
 								}
 							/>
+							{isGambling && (
+								<SettingRow
+									label="Animation"
+									subLabel="Mini-jeu de révélation"
+									action={
+										<SegmentedControl
+											label="Animation de révélation"
+											options={REVEAL_ANIMATION_OPTIONS}
+											value={revealAnimation}
+											onChange={setRevealAnimation}
+										/>
+									}
+								/>
+							)}
 							<SettingRow
 								className="last:rounded-b-xl"
 								label="Menu RU dans l'agenda"
