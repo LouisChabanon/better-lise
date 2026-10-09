@@ -1,0 +1,120 @@
+import prisma from "@/lib/db";
+import logger from "@/lib/logger";
+import { failure, ServiceResult, success } from "./result";
+
+export const PROMO_CODES = ["GIM1", "GIM2", "GIE1", "GIE2", "EXP", "Autre"] as const;
+export const TBKS = [
+	"Chalons",
+	"Boquette",
+	"Cluny",
+	"Birse",
+	"P3",
+	"KIN",
+	"Bordels",
+	"Sibers",
+	"Rabat",
+] as const;
+
+export type UserProfile = {
+	username: string;
+	class: string | null;
+	tbk: string | null;
+	currentStreak: number;
+};
+
+const profileSelect = {
+	username: true,
+	class: true,
+	tbk: true,
+	currentStreak: true,
+} as const;
+
+export async function getProfile(username: string): Promise<ServiceResult<UserProfile>> {
+	const user = await prisma.user.findUnique({
+		where: { username },
+		select: profileSelect,
+	});
+	return user ? success(user) : failure("NOT_FOUND", "User not found");
+}
+
+export async function updateProfile(
+	username: string,
+	changes: { class?: string; tbk?: string }
+): Promise<ServiceResult<UserProfile>> {
+	try {
+		const user = await prisma.user.update({
+			where: { username },
+			data: changes,
+			select: profileSelect,
+		});
+		return success(user);
+	} catch (error) {
+		logger.error("Failed to update user profile", {
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return failure("INTERNAL", "Database Error");
+	}
+}
+
+/**
+ * Deletes the Better Lise account: the user row and everything stored for it
+ * (grades, absences, achievements, coefficient votes, push subscriptions).
+ * The Lise account itself lives at the ENSAM and is never touched; signing in
+ * again simply creates a fresh Better Lise account.
+ */
+export async function deleteAccount(
+	username: string
+): Promise<ServiceResult<{ deleted: true }>> {
+	const user = await prisma.user.findUnique({ where: { username }, select: { id: true } });
+	if (!user) return failure("NOT_FOUND", "User not found");
+
+	const owned = { where: { userId: user.id } };
+	try {
+		await prisma.$transaction([
+			prisma.grade.deleteMany(owned),
+			prisma.absence.deleteMany(owned),
+			prisma.achievement.deleteMany(owned),
+			prisma.gradeWeightVote.deleteMany(owned),
+			prisma.pushSubscription.deleteMany(owned),
+			prisma.user.delete({ where: { id: user.id } }),
+		]);
+		logger.info("Better Lise account deleted", { userId: user.id });
+		return success({ deleted: true });
+	} catch (error) {
+		logger.error("Failed to delete Better Lise account", {
+			userId: user.id,
+			error: error instanceof Error ? error.message : String(error),
+		});
+		return failure("INTERNAL", "Database Error");
+	}
+}
+
+/** Marks one grade (by code) or all of the user's grades as opened. */
+export async function markGradesOpened(
+	username: string,
+	code?: string
+): Promise<ServiceResult<{ updated: number }>> {
+	const user = await prisma.user.findUnique({ where: { username }, select: { id: true } });
+	if (!user) return failure("NOT_FOUND", "User not found");
+
+	const { count } = await prisma.grade.updateMany({
+		where: code ? { userId: user.id, code } : { userId: user.id, opened: false },
+		data: { opened: true },
+	});
+	return success({ updated: count });
+}
+
+/** Puts an opened grade back to "new" so the casino reveal can be replayed. */
+export async function markGradeNew(
+	username: string,
+	code: string
+): Promise<ServiceResult<{ updated: number }>> {
+	const user = await prisma.user.findUnique({ where: { username }, select: { id: true } });
+	if (!user) return failure("NOT_FOUND", "User not found");
+
+	const { count } = await prisma.grade.updateMany({
+		where: { userId: user.id, code, opened: true },
+		data: { opened: false },
+	});
+	return success({ updated: count });
+}

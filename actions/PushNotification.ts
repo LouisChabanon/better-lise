@@ -5,6 +5,7 @@ import prisma from "@/lib/db";
 import { verifySession } from "@/lib/sessions";
 import logger from "@/lib/logger";
 import { tbk, PromoCode } from "@/lib/types";
+import { DEMO_USERNAME } from "@/lib/services/demo";
 
 webpush.setVapidDetails(
 	process.env.VAPID_SUBJECT || "mailto:louis.chabanon@gadz.org",
@@ -163,6 +164,8 @@ export async function notifyClassmates(
 					class: classCode,
 					tbk: tbk,
 					id: { not: triggerUserId },
+					// Store reviewers must never receive real students' grades
+					username: { not: DEMO_USERNAME },
 				},
 			},
 		});
