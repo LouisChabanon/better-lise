@@ -151,6 +151,7 @@ fun BetterLiseRoot(container: AppContainer) {
                     GradesScreen(
                         grades,
                         revealMode = settingsState.settings.revealMode,
+                        revealAnimation = settingsState.settings.revealAnimation,
                         onSignIn = openLogin,
                         simulator = simulator,
                         onOpenAchievements = openAchievements,

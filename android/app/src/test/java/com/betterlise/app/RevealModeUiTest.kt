@@ -1,5 +1,11 @@
 package com.betterlise.app
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -14,6 +20,7 @@ import com.betterlise.app.data.auth.InMemorySecureStore
 import com.betterlise.app.data.auth.SessionRepository
 import com.betterlise.app.data.cache.ResponseCache
 import com.betterlise.app.data.health.LiseHealthMonitor
+import com.betterlise.app.data.settings.RevealAnimation
 import com.betterlise.app.ui.grades.GradesScreen
 import com.betterlise.app.ui.grades.GradesViewModel
 import com.betterlise.app.ui.theme.BetterLiseTheme
@@ -37,6 +44,7 @@ class RevealModeUiTest {
     @get:Rule val tmp = TemporaryFolder()
     private val server = MockWebServer()
     @Volatile private var mataIsNew = true
+    private var animation by mutableStateOf(RevealAnimation.Case)
 
     @Before
     fun setUp() {
@@ -65,7 +73,9 @@ class RevealModeUiTest {
             ResponseCache(tmp.newFolder("cache")),
             LiseHealthMonitor(fetch = { LiseHealth(1_500.0, 10) }),
         )
-        compose.setContent { BetterLiseTheme { GradesScreen(viewModel, revealMode = true, onSignIn = {}) } }
+        compose.setContent {
+            BetterLiseTheme { GradesScreen(viewModel, revealMode = true, onSignIn = {}, revealAnimation = animation) }
+        }
     }
 
     @After
@@ -93,4 +103,28 @@ class RevealModeUiTest {
         compose.onNodeWithText("Marquer comme nouvelle").performScrollTo().performClick()
         compose.waitUntil(10_000) { compose.onAllNodes(hasTestTag("hiddenGrade")).fetchSemanticsNodes().isNotEmpty() }
     }
+
+    @Test
+    fun newGradeIsRevealedThroughTheSlotMachine() {
+        animation = RevealAnimation.Slot
+        compose.waitUntil(10_000) { compose.onAllNodes(hasTestTag("hiddenGrade")).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("hiddenGrade").performClick()
+
+        compose.waitUntil(5_000) { compose.onAllNodes(androidx.compose.ui.test.hasText("Voir la note")).fetchSemanticsNodes().isNotEmpty() }
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithText("Voir la note").performClick()
+        compose.mainClock.advanceTimeBy(3_000)
+        compose.onNodeWithTag("slotMachine").assert(state("Défilement en cours"))
+        compose.onNodeWithText("Révélation en cours…").assertExists()
+
+        // The tens reel lands at 5.8 s
+        compose.mainClock.advanceTimeBy(3_500)
+        compose.onNodeWithTag("slotMachine").assert(state("Arrêtée sur 18,50"))
+
+        compose.mainClock.advanceTimeBy(3_500)
+        compose.mainClock.autoAdvance = true
+        compose.waitUntil(10_000) { compose.onAllNodes(androidx.compose.ui.test.hasText("Moyenne")).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    private fun state(value: String) = SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, value)
 }

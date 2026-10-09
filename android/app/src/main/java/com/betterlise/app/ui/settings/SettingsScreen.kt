@@ -21,6 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.betterlise.app.BuildConfig
 import com.betterlise.app.data.settings.Campus
 import com.betterlise.app.data.settings.Promo
+import com.betterlise.app.data.settings.RevealAnimation
 import com.betterlise.app.domain.LiseId
 import com.betterlise.app.ui.components.SurfaceCard
 import com.betterlise.app.ui.theme.AppTheme
@@ -137,6 +141,20 @@ fun SettingsScreen(
                         )
                     }
                     Switch(checked = state.settings.revealMode, onCheckedChange = viewModel::setRevealMode)
+                }
+                if (state.settings.revealMode) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Animation", Modifier.weight(1f))
+                        SingleChoiceSegmentedButtonRow {
+                            RevealAnimation.entries.forEachIndexed { index, animation ->
+                                SegmentedButton(
+                                    selected = state.settings.revealAnimation == animation,
+                                    onClick = { viewModel.setRevealAnimation(animation) },
+                                    shape = SegmentedButtonDefaults.itemShape(index, RevealAnimation.entries.size),
+                                ) { Text(animation.label) }
+                            }
+                        }
+                    }
                 }
             }
 

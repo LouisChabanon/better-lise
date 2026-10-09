@@ -14,12 +14,14 @@ struct StoresTests {
         #expect(settings.showRU)
         #expect(!settings.hasValidLiseId)
         #expect(!settings.revealMode)
+        #expect(settings.revealAnimation == .reel)
 
         settings.liseId = "2023-1234"
         settings.campus = .cluny
         settings.promo = .gim2
         settings.showRU = false
         settings.revealMode = true
+        settings.revealAnimation = .slot
 
         let reloaded = SettingsStore(defaults: defaults)
         #expect(reloaded.liseId == "2023-1234")
@@ -28,6 +30,18 @@ struct StoresTests {
         #expect(reloaded.promo == .gim2)
         #expect(!reloaded.showRU)
         #expect(reloaded.revealMode)
+        #expect(reloaded.revealAnimation == .slot)
+    }
+
+    @Test func revealAnimationSharesTheWebStoredValues() throws {
+        let suite = "tests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        #expect(RevealAnimation.reel.rawValue == "case")
+        #expect(RevealAnimation.slot.rawValue == "slot")
+        defaults.set("unknown", forKey: "settings.revealAnimation")
+        #expect(SettingsStore(defaults: defaults).revealAnimation == .reel)
     }
 
     @Test func liseIdValidation() {

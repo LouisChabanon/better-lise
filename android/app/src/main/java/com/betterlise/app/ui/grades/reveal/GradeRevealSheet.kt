@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.betterlise.app.data.api.Grade
+import com.betterlise.app.data.settings.RevealAnimation
 import com.betterlise.app.ui.theme.NumberStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -77,11 +78,12 @@ import kotlin.random.Random
 
 private enum class Phase { Ready, Rolling, Revealed }
 
-/** Native port of the web grade reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx). */
+/** Native port of the web grade reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx / SlotMachine.tsx). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GradeRevealSheet(
     grade: Grade,
+    animation: RevealAnimation = RevealAnimation.Case,
     /** The reel stopped on the grade: mark it as opened. */
     onRevealed: () -> Unit,
     /** The reveal was shown long enough: move on to the grade detail. */
@@ -122,18 +124,29 @@ fun GradeRevealSheet(
                     Text(grade.code, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
-                Reel(
-                    reel = reel,
-                    phase = phase,
-                    rarityColor = rarityColor,
-                    animationsEnabled = animationsEnabled,
-                    onTick = { sound.playTick() },
-                    onStopped = {
-                        sound.playReveal()
-                        phase = Phase.Revealed
-                        onRevealed()
-                    },
-                )
+                val onStopped = {
+                    sound.playReveal()
+                    phase = Phase.Revealed
+                    onRevealed()
+                }
+                when (animation) {
+                    RevealAnimation.Case -> Reel(
+                        reel = reel,
+                        phase = phase,
+                        rarityColor = rarityColor,
+                        animationsEnabled = animationsEnabled,
+                        onTick = { sound.playTick() },
+                        onStopped = onStopped,
+                    )
+                    RevealAnimation.Slot -> SlotStage(
+                        grade = grade.note,
+                        phase = phase,
+                        rarityColor = rarityColor,
+                        animationsEnabled = animationsEnabled,
+                        onTick = { sound.playTick() },
+                        onStopped = onStopped,
+                    )
+                }
 
                 AnimatedContent(
                     targetState = phase,
@@ -192,24 +205,7 @@ private fun Reel(
     onStopped: () -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(16.dp)
-    val glow = if (phase == Phase.Revealed && animationsEnabled) {
-        rememberInfiniteTransition(label = "neon").animateFloat(10f, 30f, infiniteRepeatable(tween(500), RepeatMode.Reverse), label = "glow").value
-    } else if (phase == Phase.Revealed) {
-        16f
-    } else {
-        0f
-    }
-
-    BoxWithConstraints(
-        Modifier
-            .fillMaxWidth()
-            .height(140.dp)
-            .shadow(glow.dp, shape, ambientColor = rarityColor, spotColor = rarityColor)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.background)
-            .border(4.dp, MaterialTheme.colorScheme.surfaceVariant, shape),
-    ) {
+    BoxWithConstraints(Modifier.revealFrame(revealGlow(phase, animationsEnabled), rarityColor)) {
         val containerWidth = maxWidth.value
         val offset = remember { Animatable(0f) }
         val latestOnTick by rememberUpdatedState(onTick)
@@ -255,14 +251,52 @@ private fun Reel(
 }
 
 @Composable
-private fun ReadyPrompt(animationsEnabled: Boolean) {
+private fun SlotStage(
+    grade: Double,
+    phase: Phase,
+    rarityColor: Color,
+    animationsEnabled: Boolean,
+    onTick: () -> Unit,
+    onStopped: () -> Unit,
+) {
+    Box(Modifier.revealFrame(revealGlow(phase, animationsEnabled), rarityColor), contentAlignment = Alignment.Center) {
+        if (phase == Phase.Ready) {
+            ReadyPrompt(animationsEnabled, emoji = "🎰")
+        } else {
+            SlotMachine(grade = grade, animationsEnabled = animationsEnabled, onTick = onTick, onStopped = onStopped)
+        }
+    }
+}
+
+/** Neon glow pulsing in the rarity color once revealed (web `modal-neon-glow`). */
+@Composable
+private fun revealGlow(phase: Phase, animationsEnabled: Boolean): Float = when {
+    phase == Phase.Revealed && animationsEnabled ->
+        rememberInfiniteTransition(label = "neon").animateFloat(10f, 30f, infiniteRepeatable(tween(500), RepeatMode.Reverse), label = "glow").value
+    phase == Phase.Revealed -> 16f
+    else -> 0f
+}
+
+@Composable
+private fun Modifier.revealFrame(glow: Float, rarityColor: Color): Modifier {
+    val shape = RoundedCornerShape(16.dp)
+    return fillMaxWidth()
+        .height(140.dp)
+        .shadow(glow.dp, shape, ambientColor = rarityColor, spotColor = rarityColor)
+        .clip(shape)
+        .background(MaterialTheme.colorScheme.background)
+        .border(4.dp, MaterialTheme.colorScheme.surfaceVariant, shape)
+}
+
+@Composable
+private fun ReadyPrompt(animationsEnabled: Boolean, emoji: String = "🎁") {
     val pulse = if (animationsEnabled) {
         rememberInfiniteTransition(label = "gift").animateFloat(1f, 0.75f, infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "pulse").value
     } else {
         1f
     }
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("🎁", fontSize = 52.sp, modifier = Modifier.alpha(pulse).scale(0.95f + 0.05f * pulse))
+        Text(emoji, fontSize = 52.sp, modifier = Modifier.alpha(pulse).scale(0.95f + 0.05f * pulse))
         Text(
             "Prêt à révéler ?",
             style = MaterialTheme.typography.titleSmall,

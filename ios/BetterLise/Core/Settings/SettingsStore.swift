@@ -22,6 +22,21 @@ enum Campus: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// Which animation hides a new grade in reveal mode (web `reveal_animation`).
+enum RevealAnimation: String, CaseIterable, Identifiable, Sendable {
+    case reel = "case", slot = "slot"
+
+    var id: String { rawValue }
+
+    /// Neutral names, as on the web: the animation is part of the surprise.
+    var label: String {
+        switch self {
+        case .reel: "Mode 1"
+        case .slot: "Mode 2"
+        }
+    }
+}
+
 enum Promo: String, CaseIterable, Identifiable, Sendable {
     case gim1 = "GIM1", gim2 = "GIM2", gie1 = "GIE1", gie2 = "GIE2", exp = "EXP", other = "Autre"
 
@@ -38,6 +53,7 @@ final class SettingsStore {
         static let promo = "settings.promo"
         static let showRU = "settings.showRU"
         static let revealMode = "settings.revealMode"
+        static let revealAnimation = "settings.revealAnimation"
     }
 
     private let defaults: UserDefaults
@@ -63,6 +79,10 @@ final class SettingsStore {
         didSet { defaults.set(revealMode, forKey: Keys.revealMode) }
     }
 
+    var revealAnimation: RevealAnimation {
+        didSet { defaults.set(revealAnimation.rawValue, forKey: Keys.revealAnimation) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         liseId = defaults.string(forKey: Keys.liseId) ?? ""
@@ -70,6 +90,7 @@ final class SettingsStore {
         promo = defaults.string(forKey: Keys.promo).flatMap(Promo.init(rawValue:))
         showRU = defaults.object(forKey: Keys.showRU) as? Bool ?? true
         revealMode = defaults.bool(forKey: Keys.revealMode)
+        revealAnimation = defaults.string(forKey: Keys.revealAnimation).flatMap(RevealAnimation.init(rawValue:)) ?? .reel
     }
 
     var hasValidLiseId: Bool { LiseID.isValid(liseId) }

@@ -8,6 +8,7 @@ import com.betterlise.app.data.auth.SessionState
 import com.betterlise.app.data.cache.ResponseCache
 import com.betterlise.app.data.settings.Campus
 import com.betterlise.app.data.settings.Promo
+import com.betterlise.app.data.settings.RevealAnimation
 import com.betterlise.app.data.settings.SettingsRepository
 import com.betterlise.app.data.settings.UserSettings
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +51,7 @@ class SettingsViewModel(
     fun setLiseId(value: String) = viewModelScope.launch { repository.setLiseId(value) }
     fun setShowRu(value: Boolean) = viewModelScope.launch { repository.setShowRu(value) }
     fun setRevealMode(value: Boolean) = viewModelScope.launch { repository.setRevealMode(value) }
+    fun setRevealAnimation(value: RevealAnimation) = viewModelScope.launch { repository.setRevealAnimation(value) }
 
     fun setCampus(value: Campus) = viewModelScope.launch {
         repository.setCampus(value)

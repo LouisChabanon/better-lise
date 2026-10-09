@@ -33,6 +33,17 @@ enum class Promo(val id: String) {
     }
 }
 
+/** Which animation hides a new grade in reveal mode. Same stored values as the web `reveal_animation`. */
+enum class RevealAnimation(val id: String, val label: String) {
+    // Neutral names, as on the web: the animation is part of the surprise
+    Case("case", "Mode 1"),
+    Slot("slot", "Mode 2");
+
+    companion object {
+        fun fromId(id: String?) = entries.firstOrNull { it.id == id }
+    }
+}
+
 data class UserSettings(
     val liseId: String = "",
     val campus: Campus = Campus.Sibers,
@@ -40,6 +51,7 @@ data class UserSettings(
     val showRu: Boolean = true,
     /** New grades are hidden behind an animated reveal. Off by default. */
     val revealMode: Boolean = false,
+    val revealAnimation: RevealAnimation = RevealAnimation.Case,
 ) {
     val hasValidLiseId: Boolean get() = LiseId.isValid(liseId)
 }
@@ -53,6 +65,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             promo = Promo.fromId(prefs[PROMO]),
             showRu = prefs[SHOW_RU] ?: true,
             revealMode = prefs[REVEAL_MODE] ?: false,
+            revealAnimation = RevealAnimation.fromId(prefs[REVEAL_ANIMATION]) ?: RevealAnimation.Case,
         )
     }
 
@@ -60,6 +73,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setCampus(value: Campus) = dataStore.edit { it[CAMPUS] = value.id }
     suspend fun setShowRu(value: Boolean) = dataStore.edit { it[SHOW_RU] = value }
     suspend fun setRevealMode(value: Boolean) = dataStore.edit { it[REVEAL_MODE] = value }
+    suspend fun setRevealAnimation(value: RevealAnimation) = dataStore.edit { it[REVEAL_ANIMATION] = value.id }
     suspend fun setPromo(value: Promo?) = dataStore.edit {
         if (value == null) it.remove(PROMO) else it[PROMO] = value.id
     }
@@ -70,5 +84,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val PROMO = stringPreferencesKey("promo")
         val SHOW_RU = booleanPreferencesKey("show_ru")
         val REVEAL_MODE = booleanPreferencesKey("reveal_mode")
+        val REVEAL_ANIMATION = stringPreferencesKey("reveal_animation")
     }
 }

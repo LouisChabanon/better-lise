@@ -77,6 +77,7 @@ struct GradesView: View {
             }) { grade in
                 GradeRevealSheet(
                     grade: grade,
+                    animation: settings.revealAnimation,
                     onReveal: { Task { await model.markOpened(grade) } },
                     onComplete: {
                         revealedGrade = grade

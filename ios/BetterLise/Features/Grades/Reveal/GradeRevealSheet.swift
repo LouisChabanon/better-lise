@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Native port of the web grade reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx).
+/// Native port of the web grade reveal (components/ui/GradeLootBoxModal.tsx + LootCase.tsx / SlotMachine.tsx).
 struct GradeRevealSheet: View {
     let grade: Grade
+    var animation: RevealAnimation = .reel
     /// The reel stopped on the grade: mark it as opened.
     let onReveal: () -> Void
     /// The reveal was shown long enough: move on to the grade detail.
@@ -34,14 +35,19 @@ struct GradeRevealSheet: View {
                 if phase == .ready {
                     readyCase
                 } else {
-                    ReelView(
-                        items: reel,
-                        highlightsTarget: isRevealed,
-                        motion: reelMotion,
-                        onSoundTick: { sound?.playTick() },
-                        onFinish: reveal
-                    )
-                    reelChrome
+                    switch animation {
+                    case .reel:
+                        ReelView(
+                            items: reel,
+                            highlightsTarget: isRevealed,
+                            motion: reelMotion,
+                            onSoundTick: { sound?.playTick() },
+                            onFinish: reveal
+                        )
+                        reelChrome
+                    case .slot:
+                        SlotMachineView(grade: grade.note, onSoundTick: { sound?.playTick() }, onFinish: reveal)
+                    }
                 }
             }
             .frame(maxWidth: .infinity)
@@ -99,7 +105,7 @@ struct GradeRevealSheet: View {
 
     private var readyCase: some View {
         VStack(spacing: 8) {
-            Text("🎁")
+            Text(animation == .slot ? "🎰" : "🎁")
                 .font(.system(size: 56))
                 .phaseAnimator(reduceMotion ? [1.0] : [1.0, 0.8]) { gift, phase in
                     gift.opacity(phase).scaleEffect(0.95 + 0.05 * phase)

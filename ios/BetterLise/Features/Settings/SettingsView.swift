@@ -63,6 +63,11 @@ struct SettingsView: View {
                         }
                     }
                     .tint(Theme.primary)
+                    if settings.revealMode {
+                        Picker("Animation", selection: $settings.revealAnimation) {
+                            ForEach(RevealAnimation.allCases) { Text($0.label).tag($0) }
+                        }
+                    }
                 } header: {
                     Text("Interface")
                 }

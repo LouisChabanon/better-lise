@@ -26,6 +26,7 @@
 		31B725BEB3AC83703684C749 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426021DFE07CB49362F2DEA2 /* SettingsStore.swift */; };
 		36CF78D049C96A1A60B1FF2A /* reveal_start.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 089B5232E274EBAEDC3B7C6C /* reveal_start.m4a */; };
 		3A474AAD290B377930D96383 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE8C007BB53402BD60CD0437 /* RootTabView.swift */; };
+		3B0BB2371C0B5A17AC01AF4E /* SlotMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602099523144B791232ECD4D /* SlotMachineView.swift */; };
 		4C799A9DD74657A6AE67935E /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9FAA9DC03AD0CBD2B135AA /* AppEnvironment.swift */; };
 		4CD3490280D579C87A4E1F41 /* reveal_tick.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 8049A4601AE7E6CB63DB5787 /* reveal_tick.m4a */; };
 		509E9549F3574B03D239E54B /* UITestNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70597FE59891B98B3B139CB4 /* UITestNavigation.swift */; };
@@ -42,6 +43,7 @@
 		764D81E9584621B225192442 /* GradeDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A687C8AE0023B9D836641528 /* GradeDetailSheet.swift */; };
 		7AB4D28643629506DC0AC10E /* GradeRevealLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D74620D779D71F625F0F49C /* GradeRevealLogicTests.swift */; };
 		7BCD5254DF381A9ECE18D46D /* AccountDeletionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918A7FCE242C9C6C996AC35B /* AccountDeletionUITests.swift */; };
+		800E712B2BCC547702B48F19 /* SlotMachineLogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF0B4DF63648E0DC0B92E2FB /* SlotMachineLogicTests.swift */; };
 		816E3DEDA0D1B3321B32158C /* AchievementDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 150DA40C80A6007F3EE2F983 /* AchievementDetailSheet.swift */; };
 		84E936C9920053CC96A85398 /* SimulatorViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BBF46DE160A23E4BA2340CA /* SimulatorViewModelTests.swift */; };
 		8555DBE40DB0C836553196A4 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6584DD62502D88FE68649061 /* APIError.swift */; };
@@ -49,6 +51,7 @@
 		884BAC1DB902CFB00B5E778A /* GradeRevealSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFAEBCA0C3E305CD3D12CAA /* GradeRevealSheet.swift */; };
 		887BAD1591825BDBFE34F9B9 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 908C1ED9BFF2D28404565922 /* ConfettiView.swift */; };
 		94086A8476A4DB49117A0CB4 /* CoefficientInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = D040A3E5DE40C8E742916705 /* CoefficientInput.swift */; };
+		9450E94929333DDBDC9D70D3 /* SlotMachineLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E361F96992C52B71D86CF1 /* SlotMachineLogic.swift */; };
 		97E6E832C236FE8C8FFA5318 /* ClassCodeParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C802C078F8641C90B44825 /* ClassCodeParserTests.swift */; };
 		9A9B3B7A2F5F0241F87D701A /* EventDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7972040E4806287D8870226B /* EventDetailSheet.swift */; };
 		9C43EC8A32707CF886DEE412 /* GradeSortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36725FE02C0934E7D6962E2 /* GradeSortingTests.swift */; };
@@ -139,6 +142,7 @@
 		5D35205989A85FCC2A42AE14 /* AchievementUnlockBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementUnlockBanner.swift; sourceTree = "<group>"; };
 		5D9B19889CD4A870D222D651 /* AgendaSwipeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgendaSwipeUITests.swift; sourceTree = "<group>"; };
 		5FE6CF2878FDCE0010FF24AF /* GradeSorting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeSorting.swift; sourceTree = "<group>"; };
+		602099523144B791232ECD4D /* SlotMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlotMachineView.swift; sourceTree = "<group>"; };
 		6176485FB88E3E2D019EE076 /* SimulatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorView.swift; sourceTree = "<group>"; };
 		6584DD62502D88FE68649061 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		6D213F4538BFEDD2DEDDE36B /* SimulatorRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorRows.swift; sourceTree = "<group>"; };
@@ -171,9 +175,11 @@
 		BAAB772168D8FE90F01BA5BE /* BetterLiseUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BetterLiseUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BBFAEBCA0C3E305CD3D12CAA /* GradeRevealSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradeRevealSheet.swift; sourceTree = "<group>"; };
 		CBF0637A5ACE0FBF8178156B /* SimulatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorViewModel.swift; sourceTree = "<group>"; };
+		CF0B4DF63648E0DC0B92E2FB /* SlotMachineLogicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlotMachineLogicTests.swift; sourceTree = "<group>"; };
 		D040A3E5DE40C8E742916705 /* CoefficientInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoefficientInput.swift; sourceTree = "<group>"; };
 		D2C37ED73B0A592B4226488E /* ReelContainerViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelContainerViewTests.swift; sourceTree = "<group>"; };
 		D2E93A91491FB48FD589FB6D /* SimulatorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorStore.swift; sourceTree = "<group>"; };
+		D3E361F96992C52B71D86CF1 /* SlotMachineLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlotMachineLogic.swift; sourceTree = "<group>"; };
 		D82E0C066D43B626EEF4E645 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		D873A7FA017323FF847C016E /* StoresTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoresTests.swift; sourceTree = "<group>"; };
 		DA747C4397038A2F51580983 /* GradesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradesView.swift; sourceTree = "<group>"; };
@@ -299,6 +305,7 @@
 				F1C2AC9340A9845002FD7AFB /* SessionStoreTests.swift */,
 				26867A5587EF5F74BDCC548A /* SimulatorGroupingTests.swift */,
 				4BBF46DE160A23E4BA2340CA /* SimulatorViewModelTests.swift */,
+				CF0B4DF63648E0DC0B92E2FB /* SlotMachineLogicTests.swift */,
 				D873A7FA017323FF847C016E /* StoresTests.swift */,
 				84158B32C2A465D7C14E573B /* StubURLProtocol.swift */,
 			);
@@ -368,6 +375,8 @@
 				BBFAEBCA0C3E305CD3D12CAA /* GradeRevealSheet.swift */,
 				8F5A4A2D53660100DEE26B72 /* GradeRevealSound.swift */,
 				3B6133D43A78207EDAC03009 /* ReelView.swift */,
+				D3E361F96992C52B71D86CF1 /* SlotMachineLogic.swift */,
+				602099523144B791232ECD4D /* SlotMachineView.swift */,
 			);
 			path = Reveal;
 			sourceTree = "<group>";
@@ -613,6 +622,7 @@
 				F2F733FC334BCD64C2C5DFF8 /* SessionStoreTests.swift in Sources */,
 				D1C9228A1AE8319E288B643E /* SimulatorGroupingTests.swift in Sources */,
 				84E936C9920053CC96A85398 /* SimulatorViewModelTests.swift in Sources */,
+				800E712B2BCC547702B48F19 /* SlotMachineLogicTests.swift in Sources */,
 				DC07260B3B4E1CC6F08CE7CD /* StoresTests.swift in Sources */,
 				8718E9508A8EEFE9E9C4B3B4 /* StubURLProtocol.swift in Sources */,
 			);
@@ -668,6 +678,8 @@
 				F168C81B34B2EA80B0850D9D /* SimulatorStore.swift in Sources */,
 				A2FBB9C5AA86E7791E3E4631 /* SimulatorView.swift in Sources */,
 				67A27759A063389700B03215 /* SimulatorViewModel.swift in Sources */,
+				9450E94929333DDBDC9D70D3 /* SlotMachineLogic.swift in Sources */,
+				3B0BB2371C0B5A17AC01AF4E /* SlotMachineView.swift in Sources */,
 				1A79B6D1DA8CAEE1E3B8EA8C /* StateViews.swift in Sources */,
 				C4EF9F51BCC528B1B896490C /* Theme.swift in Sources */,
 				B1D1944FEB6E64F4B4D73178 /* UITestSupport.swift in Sources */,

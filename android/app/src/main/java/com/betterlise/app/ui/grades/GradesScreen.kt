@@ -48,15 +48,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.betterlise.app.data.api.Grade
+import com.betterlise.app.data.health.LiseHealthMonitor
+import com.betterlise.app.data.settings.RevealAnimation
 import com.betterlise.app.ui.components.EmptyState
 import com.betterlise.app.ui.components.ErrorBanner
 import com.betterlise.app.ui.components.SignInPrompt
 import com.betterlise.app.ui.components.errorMessage
-import com.betterlise.app.data.health.LiseHealthMonitor
-import com.betterlise.app.ui.loading.SyncAwareContent
-import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.ui.components.isLoading
 import com.betterlise.app.ui.grades.reveal.GradeRevealSheet
+import com.betterlise.app.ui.loading.SyncAwareContent
+import com.betterlise.app.ui.loading.SyncState
 import com.betterlise.app.ui.simulator.SimulatorContent
 import com.betterlise.app.ui.simulator.SimulatorViewModel
 import com.betterlise.app.ui.theme.AppTheme
@@ -73,6 +74,7 @@ fun GradesScreen(
     viewModel: GradesViewModel,
     revealMode: Boolean,
     onSignIn: () -> Unit,
+    revealAnimation: RevealAnimation = RevealAnimation.Case,
     simulator: SimulatorViewModel? = null,
     onOpenAchievements: (() -> Unit)? = null,
 ) {
@@ -136,6 +138,7 @@ fun GradesScreen(
     state.revealing?.let { grade ->
         GradeRevealSheet(
             grade = grade,
+            animation = revealAnimation,
             onRevealed = viewModel::onRevealed,
             onComplete = viewModel::finishReveal,
             onDismiss = viewModel::dismissReveal,
