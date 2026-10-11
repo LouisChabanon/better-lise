@@ -6,8 +6,10 @@ import {
 	LeftOutlined,
 	HomeOutlined,
 	ReloadOutlined,
+	CalendarOutlined,
 } from "@ant-design/icons";
 import { Button } from "./ui/Button";
+import CalendarSubscribeModal from "./ui/CalendarSubscribeModal";
 import { CalendarEvent } from "@/components/ui/CalendarEvent";
 import { CurrentTimeLine } from "@/components/ui/CurrentTimeLine";
 import { getWeekData } from "@/actions/GetWeekData";
@@ -67,6 +69,7 @@ export default function Agenda({
 
 	const [weekOffset, setWeekOffset] = useState<number>(0);
 	const [swipeDirection, setSwipeDirection] = useState<number>(0);
+	const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
 
 	const agendaRef = useRef<HTMLDivElement>(null);
 
@@ -117,6 +120,10 @@ export default function Agenda({
 
 	return (
 		<div className="flex flex-col select-none overflow-hidden rounded-xl h-full">
+			<CalendarSubscribeModal
+				isOpen={isSubscribeOpen}
+				onClose={() => setIsSubscribeOpen(false)}
+			/>
 			{/* ================= DESKTOP HEADER =================  */}
 			<header className="relative z-40 sm:flex flex-none items-center hidden justify-between py-4 px-6">
 				<h1 className="text-xl font-semibold text-textPrimary">
@@ -153,6 +160,14 @@ export default function Agenda({
 							<RightOutlined />
 						</Button>
 						<Button
+							status="secondary"
+							className="mr-2"
+							onClick={() => setIsSubscribeOpen(true)}
+						>
+							<span className="sr-only">S'abonner à l'agenda</span>
+							<CalendarOutlined aria-hidden />
+						</Button>
+						<Button
 							status="primary"
 							onClick={() => refetch()}
 							disabled={isFetching}
@@ -183,6 +198,13 @@ export default function Agenda({
 						disabled={isFetching || weekOffset === 0}
 					>
 						<HomeOutlined />
+					</Button>
+					<Button
+						status="secondary"
+						onClick={() => setIsSubscribeOpen(true)}
+					>
+						<span className="sr-only">S'abonner à l'agenda</span>
+						<CalendarOutlined aria-hidden />
 					</Button>
 					<Button
 						status="primary"

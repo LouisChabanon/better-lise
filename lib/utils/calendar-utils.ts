@@ -1,4 +1,16 @@
 import { CalendarEventProps } from "@/lib/types";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+
+const TZ = "Europe/Paris";
+
+// Builds an instant from a Paris wall-clock time so the result does not depend
+// on the runtime timezone (the server runs in UTC, browsers may be abroad).
+function parisTime(dayKey: string, hours: number, minutes: number, seconds = 0) {
+	const hh = String(hours).padStart(2, "0");
+	const mm = String(minutes).padStart(2, "0");
+	const ss = String(seconds).padStart(2, "0");
+	return fromZonedTime(`${dayKey}T${hh}:${mm}:${ss}`, TZ);
+}
 
 export function CalculateEatingTime(events: CalendarEventProps[]) {
 	// Adjust RU events (from Crous) to fit into actual gaps during meal hours.
@@ -16,8 +28,7 @@ export function CalculateEatingTime(events: CalendarEventProps[]) {
 		{ indices: number[]; events: CalendarEventProps[] }
 	> = {};
 	events.forEach((ev, idx) => {
-		const d = ev.startDate;
-		const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+		const key = formatInTimeZone(ev.startDate, TZ, "yyyy-MM-dd");
 		if (!byDay[key]) byDay[key] = { indices: [], events: [] };
 		byDay[key].indices.push(idx);
 		byDay[key].events.push(ev);
@@ -41,29 +52,8 @@ export function CalculateEatingTime(events: CalendarEventProps[]) {
 		const nonRu = dayEvents.filter((e) => e.type !== "RU");
 
 		// derive meal window for the day
-		const sample = dayEvents[0]?.startDate ?? new Date();
-		const year = sample.getFullYear();
-		const month = sample.getMonth();
-		const parts = dayKey.split("-").map(Number);
-		const day = parts[2];
-		const mealWindowStart = new Date(
-			year,
-			month,
-			day,
-			MEAL_START_HOUR,
-			MEAL_START_MIN,
-			0,
-			0
-		);
-		const mealWindowEnd = new Date(
-			year,
-			month,
-			day,
-			MEAL_END_HOUR,
-			MEAL_END_MIN,
-			0,
-			0
-		);
+		const mealWindowStart = parisTime(dayKey, MEAL_START_HOUR, MEAL_START_MIN);
+		const mealWindowEnd = parisTime(dayKey, MEAL_END_HOUR, MEAL_END_MIN);
 
 		// compute gaps (within meal window) from nonRu events
 		const gaps: { start: Date; end: Date }[] = [];
@@ -77,7 +67,7 @@ export function CalculateEatingTime(events: CalendarEventProps[]) {
 		} else {
 			// before first
 			const first = nonRu[0];
-			const gapStart = new Date(year, month, day, 0, 0, 0);
+			const gapStart = parisTime(dayKey, 0, 0);
 			const gapEnd = first.startDate;
 			const s = gapStart > mealWindowStart ? gapStart : mealWindowStart;
 			const e = gapEnd < mealWindowEnd ? gapEnd : mealWindowEnd;
@@ -104,7 +94,7 @@ export function CalculateEatingTime(events: CalendarEventProps[]) {
 			const last = nonRu[nonRu.length - 1];
 			const s3 =
 				last.endDate > mealWindowStart ? last.endDate : mealWindowStart;
-			const e3 = new Date(year, month, day, 23, 59, 59);
+			const e3 = parisTime(dayKey, 23, 59, 59);
 			const e3clamped = e3 < mealWindowEnd ? e3 : mealWindowEnd;
 			if (
 				(e3clamped.getTime() - s3.getTime()) / (1000 * 60) >=

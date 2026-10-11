@@ -76,6 +76,7 @@ const GetCalendar = async (username: string | null) => {
 
 				// Create a CalendarEventProps object
 				const calendarEvent: CalendarEventProps = {
+					uid: typeof event.uid === "string" ? event.uid : undefined,
 					title: module ? module[1].trim() : summary,
 					startDate: startDate,
 					endDate: endDate,

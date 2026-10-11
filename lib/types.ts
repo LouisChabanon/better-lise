@@ -8,6 +8,7 @@ export type CalendarEventType =
 	| "PROJET";
 
 export type CalendarEventProps = {
+	uid?: string;
 	title: string;
 	startDate: Date;
 	endDate: Date;
