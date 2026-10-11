@@ -13,6 +13,9 @@ import {
 } from "@/lib/utils/reveal-animation";
 import posthog from "posthog-js";
 
+// ~2 semitones per digit lock
+const DIGIT_LOCK_PITCH_STEP = 0.12;
+
 interface GradeModalProps {
   grade: GradeType;
   onClose?: () => void;
@@ -36,7 +39,6 @@ export default function GradeLootBoxModal({
   const [isOpening, setIsOpening] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [animation] = useState(readRevealAnimation);
-  const RevealGame = animation === "slot" ? SlotMachine : LootCase;
 
   // --- Sound hooks ---
   const [playTick] = useSound("/sounds/crate_item_scroll.wav", {
@@ -47,6 +49,10 @@ export default function GradeLootBoxModal({
     volume: 0.3,
   });
   const [playRollStart] = useSound("/sounds/crate_open.wav", { volume: 0.3 });
+  const [playMultHit] = useSound("/sounds/multhit1.ogg", { volume: 1 });
+  // Each successive digit lock plays a bit higher, building up to the reveal
+  const playDigitLock = (lockIndex: number) =>
+    playMultHit({ playbackRate: 1 + lockIndex * DIGIT_LOCK_PITCH_STEP });
 
   useEffect(() => {
     let mounted = true;
@@ -99,12 +105,22 @@ export default function GradeLootBoxModal({
         <div className="lg:flex lg:flex-row lg:gap-8 justify-center">
 
           {isOpening ? (
-            <RevealGame
-              grade={grade.note}
-              onTick={playTick}
-              onReveal={handleReveal}
-              onComplete={onComplete} 
-            />
+            animation === "slot" ? (
+              <SlotMachine
+                grade={grade.note}
+                onTick={playTick}
+                onDigitLock={playDigitLock}
+                onReveal={handleReveal}
+                onComplete={onComplete}
+              />
+            ) : (
+              <LootCase
+                grade={grade.note}
+                onTick={playTick}
+                onReveal={handleReveal}
+                onComplete={onComplete}
+              />
+            )
           ) : (
             <div className="flex flex-col items-center gap-4 w-full">
 

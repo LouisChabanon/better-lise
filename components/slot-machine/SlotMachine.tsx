@@ -19,6 +19,8 @@ interface SlotMachineProps {
 	grade: number;
 	onComplete?: () => void;
 	onTick?: () => void;
+	/** lockIndex: 0 for the first reel to stop, 1 for the next, ... */
+	onDigitLock?: (lockIndex: number) => void;
 	onReveal?: () => void;
 }
 
@@ -26,6 +28,7 @@ export default function SlotMachine({
 	grade,
 	onComplete,
 	onTick,
+	onDigitLock,
 	onReveal,
 }: SlotMachineProps) {
 	const reducedMotion = useReducedMotion() ?? false;
@@ -47,11 +50,13 @@ export default function SlotMachine({
 
 	const handleStop = useCallback(
 		(reelIndex: number) => {
+			const lockIndex = stoppedCount.current;
 			stoppedCount.current += 1;
-			onTick?.();
+			if (onDigitLock) onDigitLock(lockIndex);
+			else onTick?.();
 			setStoppedReels((prev) => new Set(prev).add(reelIndex));
 		},
-		[onTick],
+		[onTick, onDigitLock],
 	);
 
 	useEffect(() => {
