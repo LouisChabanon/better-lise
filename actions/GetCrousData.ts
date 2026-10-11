@@ -109,7 +109,10 @@ export default async function getCrousData(tbk: tbk) {
 					.map((item) => `${item.ilot.name}\n${item.ilot.food.join(", ")}`)
 					.join(`\n\n`);
 
+				const dayKey = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+
 				mealEvents.push({
+					uid: `ru-${dayKey}-${tbk}@better-lise`,
 					title: "RU",
 					type: "RU",
 					summary,

@@ -5,12 +5,30 @@ import { GradeType } from "@/lib/types";
 import { Button } from "./Button";
 import useSound from "use-sound";
 import LootCase from "../LootCase";
+import SlotMachine from "../slot-machine/SlotMachine";
 import { getRarity } from "@/lib/utils/game-utils";
+import {
+  readRevealAnimation,
+  RevealAnimation,
+} from "@/lib/utils/reveal-animation";
+import posthog from "posthog-js";
+
+// ~2 semitones per digit lock
+const DIGIT_LOCK_PITCH_STEP = 0.12;
 
 interface GradeModalProps {
   grade: GradeType;
   onClose?: () => void;
   onComplete?: () => void; // <-- Added onComplete prop
+}
+
+function trackReveal(
+  event: "grade_reveal_started" | "grade_reveal_completed",
+  animation: RevealAnimation,
+) {
+  if (posthog?.has_opted_in_capturing()) {
+    posthog.capture(event, { animation });
+  }
 }
 
 export default function GradeLootBoxModal({
@@ -20,6 +38,7 @@ export default function GradeLootBoxModal({
 }: GradeModalProps) {
   const [isOpening, setIsOpening] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [animation] = useState(readRevealAnimation);
 
   // --- Sound hooks ---
   const [playTick] = useSound("/sounds/crate_item_scroll.wav", {
@@ -30,6 +49,10 @@ export default function GradeLootBoxModal({
     volume: 0.3,
   });
   const [playRollStart] = useSound("/sounds/crate_open.wav", { volume: 0.3 });
+  const [playMultHit] = useSound("/sounds/multhit1.ogg", { volume: 1 });
+  // Each successive digit lock plays a bit higher, building up to the reveal
+  const playDigitLock = (lockIndex: number) =>
+    playMultHit({ playbackRate: 1 + lockIndex * DIGIT_LOCK_PITCH_STEP });
 
   useEffect(() => {
     let mounted = true;
@@ -43,11 +66,13 @@ export default function GradeLootBoxModal({
       playRollStart();
     }
     setIsOpening(true);
+    trackReveal("grade_reveal_started", animation);
   };
 
   const handleReveal = () => {
     if(playReveal) playReveal();
     setIsRevealed(true);
+    trackReveal("grade_reveal_completed", animation);
   }
 
   const { color } = getRarity(Number(grade.note))
@@ -80,18 +105,28 @@ export default function GradeLootBoxModal({
         <div className="lg:flex lg:flex-row lg:gap-8 justify-center">
 
           {isOpening ? (
-            <LootCase
-              grade={grade.note}
-              onTick={playTick}
-              onReveal={handleReveal}
-              onComplete={onComplete} 
-            />
+            animation === "slot" ? (
+              <SlotMachine
+                grade={grade.note}
+                onTick={playTick}
+                onDigitLock={playDigitLock}
+                onReveal={handleReveal}
+                onComplete={onComplete}
+              />
+            ) : (
+              <LootCase
+                grade={grade.note}
+                onTick={playTick}
+                onReveal={handleReveal}
+                onComplete={onComplete}
+              />
+            )
           ) : (
             <div className="flex flex-col items-center gap-4 w-full">
 
               <div className="relative w-full max-w-[600px] h-[160px] overflow-hidden border-4 border-backgroundTertiary rounded-xl bg-backgroundSecondary flex items-center justify-center">
                 <span className="text-6xl text-textTertiary animate-pulse">
-                  🎁
+                  {animation === "slot" ? "🎰" : "🎁"}
                 </span>
                 <p className="absolute bottom-4 text-textTertiary font-semibold">
                   Prêt à révéler ?

@@ -6,9 +6,24 @@ export interface Release {
 	fixes?: string[];
 }
 
-export const CURRENT_VERSION = "1.4.0";
+export const CURRENT_VERSION = "1.5.0";
 
 export const CHANGELOG: Release[] = [
+	{
+		version: "1.5.0",
+		date: "11 Oct 2026",
+		title: "Abonnement calendrier & Nouvelle animation",
+		features: [
+			"Possibilité d'ajouter l'emploi du temps Better-Lise à Apple Calendrier, Outlook ou Google Agenda",
+			"Le calendrier garde la mise en forme Better-Lise (noms de cours lisibles, salle, intervenant) et peut inclure le menu du RU",
+			"Il se met à jour automatiquement quand Lise change (salle déplacée, intervenant manquant...)",
+			"Nouvelle animation 'machine à sous' pour le reveal des notes, à choisir dans les paramètres",
+			"Nouvelle barre de chargement",
+		],
+		fixes: [
+			"Les codes de notes trop longs ne débordent plus sur la page 'Mes Moyennes'",
+		],
+	},
 	{
 		version: "1.4.0",
 		date: "27 Jan 2026",

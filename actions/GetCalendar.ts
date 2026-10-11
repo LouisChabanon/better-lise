@@ -4,6 +4,7 @@ import { CalendarEventProps } from "@/lib/types";
 import { fromZonedTime } from "date-fns-tz";
 import logger from "@/lib/logger";
 import { liseIdChecker } from "@/lib/validators";
+import { demoCalendarEvents, isDemoUsername } from "@/lib/services/demo";
 
 const tz = "Europe/Paris";
 
@@ -22,6 +23,10 @@ const GetCalendar = async (username: string | null) => {
 
 	if (!liseIdChecker(username)) {
 		return { events: [], status: "error" };
+	}
+
+	if (isDemoUsername(username)) {
+		return { events: demoCalendarEvents(new Date()), status: "success" } as CalendarDataResponse;
 	}
 
 	try {
@@ -71,6 +76,7 @@ const GetCalendar = async (username: string | null) => {
 
 				// Create a CalendarEventProps object
 				const calendarEvent: CalendarEventProps = {
+					uid: typeof event.uid === "string" ? event.uid : undefined,
 					title: module ? module[1].trim() : summary,
 					startDate: startDate,
 					endDate: endDate,

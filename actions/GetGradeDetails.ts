@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { GradeType, GradeDetailType } from "@/lib/types";
 import { unstable_cache } from "next/cache";
 import logger from "@/lib/logger";
+import { demoClassmateGrades, isDemoGradeCode } from "@/lib/services/demo";
 
 function calculateMedian(grades: number[]): number {
 	if (grades.length === 0) return 0;
@@ -51,6 +52,20 @@ function calculateDistribution(grades: number[]): {
 		}
 	});
 	return { labels, counts };
+}
+
+function statsFromGrades(gradeList: number[]): NonNullable<GradeDetailType["data"]> {
+	const count = gradeList.length;
+	const avg = count > 0 ? gradeList.reduce((sum, g) => sum + g, 0) / count : 0;
+	return {
+		avg,
+		min: count > 0 ? Math.min(...gradeList) : 0,
+		max: count > 0 ? Math.max(...gradeList) : 0,
+		count,
+		median: calculateMedian(gradeList),
+		stdDeviation: calculateStdDeviation(gradeList, avg),
+		distribution: calculateDistribution(gradeList),
+	};
 }
 
 async function GetAndCalculateGradeDetails(
@@ -107,6 +122,10 @@ async function GetAndCalculateGradeDetails(
 export default async function GetGradeDetails(
 	grade: GradeType
 ): Promise<GradeDetailType> {
+	// Review account grades are fixtures: their class is imaginary too
+	if (isDemoGradeCode(grade.code)) {
+		return { data: statsFromGrades(demoClassmateGrades(grade.code)) };
+	}
 	return unstable_cache(
 		() => GetAndCalculateGradeDetails(grade),
 		["grade-details", grade.code],

@@ -89,14 +89,15 @@ export default function RealGradeRow({
 							</div>
 						) : (
 							<div
-								className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors w-fit"
+								className="flex items-start gap-1.5 cursor-pointer hover:text-primary transition-colors w-fit max-w-full"
 								onClick={() => {
 									setTempClassName(currentClass);
 									setIsEditingClass(true);
 								}}
 							>
+								{/* Codes are long underscore-joined tokens with no spaces: allow breaking anywhere */}
 								<span
-									className={`font-mono uppercase tracking-wide ${
+									className={`min-w-0 break-all font-mono uppercase tracking-wide ${
 										currentClass === "Autre"
 											? "text-badgeWarningText font-bold"
 											: ""
@@ -104,7 +105,7 @@ export default function RealGradeRow({
 								>
 									{currentClass === "Autre" ? "⚠️ Assigner UE" : grade.code}
 								</span>
-								<EditOutlined className="text-[10px] opacity-60" />
+								<EditOutlined className="mt-0.5 shrink-0 text-[10px] opacity-60" />
 							</div>
 						)}
 					</div>

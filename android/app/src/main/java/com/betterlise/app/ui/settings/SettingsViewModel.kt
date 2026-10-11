@@ -1,0 +1,92 @@
+package com.betterlise.app.ui.settings
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.betterlise.app.data.api.Endpoints
+import com.betterlise.app.data.auth.SessionRepository
+import com.betterlise.app.data.auth.SessionState
+import com.betterlise.app.data.cache.ResponseCache
+import com.betterlise.app.data.settings.Campus
+import com.betterlise.app.data.settings.Promo
+import com.betterlise.app.data.settings.RevealAnimation
+import com.betterlise.app.data.settings.SettingsRepository
+import com.betterlise.app.data.settings.UserSettings
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+data class SettingsUiState(
+    val settings: UserSettings = UserSettings(),
+    val username: String? = null,
+    val syncError: String? = null,
+    val deletion: AccountDeletionState = AccountDeletionState(),
+)
+
+data class AccountDeletionState(
+    val isDeleting: Boolean = false,
+    val error: String? = null,
+    /** Shown after a deletion until the user signs in again. */
+    val isDone: Boolean = false,
+)
+
+class SettingsViewModel(
+    private val session: SessionRepository,
+    private val repository: SettingsRepository,
+    private val cache: ResponseCache,
+    /** Forgets what else the device keeps for the account (simulations, celebrations). */
+    private val onAccountCleared: suspend () -> Unit = {},
+) : ViewModel() {
+    private val syncError = MutableStateFlow<String?>(null)
+    private val deletion = MutableStateFlow(AccountDeletionState())
+
+    val state: StateFlow<SettingsUiState> =
+        combine(repository.settings, session.state, syncError, deletion) { settings, sessionState, error, deletion ->
+            val username = (sessionState as? SessionState.SignedIn)?.username
+            SettingsUiState(settings, username, error, if (username != null) deletion.copy(isDone = false) else deletion)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
+
+    fun setLiseId(value: String) = viewModelScope.launch { repository.setLiseId(value) }
+    fun setShowRu(value: Boolean) = viewModelScope.launch { repository.setShowRu(value) }
+    fun setRevealMode(value: Boolean) = viewModelScope.launch { repository.setRevealMode(value) }
+    fun setRevealAnimation(value: RevealAnimation) = viewModelScope.launch { repository.setRevealAnimation(value) }
+
+    fun setCampus(value: Campus) = viewModelScope.launch {
+        repository.setCampus(value)
+        syncProfile(tbk = value.id, promo = state.value.settings.promo?.id)
+    }
+
+    fun setPromo(value: Promo?) = viewModelScope.launch {
+        repository.setPromo(value)
+        syncProfile(tbk = state.value.settings.campus.id, promo = value?.id)
+    }
+
+    fun signOut() = viewModelScope.launch {
+        deletion.value = AccountDeletionState()
+        session.signOut()
+        cache.clear()
+        onAccountCleared()
+    }
+
+    fun deleteAccount() = viewModelScope.launch {
+        deletion.value = AccountDeletionState(isDeleting = true)
+        deletion.value = runCatching { session.deleteAccount() }.fold(
+            onSuccess = {
+                cache.clear()
+                onAccountCleared()
+                AccountDeletionState(isDone = true)
+            },
+            onFailure = { AccountDeletionState(error = "Suppression impossible : ${it.message}") },
+        )
+    }
+
+    /** Campus and promo are also stored server-side for new-grade notifications. */
+    private suspend fun syncProfile(tbk: String, promo: String?) {
+        if (session.username == null) return
+        syncError.value = runCatching { session.send(Endpoints.updateProfile(promo, tbk)) }
+            .exceptionOrNull()
+            ?.let { "Synchronisation impossible : ${it.message}" }
+    }
+}
