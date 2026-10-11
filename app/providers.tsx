@@ -24,10 +24,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
 	return (
 		<PHProvider>
-			<QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
 				<LazyMotion features={loadFeatures} strict>
 					{children}
-					{/* <ChangelogManager /> */}
+					<ChangelogManager />
 					<ReactQueryDevtools initialIsOpen={false} />
 				</LazyMotion>
 			</QueryClientProvider>
