@@ -7,12 +7,25 @@ import useSound from "use-sound";
 import LootCase from "../LootCase";
 import SlotMachine from "../slot-machine/SlotMachine";
 import { getRarity } from "@/lib/utils/game-utils";
-import { readRevealAnimation } from "@/lib/utils/reveal-animation";
+import {
+  readRevealAnimation,
+  RevealAnimation,
+} from "@/lib/utils/reveal-animation";
+import posthog from "posthog-js";
 
 interface GradeModalProps {
   grade: GradeType;
   onClose?: () => void;
   onComplete?: () => void; // <-- Added onComplete prop
+}
+
+function trackReveal(
+  event: "grade_reveal_started" | "grade_reveal_completed",
+  animation: RevealAnimation,
+) {
+  if (posthog?.has_opted_in_capturing()) {
+    posthog.capture(event, { animation });
+  }
 }
 
 export default function GradeLootBoxModal({
@@ -47,11 +60,13 @@ export default function GradeLootBoxModal({
       playRollStart();
     }
     setIsOpening(true);
+    trackReveal("grade_reveal_started", animation);
   };
 
   const handleReveal = () => {
     if(playReveal) playReveal();
     setIsRevealed(true);
+    trackReveal("grade_reveal_completed", animation);
   }
 
   const { color } = getRarity(Number(grade.note))

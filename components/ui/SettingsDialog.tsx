@@ -367,6 +367,7 @@ export default function SettingsDialog({
 		}
 
 		setError(null);
+		const previousRevealAnimation = readRevealAnimation();
 		localStorage.setItem("lise_id", cleanUsername);
 		localStorage.setItem("tbk", tbkValue);
 		localStorage.setItem("user_class", userClass);
@@ -389,6 +390,13 @@ export default function SettingsDialog({
 			});
 		}
 		isOptedOut ? posthog.opt_out_capturing() : posthog.opt_in_capturing();
+
+		if (!isOptedOut && previousRevealAnimation !== revealAnimation) {
+			posthog.capture("reveal_animation_changed", {
+				from: previousRevealAnimation,
+				to: revealAnimation,
+			});
+		}
 
 		onSave();
 	};
